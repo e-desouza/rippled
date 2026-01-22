@@ -9,6 +9,7 @@
 #include <xrpld/app/ledger/LedgerReplay.h>
 #include <xrpld/app/main/Application.h>
 #include <xrpld/app/misc/CanonicalTXSet.h>
+#include <xrpld/rpc/LedgerDataProvider.h>
 
 #include <xrpl/basics/RangeSet.h>
 #include <xrpl/basics/UptimeClock.h>
@@ -29,7 +30,8 @@ class Transaction;
 // Tracks the current ledger and any ledgers in the process of closing
 // Tracks ledger history
 // Tracks held transactions
-class LedgerMaster : public AbstractFetchPackContainer
+class LedgerMaster : public AbstractFetchPackContainer,
+                     public virtual LedgerDataProvider
 {
 public:
     explicit LedgerMaster(
@@ -41,7 +43,7 @@ public:
     virtual ~LedgerMaster() = default;
 
     LedgerIndex
-    getCurrentLedgerIndex();
+    getCurrentLedgerIndex() override;
     LedgerIndex
     getValidLedgerIndex();
 
@@ -53,18 +55,18 @@ public:
 
     // The current ledger is the ledger we believe new transactions should go in
     std::shared_ptr<ReadView const>
-    getCurrentLedger();
+    getCurrentLedger() override;
 
     // The finalized ledger is the last closed/accepted ledger
     std::shared_ptr<Ledger const>
-    getClosedLedger()
+    getClosedLedger() override
     {
         return mClosedLedger.get();
     }
 
     // The validated ledger is the last fully validated ledger.
     std::shared_ptr<Ledger const>
-    getValidatedLedger();
+    getValidatedLedger() override;
 
     // The Rules are in the last fully validated ledger if there is one.
     Rules
@@ -78,7 +80,7 @@ public:
     std::chrono::seconds
     getPublishedLedgerAge();
     std::chrono::seconds
-    getValidatedLedgerAge();
+    getValidatedLedgerAge() override;
     bool
     isCaughtUp(std::string& reason);
 
@@ -129,7 +131,7 @@ public:
     /** Get a ledger's hash by sequence number using the cache
      */
     uint256
-    getHashBySeq(std::uint32_t index);
+    getHashBySeq(std::uint32_t index) override;
 
     /** Walk to a ledger's hash using the skip list */
     std::optional<LedgerHash>
@@ -149,16 +151,16 @@ public:
         InboundLedger::Reason reason);
 
     std::shared_ptr<Ledger const>
-    getLedgerBySeq(std::uint32_t index);
+    getLedgerBySeq(std::uint32_t index) override;
 
     std::shared_ptr<Ledger const>
-    getLedgerByHash(uint256 const& hash);
+    getLedgerByHash(uint256 const& hash) override;
 
     void
     setLedgerRangePresent(std::uint32_t minV, std::uint32_t maxV);
 
     std::optional<NetClock::time_point>
-    getCloseTimeBySeq(LedgerIndex ledgerIndex);
+    getCloseTimeBySeq(LedgerIndex ledgerIndex) override;
 
     std::optional<NetClock::time_point>
     getCloseTimeByHash(LedgerHash const& ledgerHash, LedgerIndex ledgerIndex);
@@ -169,13 +171,13 @@ public:
     fixMismatch(ReadView const& ledger);
 
     bool
-    haveLedger(std::uint32_t seq);
+    haveLedger(std::uint32_t seq) override;
     void
     clearLedger(std::uint32_t seq);
     bool
-    isValidated(ReadView const& ledger);
+    isValidated(ReadView const& ledger) override;
     bool
-    getValidatedRange(std::uint32_t& minVal, std::uint32_t& maxVal);
+    getValidatedRange(std::uint32_t& minVal, std::uint32_t& maxVal) override;
     bool
     getFullValidatedRange(std::uint32_t& minVal, std::uint32_t& maxVal);
 
