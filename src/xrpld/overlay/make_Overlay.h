@@ -2,7 +2,6 @@
 #define XRPL_OVERLAY_MAKE_OVERLAY_H_INCLUDED
 
 #include <xrpld/overlay/Overlay.h>
-#include <xrpld/rpc/ServerHandler.h>
 
 #include <xrpl/basics/Resolver.h>
 
@@ -18,7 +17,6 @@ std::unique_ptr<Overlay>
 make_Overlay(
     Application& app,
     Overlay::Setup const& setup,
-    ServerHandler& serverHandler,
     Resource::Manager& resourceManager,
     Resolver& resolver,
     boost::asio::io_context& io_context,

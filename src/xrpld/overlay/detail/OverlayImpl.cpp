@@ -11,8 +11,8 @@
 #include <xrpld/overlay/detail/Tuning.h>
 #include <xrpld/overlay/predicates.h>
 #include <xrpld/peerfinder/make_Manager.h>
-#include <xrpld/rpc/handlers/GetCounts.h>
-#include <xrpld/rpc/json_body.h>
+#include <xrpld/app/misc/ServerCounts.h>
+#include <xrpl/server/json_body.h>
 
 #include <xrpl/basics/base64.h>
 #include <xrpl/basics/make_SSLContext.h>
@@ -102,7 +102,6 @@ OverlayImpl::Timer::on_timer(error_code ec)
 OverlayImpl::OverlayImpl(
     Application& app,
     Setup const& setup,
-    ServerHandler& serverHandler,
     Resource::Manager& resourceManager,
     Resolver& resolver,
     boost::asio::io_context& io_context,
@@ -114,7 +113,6 @@ OverlayImpl::OverlayImpl(
     , strand_(boost::asio::make_strand(io_context_))
     , setup_(setup)
     , journal_(app_.journal("Overlay"))
-    , serverHandler_(serverHandler)
     , m_resourceManager(resourceManager)
     , m_peerFinder(PeerFinder::make_Manager(
           io_context,
@@ -465,7 +463,7 @@ OverlayImpl::start()
 {
     PeerFinder::Config config = PeerFinder::Config::makeConfig(
         app_.config(),
-        serverHandler_.setup().overlay.port(),
+        setup_.peerPort,
         app_.getValidationPublicKey().has_value(),
         setup_.ipLimit);
 
@@ -1551,6 +1549,24 @@ setup_Overlay(BasicConfig const& config)
         set(setup.vlEnabled, "enabled", section);
     }
 
+    // Extract peer port from [server] configuration
+    {
+        auto const& serverSection = config.section("server");
+        for (auto const& name : serverSection.values())
+        {
+            auto const& portSection = config.section(name);
+            auto const protocol = portSection.get<std::string>("protocol");
+            if (protocol && protocol->find("peer") != std::string::npos)
+            {
+                if (auto port = portSection.get<std::uint16_t>("port"))
+                {
+                    setup.peerPort = *port;
+                    break;
+                }
+            }
+        }
+    }
+
     try
     {
         auto id = config.legacy("network_id");
@@ -1583,7 +1599,6 @@ std::unique_ptr<Overlay>
 make_Overlay(
     Application& app,
     Overlay::Setup const& setup,
-    ServerHandler& serverHandler,
     Resource::Manager& resourceManager,
     Resolver& resolver,
     boost::asio::io_context& io_context,
@@ -1593,7 +1608,6 @@ make_Overlay(
     return std::make_unique<OverlayImpl>(
         app,
         setup,
-        serverHandler,
         resourceManager,
         resolver,
         io_context,

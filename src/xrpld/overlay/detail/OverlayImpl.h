@@ -9,7 +9,6 @@
 #include <xrpld/overlay/detail/TrafficCount.h>
 #include <xrpld/overlay/detail/TxMetrics.h>
 #include <xrpld/peerfinder/PeerfinderManager.h>
-#include <xrpld/rpc/ServerHandler.h>
 
 #include <xrpl/basics/Resolver.h>
 #include <xrpl/basics/UnorderedContainers.h>
@@ -93,7 +92,6 @@ private:
     boost::container::flat_map<Child*, std::weak_ptr<Child>> list_;
     Setup setup_;
     beast::Journal const journal_;
-    ServerHandler& serverHandler_;
     Resource::Manager& m_resourceManager;
     std::unique_ptr<PeerFinder::Manager> m_peerFinder;
     TrafficCount m_traffic;
@@ -124,7 +122,6 @@ public:
     OverlayImpl(
         Application& app,
         Setup const& setup,
-        ServerHandler& serverHandler,
         Resource::Manager& resourceManager,
         Resolver& resolver,
         boost::asio::io_context& io_context,

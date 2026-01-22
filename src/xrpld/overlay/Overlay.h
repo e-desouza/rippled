@@ -52,6 +52,7 @@ public:
         std::uint32_t crawlOptions = 0;
         std::optional<std::uint32_t> networkID;
         bool vlEnabled = true;
+        std::uint16_t peerPort = 0;  // Port for peer connections
     };
 
     using PeerSequence = std::vector<std::shared_ptr<Peer>>;
