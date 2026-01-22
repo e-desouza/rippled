@@ -218,4 +218,4 @@ xrpld.rpc > xrpl.net
 xrpld.rpc > xrpl.protocol
 xrpld.rpc > xrpl.resource
 xrpld.rpc > xrpl.server
-xrpld.shamap > xrpl.shamap
+xrpld.shamap > xrpld.app

@@ -13,6 +13,3 @@ Loop: xrpld.app xrpld.peerfinder
 Loop: xrpld.app xrpld.rpc
   xrpld.rpc > xrpld.app
 
-Loop: xrpld.app xrpld.shamap
-  xrpld.shamap ~= xrpld.app
-
