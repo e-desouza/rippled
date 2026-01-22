@@ -7,7 +7,7 @@
 #include <xrpld/rpc/ServerHandler.h>
 #include <xrpld/rpc/detail/Tuning.h>
 #include <xrpld/rpc/detail/WSInfoSub.h>
-#include <xrpld/rpc/json_body.h>
+#include <xrpl/server/json_body.h>
 
 #include <xrpl/basics/Log.h>
 #include <xrpl/basics/base64.h>
