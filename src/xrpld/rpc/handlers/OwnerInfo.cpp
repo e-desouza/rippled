@@ -1,4 +1,3 @@
-#include <xrpld/app/ledger/LedgerMaster.h>
 #include <xrpld/app/misc/NetworkOPs.h>
 #include <xrpld/rpc/Context.h>
 
@@ -27,13 +26,13 @@ doOwnerInfo(RPC::JsonContext& context)
     Json::Value ret;
 
     // Get info on account.
-    auto const& closedLedger = context.ledgerMaster.getClosedLedger();
+    auto const& closedLedger = context.ledgerDataProvider.getClosedLedger();
     std::optional<AccountID> const accountID = parseBase58<AccountID>(strIdent);
     ret[jss::accepted] = accountID.has_value()
         ? context.netOps.getOwnerInfo(closedLedger, accountID.value())
         : rpcError(rpcACT_MALFORMED);
 
-    auto const& currentLedger = context.ledgerMaster.getCurrentLedger();
+    auto const& currentLedger = context.ledgerDataProvider.getCurrentLedger();
     ret[jss::current] = accountID.has_value()
         ? context.netOps.getOwnerInfo(currentLedger, *accountID)
         : rpcError(rpcACT_MALFORMED);

@@ -1,4 +1,3 @@
-#include <xrpld/app/ledger/LedgerMaster.h>
 #include <xrpld/app/main/Application.h>
 #include <xrpld/app/misc/SHAMapStore.h>
 #include <xrpld/rpc/Context.h>
@@ -55,7 +54,7 @@ doCanDelete(RPC::JsonContext& context)
             }
             else if (uint256 lh; lh.parseHex(canDeleteStr))
             {
-                auto ledger = context.ledgerMaster.getLedgerByHash(lh);
+                auto ledger = context.ledgerDataProvider.getLedgerByHash(lh);
 
                 if (!ledger)
                     return RPC::make_error(rpcLGR_NOT_FOUND, "ledgerNotFound");

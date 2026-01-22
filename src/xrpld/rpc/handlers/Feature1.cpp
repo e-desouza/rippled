@@ -1,4 +1,3 @@
-#include <xrpld/app/ledger/LedgerMaster.h>
 #include <xrpld/app/main/Application.h>
 #include <xrpld/app/misc/AmendmentTable.h>
 #include <xrpld/rpc/Context.h>
@@ -29,7 +28,7 @@ doFeature(RPC::JsonContext& context)
     // Get majority amendment status
     majorityAmendments_t majorities;
 
-    if (auto const valLedger = context.ledgerMaster.getValidatedLedger())
+    if (auto const valLedger = context.ledgerDataProvider.getValidatedLedger())
         majorities = getMajorityAmendments(*valLedger);
 
     auto& table = context.app.getAmendmentTable();
