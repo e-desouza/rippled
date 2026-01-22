@@ -1,5 +1,5 @@
-#ifndef XRPL_APP_DATA_DBINIT_H_INCLUDED
-#define XRPL_APP_DATA_DBINIT_H_INCLUDED
+#ifndef XRPL_CORE_DBINIT_H_INCLUDED
+#define XRPL_CORE_DBINIT_H_INCLUDED
 
 #include <array>
 #include <cstdint>
@@ -119,3 +119,4 @@ inline constexpr std::array<char const*, 6> WalletDBInit{
 }  // namespace xrpl
 
 #endif
+

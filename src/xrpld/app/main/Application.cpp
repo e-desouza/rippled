@@ -11,7 +11,7 @@
 #include <xrpld/app/ledger/TransactionMaster.h>
 #include <xrpld/app/main/Application.h>
 #include <xrpld/app/main/BasicApp.h>
-#include <xrpld/app/main/DBInit.h>
+#include <xrpld/core/DBInit.h>
 #include <xrpld/app/main/GRPCServer.h>
 #include <xrpld/app/main/LoadManager.h>
 #include <xrpld/app/main/NodeIdentity.h>
@@ -1373,7 +1373,6 @@ ApplicationImp::setup(boost::program_options::variables_map const& cmdline)
     overlay_ = make_Overlay(
         *this,
         setup_Overlay(*config_),
-        *serverHandler_,
         *m_resourceManager,
         *m_resolver,
         get_io_context(),

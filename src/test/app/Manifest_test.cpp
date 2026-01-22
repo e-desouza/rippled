@@ -1,6 +1,6 @@
 #include <test/jtx.h>
 
-#include <xrpld/app/main/DBInit.h>
+#include <xrpld/core/DBInit.h>
 #include <xrpld/app/misc/Manifest.h>
 #include <xrpld/app/misc/ValidatorList.h>
 #include <xrpld/app/rdb/Wallet.h>
