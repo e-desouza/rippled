@@ -33,7 +33,7 @@
 #include <xrpld/overlay/PeerReservationTable.h>
 #include <xrpld/overlay/PeerSet.h>
 #include <xrpld/overlay/make_Overlay.h>
-#include <xrpld/shamap/NodeFamily.h>
+#include <xrpld/app/main/NodeFamily.h>
 
 #include <xrpl/basics/ByteUtilities.h>
 #include <xrpl/basics/ResolverAsio.h>
@@ -1477,6 +1477,7 @@ ApplicationImp::setup(boost::program_options::variables_map const& cmdline)
              *this,
              loadType,
              getOPs(),
+             getLedgerMaster(),
              getLedgerMaster(),
              c,
              Role::ADMIN,
