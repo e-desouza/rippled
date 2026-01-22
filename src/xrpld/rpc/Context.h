@@ -2,6 +2,7 @@
 #define XRPL_RPC_CONTEXT_H_INCLUDED
 
 #include <xrpld/rpc/InfoSub.h>
+#include <xrpld/rpc/LedgerDataProvider.h>
 #include <xrpld/rpc/Role.h>
 
 #include <xrpl/beast/utility/Journal.h>
@@ -23,6 +24,7 @@ struct Context
     Resource::Charge& loadType;
     NetworkOPs& netOps;
     LedgerMaster& ledgerMaster;
+    LedgerDataProvider& ledgerDataProvider;
     Resource::Consumer& consumer;
     Role role;
     std::shared_ptr<JobQueue::Coro> coro{};

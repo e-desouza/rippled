@@ -161,6 +161,7 @@ GRPCServerImpl::CallData<Request, Response>::process(
                  loadType,
                  app_.getOPs(),
                  app_.getLedgerMaster(),
+                 app_.getLedgerMaster(),
                  usage,
                  role,
                  coro,
