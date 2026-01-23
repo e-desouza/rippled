@@ -4,6 +4,8 @@
 #include <test/jtx/envconfig.h>
 #include <test/jtx/permissioned_dex.h>
 
+#include <xrpld/app/ledger/LedgerMaster.h>
+#include <xrpld/rpc/LedgerDataProvider.h>
 #include <xrpld/rpc/RPCHandler.h>
 #include <xrpld/rpc/detail/Tuning.h>
 
@@ -128,6 +130,7 @@ public:
              loadType,
              app.getOPs(),
              app.getLedgerMaster(),
+             static_cast<LedgerDataProvider&>(app.getLedgerMaster()),
              c,
              Role::USER,
              {},
@@ -240,6 +243,7 @@ public:
              loadType,
              app.getOPs(),
              app.getLedgerMaster(),
+             static_cast<LedgerDataProvider&>(app.getLedgerMaster()),
              c,
              Role::USER,
              {},

@@ -112,4 +112,3 @@ getCountsJson(Application& app, int minObjectCount)
 }
 
 }  // namespace xrpl
-

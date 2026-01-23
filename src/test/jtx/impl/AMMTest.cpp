@@ -4,6 +4,8 @@
 #include <test/jtx/Env.h>
 #include <test/jtx/pay.h>
 
+#include <xrpld/app/ledger/LedgerMaster.h>
+#include <xrpld/rpc/LedgerDataProvider.h>
 #include <xrpld/rpc/RPCHandler.h>
 
 #include <xrpl/protocol/ApiVersion.h>
@@ -200,6 +202,7 @@ AMMTest::find_paths_request(
          loadType,
          app.getOPs(),
          app.getLedgerMaster(),
+         static_cast<LedgerDataProvider&>(app.getLedgerMaster()),
          c,
          Role::USER,
          {},

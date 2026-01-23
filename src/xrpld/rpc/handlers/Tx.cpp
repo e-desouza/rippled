@@ -1,3 +1,4 @@
+#include <xrpld/app/ledger/LedgerMaster.h>
 #include <xrpld/app/ledger/TransactionMaster.h>
 #include <xrpld/app/misc/DeliverMax.h>
 #include <xrpld/app/misc/NetworkOPs.h>
@@ -20,7 +21,10 @@
 namespace xrpl {
 
 static bool
-isValidated(LedgerDataProvider& ledgerDataProvider, std::uint32_t seq, uint256 const& hash)
+isValidated(
+    LedgerDataProvider& ledgerDataProvider,
+    std::uint32_t seq,
+    uint256 const& hash)
 {
     if (!ledgerDataProvider.haveLedger(seq))
         return false;
@@ -142,7 +146,9 @@ doTxHelp(RPC::Context& context, TxArgs args)
             result.meta = meta;
         }
         result.validated = isValidated(
-            context.ledgerDataProvider, ledger->header().seq, ledger->header().hash);
+            context.ledgerDataProvider,
+            ledger->header().seq,
+            ledger->header().hash);
         if (result.validated)
             result.closeTime =
                 context.ledgerDataProvider.getCloseTimeBySeq(txn->getLedger());

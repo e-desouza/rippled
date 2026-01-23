@@ -1,5 +1,6 @@
 #include <xrpld/app/misc/HashRouter.h>
 #include <xrpld/app/misc/NetworkOPs.h>
+#include <xrpld/app/misc/ServerCounts.h>
 #include <xrpld/app/misc/ValidatorList.h>
 #include <xrpld/app/misc/ValidatorSite.h>
 #include <xrpld/app/rdb/RelationalDatabase.h>
@@ -11,15 +12,15 @@
 #include <xrpld/overlay/detail/Tuning.h>
 #include <xrpld/overlay/predicates.h>
 #include <xrpld/peerfinder/make_Manager.h>
-#include <xrpld/app/misc/ServerCounts.h>
-#include <xrpl/server/json_body.h>
 
 #include <xrpl/basics/base64.h>
 #include <xrpl/basics/make_SSLContext.h>
 #include <xrpl/basics/random.h>
 #include <xrpl/beast/core/LexicalCast.h>
+#include <xrpl/beast/rfc2616.h>
 #include <xrpl/protocol/STTx.h>
 #include <xrpl/server/SimpleWriter.h>
+#include <xrpl/server/json_body.h>
 
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/asio/executor_work_guard.hpp>
@@ -1606,13 +1607,7 @@ make_Overlay(
     beast::insight::Collector::ptr const& collector)
 {
     return std::make_unique<OverlayImpl>(
-        app,
-        setup,
-        resourceManager,
-        resolver,
-        io_context,
-        config,
-        collector);
+        app, setup, resourceManager, resolver, io_context, config, collector);
 }
 
 }  // namespace xrpl

@@ -5,6 +5,9 @@
 
 #include <xrpl/json/json_reader.h>
 
+#include <boost/beast/http/read.hpp>
+#include <boost/beast/http/write.hpp>
+
 #include <sstream>
 
 namespace xrpl {

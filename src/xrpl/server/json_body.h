@@ -94,4 +94,3 @@ struct json_body
 }  // namespace xrpl
 
 #endif
-

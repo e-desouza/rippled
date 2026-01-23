@@ -1,8 +1,8 @@
 #ifndef XRPL_APP_DATA_DATABASECON_H_INCLUDED
 #define XRPL_APP_DATA_DATABASECON_H_INCLUDED
 
-#include <xrpld/core/DBInit.h>
 #include <xrpld/core/Config.h>
+#include <xrpld/core/DBInit.h>
 #include <xrpld/core/SociDB.h>
 
 #include <xrpl/core/PerfLog.h>

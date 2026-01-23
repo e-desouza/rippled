@@ -116,8 +116,8 @@ getLedgerRange(
 {
     std::uint32_t uValidatedMin;
     std::uint32_t uValidatedMax;
-    bool bValidated =
-        context.ledgerDataProvider.getValidatedRange(uValidatedMin, uValidatedMax);
+    bool bValidated = context.ledgerDataProvider.getValidatedRange(
+        uValidatedMin, uValidatedMax);
 
     if (!bValidated)
     {

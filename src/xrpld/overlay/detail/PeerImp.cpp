@@ -18,11 +18,13 @@
 #include <xrpl/basics/random.h>
 #include <xrpl/basics/safe_cast.h>
 #include <xrpl/core/PerfLog.h>
+#include <xrpl/json/to_string.h>
 #include <xrpl/protocol/TxFlags.h>
 #include <xrpl/protocol/digest.h>
 
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/beast/core/ostream.hpp>
+#include <boost/beast/http/write.hpp>
 
 #include <algorithm>
 #include <chrono>

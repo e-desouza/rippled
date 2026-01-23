@@ -1,3 +1,4 @@
+#include <xrpld/app/ledger/Ledger.h>
 #include <xrpld/rpc/Context.h>
 
 #include <xrpl/json/json_value.h>

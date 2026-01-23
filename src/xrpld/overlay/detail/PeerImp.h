@@ -25,6 +25,7 @@
 #include <cstdint>
 #include <optional>
 #include <queue>
+#include <shared_mutex>
 
 namespace xrpl {
 

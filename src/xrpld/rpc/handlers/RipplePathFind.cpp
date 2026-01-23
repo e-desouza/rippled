@@ -1,3 +1,4 @@
+#include <xrpld/app/ledger/LedgerMaster.h>
 #include <xrpld/app/paths/PathRequests.h>
 #include <xrpld/rpc/Context.h>
 #include <xrpld/rpc/detail/LegacyPathFind.h>

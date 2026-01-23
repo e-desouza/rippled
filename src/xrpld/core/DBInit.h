@@ -119,4 +119,3 @@ inline constexpr std::array<char const*, 6> WalletDBInit{
 }  // namespace xrpl
 
 #endif
-

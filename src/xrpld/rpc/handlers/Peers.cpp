@@ -6,6 +6,7 @@
 #include <xrpld/rpc/Context.h>
 
 #include <xrpl/protocol/ErrorCodes.h>
+#include <xrpl/protocol/SecretKey.h>
 #include <xrpl/protocol/jss.h>
 
 namespace xrpl {

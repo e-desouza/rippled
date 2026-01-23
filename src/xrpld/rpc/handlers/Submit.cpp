@@ -1,3 +1,4 @@
+#include <xrpld/app/main/Application.h>
 #include <xrpld/app/misc/Transaction.h>
 #include <xrpld/app/tx/apply.h>
 #include <xrpld/rpc/Context.h>

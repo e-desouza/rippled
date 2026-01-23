@@ -3,6 +3,9 @@
 
 #include <xrpld/overlay/detail/OverlayImpl.h>
 
+#include <xrpl/beast/net/IPAddressConversion.h>
+#include <xrpl/beast/utility/WrappedSink.h>
+
 #include <chrono>
 
 namespace xrpl {

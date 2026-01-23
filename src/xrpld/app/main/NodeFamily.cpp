@@ -88,4 +88,3 @@ NodeFamily::acquire(uint256 const& hash, std::uint32_t seq)
 }
 
 }  // namespace xrpl
-

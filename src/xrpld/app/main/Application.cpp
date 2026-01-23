@@ -11,9 +11,9 @@
 #include <xrpld/app/ledger/TransactionMaster.h>
 #include <xrpld/app/main/Application.h>
 #include <xrpld/app/main/BasicApp.h>
-#include <xrpld/core/DBInit.h>
 #include <xrpld/app/main/GRPCServer.h>
 #include <xrpld/app/main/LoadManager.h>
+#include <xrpld/app/main/NodeFamily.h>
 #include <xrpld/app/main/NodeIdentity.h>
 #include <xrpld/app/main/NodeStoreScheduler.h>
 #include <xrpld/app/misc/AmendmentTable.h>
@@ -28,12 +28,13 @@
 #include <xrpld/app/rdb/RelationalDatabase.h>
 #include <xrpld/app/rdb/Wallet.h>
 #include <xrpld/app/tx/apply.h>
+#include <xrpld/core/DBInit.h>
 #include <xrpld/core/DatabaseCon.h>
 #include <xrpld/overlay/Cluster.h>
 #include <xrpld/overlay/PeerReservationTable.h>
 #include <xrpld/overlay/PeerSet.h>
 #include <xrpld/overlay/make_Overlay.h>
-#include <xrpld/app/main/NodeFamily.h>
+#include <xrpld/rpc/ServerHandler.h>
 
 #include <xrpl/basics/ByteUtilities.h>
 #include <xrpl/basics/ResolverAsio.h>

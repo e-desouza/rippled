@@ -1,13 +1,14 @@
+#include <xrpld/app/ledger/LedgerMaster.h>
 #include <xrpld/app/main/Application.h>
 #include <xrpld/app/misc/NetworkOPs.h>
 #include <xrpld/core/ConfigSections.h>
 #include <xrpld/overlay/Overlay.h>
+#include <xrpld/rpc/LedgerDataProvider.h>
 #include <xrpld/rpc/RPCHandler.h>
 #include <xrpld/rpc/Role.h>
 #include <xrpld/rpc/ServerHandler.h>
 #include <xrpld/rpc/detail/Tuning.h>
 #include <xrpld/rpc/detail/WSInfoSub.h>
-#include <xrpl/server/json_body.h>
 
 #include <xrpl/basics/Log.h>
 #include <xrpl/basics/base64.h>
@@ -26,6 +27,7 @@
 #include <xrpl/server/Server.h>
 #include <xrpl/server/SimpleWriter.h>
 #include <xrpl/server/detail/JSONRPCUtil.h>
+#include <xrpl/server/json_body.h>
 
 #include <boost/algorithm/string.hpp>
 #include <boost/beast/http/fields.hpp>
@@ -481,7 +483,7 @@ ServerHandler::processSession(
                  loadType,
                  app_.getOPs(),
                  app_.getLedgerMaster(),
-                 app_.getLedgerMaster(),
+                 static_cast<LedgerDataProvider&>(app_.getLedgerMaster()),
                  is->getConsumer(),
                  role,
                  coro,
@@ -881,7 +883,7 @@ ServerHandler::processRequest(
              loadType,
              m_networkOPs,
              app_.getLedgerMaster(),
-             app_.getLedgerMaster(),
+             static_cast<LedgerDataProvider&>(app_.getLedgerMaster()),
              usage,
              role,
              coro,

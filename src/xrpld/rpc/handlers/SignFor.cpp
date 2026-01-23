@@ -1,3 +1,4 @@
+#include <xrpld/app/main/Application.h>
 #include <xrpld/rpc/Context.h>
 #include <xrpld/rpc/detail/TransactionSign.h>
 

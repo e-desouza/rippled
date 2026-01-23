@@ -59,8 +59,9 @@ doTransactionEntry(RPC::JsonContext& context)
                 jvResult[jss::hash] = to_string(sttx->getTransactionID());
 
                 if (!lpLedger->open())
-                    jvResult[jss::ledger_hash] = to_string(
-                        context.ledgerDataProvider.getHashBySeq(lpLedger->seq()));
+                    jvResult[jss::ledger_hash] =
+                        to_string(context.ledgerDataProvider.getHashBySeq(
+                            lpLedger->seq()));
 
                 bool const validated =
                     context.ledgerDataProvider.isValidated(*lpLedger);
@@ -69,8 +70,9 @@ doTransactionEntry(RPC::JsonContext& context)
                 if (validated)
                 {
                     jvResult[jss::ledger_index] = lpLedger->seq();
-                    if (auto closeTime = context.ledgerDataProvider.getCloseTimeBySeq(
-                            lpLedger->seq()))
+                    if (auto closeTime =
+                            context.ledgerDataProvider.getCloseTimeBySeq(
+                                lpLedger->seq()))
                         jvResult[jss::close_time_iso] =
                             to_string_iso(*closeTime);
                 }
