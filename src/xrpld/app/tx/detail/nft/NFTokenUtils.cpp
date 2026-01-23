@@ -1,4 +1,4 @@
-#include <xrpld/app/tx/detail/NFTokenUtils.h>
+#include <xrpld/app/tx/detail/nft/NFTokenUtils.h>
 
 #include <xrpl/basics/algorithm.h>
 #include <xrpl/ledger/Dir.h>

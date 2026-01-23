@@ -309,7 +309,7 @@ TRANSACTION(ttACCOUNT_DELETE, 21, AccountDelete,
 
 /** This transaction mints a new NFT. */
 #if TRANSACTION_INCLUDE
-#   include <xrpld/app/tx/detail/NFTokenMint.h>
+#   include <xrpld/app/tx/detail/nft/NFTokenMint.h>
 #endif
 TRANSACTION(ttNFTOKEN_MINT, 25, NFTokenMint,
     Delegation::delegable,
@@ -327,7 +327,7 @@ TRANSACTION(ttNFTOKEN_MINT, 25, NFTokenMint,
 
 /** This transaction burns (i.e. destroys) an existing NFT. */
 #if TRANSACTION_INCLUDE
-#   include <xrpld/app/tx/detail/NFTokenBurn.h>
+#   include <xrpld/app/tx/detail/nft/NFTokenBurn.h>
 #endif
 TRANSACTION(ttNFTOKEN_BURN, 26, NFTokenBurn,
     Delegation::delegable,
@@ -340,7 +340,7 @@ TRANSACTION(ttNFTOKEN_BURN, 26, NFTokenBurn,
 
 /** This transaction creates a new offer to buy or sell an NFT. */
 #if TRANSACTION_INCLUDE
-#   include <xrpld/app/tx/detail/NFTokenCreateOffer.h>
+#   include <xrpld/app/tx/detail/nft/NFTokenCreateOffer.h>
 #endif
 TRANSACTION(ttNFTOKEN_CREATE_OFFER, 27, NFTokenCreateOffer,
     Delegation::delegable,
@@ -356,7 +356,7 @@ TRANSACTION(ttNFTOKEN_CREATE_OFFER, 27, NFTokenCreateOffer,
 
 /** This transaction cancels an existing offer to buy or sell an existing NFT. */
 #if TRANSACTION_INCLUDE
-#   include <xrpld/app/tx/detail/NFTokenCancelOffer.h>
+#   include <xrpld/app/tx/detail/nft/NFTokenCancelOffer.h>
 #endif
 TRANSACTION(ttNFTOKEN_CANCEL_OFFER, 28, NFTokenCancelOffer,
     Delegation::delegable,
@@ -368,7 +368,7 @@ TRANSACTION(ttNFTOKEN_CANCEL_OFFER, 28, NFTokenCancelOffer,
 
 /** This transaction accepts an existing offer to buy or sell an existing  NFT. */
 #if TRANSACTION_INCLUDE
-#   include <xrpld/app/tx/detail/NFTokenAcceptOffer.h>
+#   include <xrpld/app/tx/detail/nft/NFTokenAcceptOffer.h>
 #endif
 TRANSACTION(ttNFTOKEN_ACCEPT_OFFER, 29, NFTokenAcceptOffer,
     Delegation::delegable,
@@ -775,7 +775,7 @@ TRANSACTION(ttCREDENTIAL_DELETE, 60, CredentialDelete,
 
 /** This transaction type modify a NFToken */
 #if TRANSACTION_INCLUDE
-#   include <xrpld/app/tx/detail/NFTokenModify.h>
+#   include <xrpld/app/tx/detail/nft/NFTokenModify.h>
 #endif
 TRANSACTION(ttNFTOKEN_MODIFY, 61, NFTokenModify,
     Delegation::delegable,

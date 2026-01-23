@@ -1,5 +1,5 @@
 #include <xrpld/app/tx/detail/LedgerStateFix.h>
-#include <xrpld/app/tx/detail/NFTokenUtils.h>
+#include <xrpld/app/tx/detail/nft/NFTokenUtils.h>
 
 #include <xrpl/ledger/View.h>
 #include <xrpl/protocol/Feature.h>

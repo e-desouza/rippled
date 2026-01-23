@@ -1,6 +1,6 @@
 #include <test/jtx.h>
 
-#include <xrpld/app/tx/detail/NFTokenUtils.h>
+#include <xrpld/app/tx/detail/nft/NFTokenUtils.h>
 
 #include <xrpl/protocol/Feature.h>
 #include <xrpl/protocol/jss.h>

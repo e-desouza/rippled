@@ -1,7 +1,7 @@
 #include <xrpld/app/misc/Transaction.h>
 #include <xrpld/app/paths/TrustLine.h>
 #include <xrpld/app/rdb/RelationalDatabase.h>
-#include <xrpld/app/tx/detail/NFTokenUtils.h>
+#include <xrpld/app/tx/detail/nft/NFTokenUtils.h>
 #include <xrpld/rpc/Context.h>
 #include <xrpld/rpc/DeliveredAmount.h>
 #include <xrpld/rpc/detail/RPCHelpers.h>

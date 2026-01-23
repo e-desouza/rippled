@@ -1,4 +1,4 @@
-#include <xrpld/app/tx/detail/NFTokenMint.h>
+#include <xrpld/app/tx/detail/nft/NFTokenMint.h>
 
 #include <xrpl/basics/Expected.h>
 #include <xrpl/ledger/View.h>

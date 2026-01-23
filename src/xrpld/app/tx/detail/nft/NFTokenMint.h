@@ -1,7 +1,7 @@
 #ifndef XRPL_TX_NFTTOKENMINT_H_INCLUDED
 #define XRPL_TX_NFTTOKENMINT_H_INCLUDED
 
-#include <xrpld/app/tx/detail/NFTokenUtils.h>
+#include <xrpld/app/tx/detail/nft/NFTokenUtils.h>
 #include <xrpld/app/tx/detail/Transactor.h>
 
 #include <xrpl/protocol/nft.h>

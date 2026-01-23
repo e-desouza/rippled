@@ -2,7 +2,7 @@
 #include <test/jtx/AMM.h>
 #include <test/jtx/xchain_bridge.h>
 
-#include <xrpld/app/tx/detail/NFTokenMint.h>
+#include <xrpld/app/tx/detail/nft/NFTokenMint.h>
 
 #include <xrpl/json/json_reader.h>
 #include <xrpl/json/json_value.h>
