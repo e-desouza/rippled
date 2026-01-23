@@ -1,5 +1,3 @@
-#include <xrpld/overlay/detail/handlers/ValidationMessageHandler.h>
-
 #include <xrpld/app/consensus/RCLValidations.h>
 #include <xrpld/app/main/Application.h>
 #include <xrpld/app/misc/LoadFeeTrack.h>
@@ -12,8 +10,10 @@
 #include <xrpld/overlay/detail/PeerImp.h>
 #include <xrpld/overlay/detail/ProtocolVersion.h>
 #include <xrpld/overlay/detail/TrafficCount.h>
+#include <xrpld/overlay/detail/handlers/ValidationMessageHandler.h>
 
 #include <xrpl/basics/UptimeClock.h>
+#include <xrpl/json/to_string.h>
 #include <xrpl/protocol/STValidation.h>
 #include <xrpl/protocol/digest.h>
 
@@ -47,7 +47,8 @@ ValidationMessageHandler::onMessage(
             val = std::make_shared<STValidation>(
                 std::ref(sit),
                 [&app](PublicKey const& pk) {
-                    return calcNodeID(app.validatorManifests().getMasterKey(pk));
+                    return calcNodeID(
+                        app.validatorManifests().getMasterKey(pk));
                 },
                 false);
             val->setSeen(closeTime);
@@ -88,7 +89,10 @@ ValidationMessageHandler::onMessage(
             // Count unique messages for squelch logic
             if (relayed && (stopwatch().now() - *relayed) < reduce_relay::IDLED)
                 overlay.updateSlotAndSquelch(
-                    key, val->getSignerPublic(), peer.id_, protocol::mtVALIDATION);
+                    key,
+                    val->getSignerPublic(),
+                    peer.id_,
+                    protocol::mtVALIDATION);
 
             overlay.reportInboundTraffic(
                 TrafficCount::category::validation_duplicate,
@@ -98,7 +102,8 @@ ValidationMessageHandler::onMessage(
             return;
         }
 
-        if (!isTrusted && (peer.tracking_.load() == PeerImp::Tracking::diverged))
+        if (!isTrusted &&
+            (peer.tracking_.load() == PeerImp::Tracking::diverged))
         {
             JLOG(journal.debug())
                 << "Dropping untrusted validation from diverged peer";
@@ -123,8 +128,7 @@ ValidationMessageHandler::onMessage(
     }
     catch (std::exception const& e)
     {
-        JLOG(journal.warn())
-            << "Exception processing validation: " << e.what();
+        JLOG(journal.warn()) << "Exception processing validation: " << e.what();
         using namespace std::string_literals;
         peer.fee_.update(Resource::feeMalformedRequest, e.what());
     }
@@ -155,7 +159,8 @@ ValidationMessageHandler::onMessage(
     }
     catch (std::exception const& e)
     {
-        JLOG(peer.p_journal_.warn()) << "ValidatorList: Exception, " << e.what();
+        JLOG(peer.p_journal_.warn())
+            << "ValidatorList: Exception, " << e.what();
         using namespace std::string_literals;
         peer.fee_.update(Resource::feeInvalidData, e.what());
     }
@@ -249,11 +254,13 @@ ValidationMessageHandler::processValidatorListMessage(
         app.getHashRouter(),
         app.getOPs());
 
-    JLOG(journal.debug())
-        << "Processed " << messageType << " version " << version << " from "
-        << (applyResult.publisherKey ? strHex(*applyResult.publisherKey)
-                                     : "unknown or invalid publisher")
-        << " with best result " << to_string(applyResult.bestDisposition());
+    JLOG(journal.debug()) << "Processed " << messageType << " version "
+                          << version << " from "
+                          << (applyResult.publisherKey
+                                  ? strHex(*applyResult.publisherKey)
+                                  : "unknown or invalid publisher")
+                          << " with best result "
+                          << to_string(applyResult.bestDisposition());
 
     // Act based on the best result
     switch (applyResult.bestDisposition())
@@ -277,7 +284,8 @@ ValidationMessageHandler::processValidatorListMessage(
             {
                 XRPL_ASSERT(
                     iter->second < applyResult.sequence,
-                    "xrpl::ValidationMessageHandler::processValidatorListMessage "
+                    "xrpl::ValidationMessageHandler::"
+                    "processValidatorListMessage "
                     ": lower sequence");
             }
 #endif
@@ -400,9 +408,8 @@ ValidationMessageHandler::processValidatorListMessage(
                     << "Ignored " << count << " untrusted " << messageType;
                 break;
             case ListDisposition::unsupported_version:
-                JLOG(journal.warn())
-                    << "Ignored " << count << "unsupported version "
-                    << messageType;
+                JLOG(journal.warn()) << "Ignored " << count
+                                     << "unsupported version " << messageType;
                 break;
             case ListDisposition::invalid:
                 JLOG(journal.warn())
@@ -411,7 +418,8 @@ ValidationMessageHandler::processValidatorListMessage(
             // LCOV_EXCL_START
             default:
                 UNREACHABLE(
-                    "xrpl::ValidationMessageHandler::processValidatorListMessage "
+                    "xrpl::ValidationMessageHandler::"
+                    "processValidatorListMessage "
                     ": invalid list disposition");
                 // LCOV_EXCL_STOP
         }
@@ -419,4 +427,3 @@ ValidationMessageHandler::processValidatorListMessage(
 }
 
 }  // namespace xrpl
-

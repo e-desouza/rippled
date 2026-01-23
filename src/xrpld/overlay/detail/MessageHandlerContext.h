@@ -58,12 +58,13 @@ struct MessageHandlerContext
 
     // Disable copy/move - context is always passed by reference
     MessageHandlerContext(MessageHandlerContext const&) = delete;
-    MessageHandlerContext& operator=(MessageHandlerContext const&) = delete;
+    MessageHandlerContext&
+    operator=(MessageHandlerContext const&) = delete;
     MessageHandlerContext(MessageHandlerContext&&) = delete;
-    MessageHandlerContext& operator=(MessageHandlerContext&&) = delete;
+    MessageHandlerContext&
+    operator=(MessageHandlerContext&&) = delete;
 };
 
 }  // namespace xrpl
 
 #endif
-

@@ -1,8 +1,8 @@
 #include <xrpld/app/amm/AMMHelpers.h>
 #include <xrpld/app/amm/AMMUtils.h>
 #include <xrpld/app/tx/detail/InvariantCheck.h>
-#include <xrpld/app/tx/detail/nft/NFTokenUtils.h>
 #include <xrpld/app/tx/detail/PermissionedDomainSet.h>
+#include <xrpld/app/tx/detail/nft/NFTokenUtils.h>
 
 #include <xrpl/basics/Log.h>
 #include <xrpl/beast/utility/instrumentation.h>

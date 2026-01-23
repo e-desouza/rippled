@@ -2,9 +2,9 @@
 #include <xrpld/app/misc/DelegateUtils.h>
 #include <xrpld/app/misc/LoadFeeTrack.h>
 #include <xrpld/app/tx/apply.h>
-#include <xrpld/app/tx/detail/nft/NFTokenUtils.h>
 #include <xrpld/app/tx/detail/SignerEntries.h>
 #include <xrpld/app/tx/detail/Transactor.h>
+#include <xrpld/app/tx/detail/nft/NFTokenUtils.h>
 #include <xrpld/core/Config.h>
 
 #include <xrpl/basics/Log.h>

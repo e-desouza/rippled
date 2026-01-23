@@ -38,8 +38,7 @@ public:
      * Callback type for getting validated ledger age.
      * Returns the age of the last validated ledger.
      */
-    using GetValidatedLedgerAgeCallback =
-        std::function<std::chrono::seconds()>;
+    using GetValidatedLedgerAgeCallback = std::function<std::chrono::seconds()>;
 
     /**
      * Construct an OperatingModeManager.
@@ -55,14 +54,17 @@ public:
         ModeChangeCallback onModeChange,
         GetValidatedLedgerAgeCallback getValidatedLedgerAge);
 
-    /** Destructor - must be defined in .cpp where StateAccounting is complete */
+    /** Destructor - must be defined in .cpp where StateAccounting is complete
+     */
     ~OperatingModeManager();
 
     // Non-copyable, non-movable due to atomics and unique_ptr
     OperatingModeManager(OperatingModeManager const&) = delete;
-    OperatingModeManager& operator=(OperatingModeManager const&) = delete;
+    OperatingModeManager&
+    operator=(OperatingModeManager const&) = delete;
     OperatingModeManager(OperatingModeManager&&) = delete;
-    OperatingModeManager& operator=(OperatingModeManager&&) = delete;
+    OperatingModeManager&
+    operator=(OperatingModeManager&&) = delete;
 
     // --- Operating Mode Accessors ---
 
@@ -172,4 +174,3 @@ private:
 }  // namespace xrpl
 
 #endif
-

@@ -18,6 +18,7 @@
 //==============================================================================
 
 #include <xrpld/app/misc/OperatingModeManager.h>
+
 #include <xrpl/json/json_value.h>
 #include <xrpl/protocol/jss.h>
 
@@ -308,4 +309,3 @@ OperatingModeManager::stateAccounting(Json::Value& obj) const
 }
 
 }  // namespace xrpl
-
