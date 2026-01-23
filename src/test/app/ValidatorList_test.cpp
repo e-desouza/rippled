@@ -1,6 +1,6 @@
 #include <test/jtx.h>
 
-#include <xrpld/app/misc/ValidatorList.h>
+#include <xrpld/app/validators/ValidatorList.h>
 #include <xrpld/overlay/detail/ProtocolMessage.h>
 
 #include <xrpl/basics/Slice.h>

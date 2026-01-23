@@ -2,7 +2,7 @@
 #include <test/jtx/TrustedPublisherServer.h>
 #include <test/unit_test/FileDirGuard.h>
 
-#include <xrpld/app/misc/ValidatorSite.h>
+#include <xrpld/app/validators/ValidatorSite.h>
 
 #include <xrpl/basics/strHex.h>
 #include <xrpl/protocol/PublicKey.h>

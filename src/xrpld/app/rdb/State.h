@@ -2,7 +2,7 @@
 #define XRPL_APP_RDB_STATE_H_INCLUDED
 
 #include <xrpld/app/ledger/Ledger.h>
-#include <xrpld/app/misc/Manifest.h>
+#include <xrpld/app/validators/Manifest.h>
 #include <xrpld/core/Config.h>
 #include <xrpld/core/DatabaseCon.h>
 #include <xrpld/peerfinder/Store.h>

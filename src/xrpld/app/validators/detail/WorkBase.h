@@ -1,7 +1,7 @@
 #ifndef XRPL_APP_MISC_DETAIL_WORKBASE_H_INCLUDED
 #define XRPL_APP_MISC_DETAIL_WORKBASE_H_INCLUDED
 
-#include <xrpld/app/misc/detail/Work.h>
+#include <xrpld/app/validators/detail/Work.h>
 
 #include <xrpl/basics/random.h>
 #include <xrpl/protocol/BuildInfo.h>

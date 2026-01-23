@@ -22,12 +22,12 @@
 #include <xrpld/app/misc/NetworkOPs.h>
 #include <xrpld/app/misc/SHAMapStore.h>
 #include <xrpld/app/misc/TxQ.h>
-#include <xrpld/app/misc/ValidatorKeys.h>
-#include <xrpld/app/misc/ValidatorSite.h>
 #include <xrpld/app/paths/PathRequests.h>
 #include <xrpld/app/rdb/RelationalDatabase.h>
 #include <xrpld/app/rdb/Wallet.h>
 #include <xrpld/app/tx/apply.h>
+#include <xrpld/app/validators/ValidatorKeys.h>
+#include <xrpld/app/validators/ValidatorSite.h>
 #include <xrpld/core/DBInit.h>
 #include <xrpld/core/DatabaseCon.h>
 #include <xrpld/overlay/Cluster.h>

@@ -7,8 +7,8 @@
 #include <xrpld/app/misc/LoadFeeTrack.h>
 #include <xrpld/app/misc/NetworkOPs.h>
 #include <xrpld/app/misc/Transaction.h>
-#include <xrpld/app/misc/ValidatorList.h>
 #include <xrpld/app/tx/apply.h>
+#include <xrpld/app/validators/ValidatorList.h>
 #include <xrpld/overlay/Cluster.h>
 #include <xrpld/overlay/detail/PeerImp.h>
 #include <xrpld/overlay/detail/Tuning.h>

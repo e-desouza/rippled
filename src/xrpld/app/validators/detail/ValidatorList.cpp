@@ -1,6 +1,6 @@
 #include <xrpld/app/misc/HashRouter.h>
 #include <xrpld/app/misc/NetworkOPs.h>
-#include <xrpld/app/misc/ValidatorList.h>
+#include <xrpld/app/validators/ValidatorList.h>
 #include <xrpld/overlay/Overlay.h>
 
 #include <xrpl/basics/FileUtilities.h>

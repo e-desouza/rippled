@@ -3,8 +3,8 @@
 #include <xrpld/app/consensus/RCLValidations.h>
 #include <xrpld/app/ledger/Ledger.h>
 #include <xrpld/app/misc/NegativeUNLVote.h>
-#include <xrpld/app/misc/ValidatorList.h>
 #include <xrpld/app/tx/apply.h>
+#include <xrpld/app/validators/ValidatorList.h>
 
 #include <xrpl/beast/unit_test.h>
 #include <xrpl/ledger/View.h>

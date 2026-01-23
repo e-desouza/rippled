@@ -2,7 +2,7 @@
 #include <test/jtx/TrustedPublisherServer.h>
 
 #include <xrpld/app/main/BasicApp.h>
-#include <xrpld/app/misc/ValidatorSite.h>
+#include <xrpld/app/validators/ValidatorSite.h>
 #include <xrpld/core/ConfigSections.h>
 
 #include <xrpl/beast/unit_test.h>

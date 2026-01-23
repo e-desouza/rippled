@@ -1,8 +1,8 @@
 // Copyright (c) 2019 Dev Null Productions
 
 #include <xrpld/app/main/Application.h>
-#include <xrpld/app/misc/Manifest.h>
-#include <xrpld/app/misc/ValidatorKeys.h>
+#include <xrpld/app/validators/Manifest.h>
+#include <xrpld/app/validators/ValidatorKeys.h>
 #include <xrpld/rpc/Context.h>
 
 #include <xrpl/basics/base64.h>

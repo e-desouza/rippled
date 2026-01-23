@@ -1,5 +1,5 @@
-#include <xrpld/app/misc/Manifest.h>
 #include <xrpld/app/rdb/Wallet.h>
+#include <xrpld/app/validators/Manifest.h>
 #include <xrpld/core/DatabaseCon.h>
 
 #include <xrpl/basics/Log.h>

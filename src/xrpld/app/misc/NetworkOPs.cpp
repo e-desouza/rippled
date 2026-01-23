@@ -17,11 +17,11 @@
 #include <xrpld/app/misc/NetworkOPs.h>
 #include <xrpld/app/misc/Transaction.h>
 #include <xrpld/app/misc/TxQ.h>
-#include <xrpld/app/misc/ValidatorKeys.h>
-#include <xrpld/app/misc/ValidatorList.h>
 #include <xrpld/app/misc/detail/AccountTxPaging.h>
 #include <xrpld/app/rdb/backend/SQLiteDatabase.h>
 #include <xrpld/app/tx/apply.h>
+#include <xrpld/app/validators/ValidatorKeys.h>
+#include <xrpld/app/validators/ValidatorList.h>
 #include <xrpld/consensus/Consensus.h>
 #include <xrpld/consensus/ConsensusParms.h>
 #include <xrpld/overlay/Cluster.h>

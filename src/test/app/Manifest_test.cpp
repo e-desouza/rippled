@@ -1,8 +1,8 @@
 #include <test/jtx.h>
 
-#include <xrpld/app/misc/Manifest.h>
-#include <xrpld/app/misc/ValidatorList.h>
 #include <xrpld/app/rdb/Wallet.h>
+#include <xrpld/app/validators/Manifest.h>
+#include <xrpld/app/validators/ValidatorList.h>
 #include <xrpld/core/DBInit.h>
 
 #include <xrpl/basics/base64.h>

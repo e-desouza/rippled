@@ -1,4 +1,4 @@
-#include <xrpld/app/misc/detail/WorkSSL.h>
+#include <xrpld/app/validators/detail/WorkSSL.h>
 
 namespace xrpl {
 namespace detail {

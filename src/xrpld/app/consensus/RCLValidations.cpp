@@ -3,7 +3,7 @@
 #include <xrpld/app/ledger/InboundLedgers.h>
 #include <xrpld/app/ledger/LedgerMaster.h>
 #include <xrpld/app/main/Application.h>
-#include <xrpld/app/misc/ValidatorList.h>
+#include <xrpld/app/validators/ValidatorList.h>
 #include <xrpld/core/TimeKeeper.h>
 
 #include <xrpl/basics/Log.h>

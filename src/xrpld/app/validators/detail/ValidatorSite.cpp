@@ -1,8 +1,8 @@
-#include <xrpld/app/misc/ValidatorList.h>
-#include <xrpld/app/misc/ValidatorSite.h>
-#include <xrpld/app/misc/detail/WorkFile.h>
-#include <xrpld/app/misc/detail/WorkPlain.h>
-#include <xrpld/app/misc/detail/WorkSSL.h>
+#include <xrpld/app/validators/ValidatorList.h>
+#include <xrpld/app/validators/ValidatorSite.h>
+#include <xrpld/app/validators/detail/WorkFile.h>
+#include <xrpld/app/validators/detail/WorkPlain.h>
+#include <xrpld/app/validators/detail/WorkSSL.h>
 
 #include <xrpl/json/json_reader.h>
 #include <xrpl/protocol/digest.h>

@@ -2,8 +2,8 @@
 #define XRPL_APP_MISC_VALIDATORSITE_H_INCLUDED
 
 #include <xrpld/app/main/Application.h>
-#include <xrpld/app/misc/ValidatorList.h>
-#include <xrpld/app/misc/detail/Work.h>
+#include <xrpld/app/validators/ValidatorList.h>
+#include <xrpld/app/validators/detail/Work.h>
 
 #include <xrpl/basics/Log.h>
 #include <xrpl/basics/StringUtilities.h>

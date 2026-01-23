@@ -1,7 +1,7 @@
 #ifndef XRPL_APP_MISC_DETAIL_WORKSSL_H_INCLUDED
 #define XRPL_APP_MISC_DETAIL_WORKSSL_H_INCLUDED
 
-#include <xrpld/app/misc/detail/WorkBase.h>
+#include <xrpld/app/validators/detail/WorkBase.h>
 #include <xrpld/core/Config.h>
 
 #include <xrpl/basics/contract.h>

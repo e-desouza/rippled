@@ -1,10 +1,10 @@
 #include <xrpld/app/misc/HashRouter.h>
 #include <xrpld/app/misc/NetworkOPs.h>
 #include <xrpld/app/misc/ServerCounts.h>
-#include <xrpld/app/misc/ValidatorList.h>
-#include <xrpld/app/misc/ValidatorSite.h>
 #include <xrpld/app/rdb/RelationalDatabase.h>
 #include <xrpld/app/rdb/Wallet.h>
+#include <xrpld/app/validators/ValidatorList.h>
+#include <xrpld/app/validators/ValidatorSite.h>
 #include <xrpld/overlay/Cluster.h>
 #include <xrpld/overlay/detail/ConnectAttempt.h>
 #include <xrpld/overlay/detail/PeerImp.h>
