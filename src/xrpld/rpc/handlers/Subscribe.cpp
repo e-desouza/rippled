@@ -1,4 +1,3 @@
-#include <xrpld/app/ledger/LedgerMaster.h>
 #include <xrpld/app/main/Application.h>
 #include <xrpld/app/misc/NetworkOPs.h>
 #include <xrpld/rpc/Context.h>
@@ -322,7 +321,7 @@ doSubscribe(RPC::JsonContext& context)
             {
                 context.loadType = Resource::feeMediumBurdenRPC;
                 std::shared_ptr<ReadView const> lpLedger =
-                    context.app.getLedgerMaster().getPublishedLedger();
+                    context.ledgerDataProvider.getPublishedLedger();
                 if (lpLedger)
                 {
                     Json::Value const jvMarker = Json::Value(Json::nullValue);
