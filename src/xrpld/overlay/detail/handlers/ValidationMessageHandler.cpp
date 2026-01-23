@@ -203,3 +203,220 @@ ValidationMessageHandler::onMessage(
     }
 }
 
+void
+ValidationMessageHandler::processValidatorListMessage(
+    PeerImp& peer,
+    std::string const& messageType,
+    std::string const& manifest,
+    std::uint32_t version,
+    std::vector<ValidatorBlobInfo> const& blobs)
+{
+    auto& app = peer.app_;
+    auto const& journal = peer.p_journal_;
+
+    // If there are no blobs, the message is malformed (possibly because of
+    // ValidatorList class rules), so charge accordingly and skip processing.
+    if (blobs.empty())
+    {
+        JLOG(journal.warn()) << "Ignored malformed " << messageType;
+        // This shouldn't ever happen with a well-behaved peer
+        peer.fee_.update(Resource::feeHeavyBurdenPeer, "no blobs");
+        return;
+    }
+
+    auto const hash = sha512Half(manifest, blobs, version);
+
+    JLOG(journal.debug()) << "Received " << messageType;
+
+    if (!app.getHashRouter().addSuppressionPeer(hash, peer.id_))
+    {
+        JLOG(journal.debug())
+            << messageType << ": received duplicate " << messageType;
+        // Charging this fee here won't hurt the peer in the normal
+        // course of operation (ie. refresh every 5 minutes), but
+        // will add up if the peer is misbehaving.
+        peer.fee_.update(Resource::feeUselessData, "duplicate");
+        return;
+    }
+
+    auto const applyResult = app.validators().applyListsAndBroadcast(
+        manifest,
+        version,
+        blobs,
+        peer.remote_address_.to_string(),
+        hash,
+        app.overlay(),
+        app.getHashRouter(),
+        app.getOPs());
+
+    JLOG(journal.debug())
+        << "Processed " << messageType << " version " << version << " from "
+        << (applyResult.publisherKey ? strHex(*applyResult.publisherKey)
+                                     : "unknown or invalid publisher")
+        << " with best result " << to_string(applyResult.bestDisposition());
+
+    // Act based on the best result
+    switch (applyResult.bestDisposition())
+    {
+        // New list
+        case ListDisposition::accepted:
+        // Newest list is expired, and that needs to be broadcast, too
+        case ListDisposition::expired:
+        // Future list
+        case ListDisposition::pending: {
+            std::lock_guard<std::mutex> sl(peer.recentLock_);
+
+            XRPL_ASSERT(
+                applyResult.publisherKey,
+                "xrpl::ValidationMessageHandler::processValidatorListMessage : "
+                "publisher key is set");
+            auto const& pubKey = *applyResult.publisherKey;
+#ifndef NDEBUG
+            if (auto const iter = peer.publisherListSequences_.find(pubKey);
+                iter != peer.publisherListSequences_.end())
+            {
+                XRPL_ASSERT(
+                    iter->second < applyResult.sequence,
+                    "xrpl::ValidationMessageHandler::processValidatorListMessage "
+                    ": lower sequence");
+            }
+#endif
+            peer.publisherListSequences_[pubKey] = applyResult.sequence;
+        }
+        break;
+        case ListDisposition::same_sequence:
+        case ListDisposition::known_sequence:
+#ifndef NDEBUG
+        {
+            std::lock_guard<std::mutex> sl(peer.recentLock_);
+            XRPL_ASSERT(
+                applyResult.sequence && applyResult.publisherKey,
+                "xrpl::ValidationMessageHandler::processValidatorListMessage : "
+                "nonzero sequence and set publisher key");
+            XRPL_ASSERT(
+                peer.publisherListSequences_[*applyResult.publisherKey] <=
+                    applyResult.sequence,
+                "xrpl::ValidationMessageHandler::processValidatorListMessage : "
+                "maximum sequence");
+        }
+#endif  // !NDEBUG
+
+        break;
+        case ListDisposition::stale:
+        case ListDisposition::untrusted:
+        case ListDisposition::invalid:
+        case ListDisposition::unsupported_version:
+            break;
+        // LCOV_EXCL_START
+        default:
+            UNREACHABLE(
+                "xrpl::ValidationMessageHandler::processValidatorListMessage : "
+                "invalid best list disposition");
+            // LCOV_EXCL_STOP
+    }
+
+    // Charge based on the worst result
+    switch (applyResult.worstDisposition())
+    {
+        case ListDisposition::accepted:
+        case ListDisposition::expired:
+        case ListDisposition::pending:
+            // No charges for good data
+            break;
+        case ListDisposition::same_sequence:
+        case ListDisposition::known_sequence:
+            // Charging this fee here won't hurt the peer in the normal
+            // course of operation (ie. refresh every 5 minutes), but
+            // will add up if the peer is misbehaving.
+            peer.fee_.update(
+                Resource::feeUselessData,
+                " duplicate (same_sequence or known_sequence)");
+            break;
+        case ListDisposition::stale:
+            // There are very few good reasons for a peer to send an
+            // old list, particularly more than once.
+            peer.fee_.update(Resource::feeInvalidData, "expired");
+            break;
+        case ListDisposition::untrusted:
+            // Charging this fee here won't hurt the peer in the normal
+            // course of operation (ie. refresh every 5 minutes), but
+            // will add up if the peer is misbehaving.
+            peer.fee_.update(Resource::feeUselessData, "untrusted");
+            break;
+        case ListDisposition::invalid:
+            // This shouldn't ever happen with a well-behaved peer
+            peer.fee_.update(
+                Resource::feeInvalidSignature, "invalid list disposition");
+            break;
+        case ListDisposition::unsupported_version:
+            // During a version transition, this may be legitimate.
+            // If it happens frequently, that's probably bad.
+            peer.fee_.update(Resource::feeInvalidData, "version");
+            break;
+        // LCOV_EXCL_START
+        default:
+            UNREACHABLE(
+                "xrpl::ValidationMessageHandler::processValidatorListMessage : "
+                "invalid worst list disposition");
+            // LCOV_EXCL_STOP
+    }
+
+    // Log based on all the results.
+    for (auto const& [disp, count] : applyResult.dispositions)
+    {
+        switch (disp)
+        {
+            // New list
+            case ListDisposition::accepted:
+                JLOG(journal.debug())
+                    << "Applied " << count << " new " << messageType;
+                break;
+            // Newest list is expired, and that needs to be broadcast, too
+            case ListDisposition::expired:
+                JLOG(journal.debug())
+                    << "Applied " << count << " expired " << messageType;
+                break;
+            // Future list
+            case ListDisposition::pending:
+                JLOG(journal.debug())
+                    << "Processed " << count << " future " << messageType;
+                break;
+            case ListDisposition::same_sequence:
+                JLOG(journal.warn())
+                    << "Ignored " << count << " " << messageType
+                    << "(s) with current sequence";
+                break;
+            case ListDisposition::known_sequence:
+                JLOG(journal.warn())
+                    << "Ignored " << count << " " << messageType
+                    << "(s) with future sequence";
+                break;
+            case ListDisposition::stale:
+                JLOG(journal.warn())
+                    << "Ignored " << count << "stale " << messageType;
+                break;
+            case ListDisposition::untrusted:
+                JLOG(journal.warn())
+                    << "Ignored " << count << " untrusted " << messageType;
+                break;
+            case ListDisposition::unsupported_version:
+                JLOG(journal.warn())
+                    << "Ignored " << count << "unsupported version "
+                    << messageType;
+                break;
+            case ListDisposition::invalid:
+                JLOG(journal.warn())
+                    << "Ignored " << count << "invalid " << messageType;
+                break;
+            // LCOV_EXCL_START
+            default:
+                UNREACHABLE(
+                    "xrpl::ValidationMessageHandler::processValidatorListMessage "
+                    ": invalid list disposition");
+                // LCOV_EXCL_STOP
+        }
+    }
+}
+
+}  // namespace xrpl
+

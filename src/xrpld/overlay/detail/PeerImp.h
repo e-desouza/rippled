@@ -31,6 +31,7 @@ namespace xrpl {
 
 struct ValidatorBlobInfo;
 class SHAMap;
+class ValidationMessageHandler;
 
 /**
  * @class PeerImp
@@ -255,6 +256,7 @@ private:
     LedgerReplayMsgHandler ledgerReplayMsgHandler_;
 
     friend class OverlayImpl;
+    friend class ValidationMessageHandler;
 
     class Metrics
     {

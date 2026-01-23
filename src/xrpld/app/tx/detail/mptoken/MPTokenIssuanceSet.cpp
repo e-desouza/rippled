@@ -1,5 +1,5 @@
 #include <xrpld/app/misc/DelegateUtils.h>
-#include <xrpld/app/tx/detail/MPTokenIssuanceSet.h>
+#include <xrpld/app/tx/detail/mptoken/MPTokenIssuanceSet.h>
 
 #include <xrpl/protocol/Feature.h>
 #include <xrpl/protocol/LedgerFormats.h>

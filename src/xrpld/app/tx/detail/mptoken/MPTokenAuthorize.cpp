@@ -1,4 +1,4 @@
-#include <xrpld/app/tx/detail/MPTokenAuthorize.h>
+#include <xrpld/app/tx/detail/mptoken/MPTokenAuthorize.h>
 
 #include <xrpl/ledger/View.h>
 #include <xrpl/protocol/Feature.h>

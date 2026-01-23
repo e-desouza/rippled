@@ -680,7 +680,7 @@ TRANSACTION(ttLEDGER_STATE_FIX, 53, LedgerStateFix,
 
 /** This transaction type creates a MPTokensIssuance instance */
 #if TRANSACTION_INCLUDE
-#   include <xrpld/app/tx/detail/MPTokenIssuanceCreate.h>
+#   include <xrpld/app/tx/detail/mptoken/MPTokenIssuanceCreate.h>
 #endif
 TRANSACTION(ttMPTOKEN_ISSUANCE_CREATE, 54, MPTokenIssuanceCreate,
     Delegation::delegable,
@@ -697,7 +697,7 @@ TRANSACTION(ttMPTOKEN_ISSUANCE_CREATE, 54, MPTokenIssuanceCreate,
 
 /** This transaction type destroys a MPTokensIssuance instance */
 #if TRANSACTION_INCLUDE
-#   include <xrpld/app/tx/detail/MPTokenIssuanceDestroy.h>
+#   include <xrpld/app/tx/detail/mptoken/MPTokenIssuanceDestroy.h>
 #endif
 TRANSACTION(ttMPTOKEN_ISSUANCE_DESTROY, 55, MPTokenIssuanceDestroy,
     Delegation::delegable,
@@ -709,7 +709,7 @@ TRANSACTION(ttMPTOKEN_ISSUANCE_DESTROY, 55, MPTokenIssuanceDestroy,
 
 /** This transaction type sets flags on a MPTokensIssuance or MPToken instance */
 #if TRANSACTION_INCLUDE
-#   include <xrpld/app/tx/detail/MPTokenIssuanceSet.h>
+#   include <xrpld/app/tx/detail/mptoken/MPTokenIssuanceSet.h>
 #endif
 TRANSACTION(ttMPTOKEN_ISSUANCE_SET, 56, MPTokenIssuanceSet,
     Delegation::delegable,
@@ -726,7 +726,7 @@ TRANSACTION(ttMPTOKEN_ISSUANCE_SET, 56, MPTokenIssuanceSet,
 
 /** This transaction type authorizes a MPToken instance */
 #if TRANSACTION_INCLUDE
-#   include <xrpld/app/tx/detail/MPTokenAuthorize.h>
+#   include <xrpld/app/tx/detail/mptoken/MPTokenAuthorize.h>
 #endif
 TRANSACTION(ttMPTOKEN_AUTHORIZE, 57, MPTokenAuthorize,
     Delegation::delegable,

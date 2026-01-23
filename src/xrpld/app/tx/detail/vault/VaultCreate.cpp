@@ -1,5 +1,5 @@
-#include <xrpld/app/tx/detail/MPTokenAuthorize.h>
-#include <xrpld/app/tx/detail/MPTokenIssuanceCreate.h>
+#include <xrpld/app/tx/detail/mptoken/MPTokenAuthorize.h>
+#include <xrpld/app/tx/detail/mptoken/MPTokenIssuanceCreate.h>
 #include <xrpld/app/tx/detail/vault/VaultCreate.h>
 
 #include <xrpl/ledger/View.h>

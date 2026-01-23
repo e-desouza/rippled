@@ -1,4 +1,4 @@
-#include <xrpld/app/tx/detail/MPTokenIssuanceDestroy.h>
+#include <xrpld/app/tx/detail/mptoken/MPTokenIssuanceDestroy.h>
 
 #include <xrpl/ledger/View.h>
 #include <xrpl/protocol/Feature.h>

@@ -1,5 +1,5 @@
 #include <xrpld/app/tx/detail/Escrow.h>
-#include <xrpld/app/tx/detail/MPTokenAuthorize.h>
+#include <xrpld/app/tx/detail/mptoken/MPTokenAuthorize.h>
 #include <xrpld/app/txqueue/HashRouter.h>
 #include <xrpld/conditions/Condition.h>
 #include <xrpld/conditions/Fulfillment.h>
