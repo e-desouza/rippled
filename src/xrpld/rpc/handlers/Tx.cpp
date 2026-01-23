@@ -1,4 +1,3 @@
-#include <xrpld/app/ledger/LedgerMaster.h>
 #include <xrpld/app/ledger/TransactionMaster.h>
 #include <xrpld/app/misc/DeliverMax.h>
 #include <xrpld/app/misc/NetworkOPs.h>
@@ -21,15 +20,15 @@
 namespace xrpl {
 
 static bool
-isValidated(LedgerMaster& ledgerMaster, std::uint32_t seq, uint256 const& hash)
+isValidated(LedgerDataProvider& ledgerDataProvider, std::uint32_t seq, uint256 const& hash)
 {
-    if (!ledgerMaster.haveLedger(seq))
+    if (!ledgerDataProvider.haveLedger(seq))
         return false;
 
-    if (seq > ledgerMaster.getValidatedLedger()->header().seq)
+    if (seq > ledgerDataProvider.getValidatedLedger()->header().seq)
         return false;
 
-    return ledgerMaster.getHashBySeq(seq) == hash;
+    return ledgerDataProvider.getHashBySeq(seq) == hash;
 }
 
 struct TxResult
@@ -127,7 +126,7 @@ doTxHelp(RPC::Context& context, TxArgs args)
     }
 
     std::shared_ptr<Ledger const> ledger =
-        context.ledgerMaster.getLedgerBySeq(txn->getLedger());
+        context.ledgerDataProvider.getLedgerBySeq(txn->getLedger());
 
     if (ledger && !ledger->open())
         result.ledgerHash = ledger->header().hash;
@@ -143,10 +142,10 @@ doTxHelp(RPC::Context& context, TxArgs args)
             result.meta = meta;
         }
         result.validated = isValidated(
-            context.ledgerMaster, ledger->header().seq, ledger->header().hash);
+            context.ledgerDataProvider, ledger->header().seq, ledger->header().hash);
         if (result.validated)
             result.closeTime =
-                context.ledgerMaster.getCloseTimeBySeq(txn->getLedger());
+                context.ledgerDataProvider.getCloseTimeBySeq(txn->getLedger());
 
         // compute outgoing CTID
         if (meta->getAsObject().isFieldPresent(sfTransactionIndex))

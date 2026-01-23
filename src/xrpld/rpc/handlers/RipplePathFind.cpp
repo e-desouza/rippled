@@ -1,4 +1,3 @@
-#include <xrpld/app/ledger/LedgerMaster.h>
 #include <xrpld/app/paths/PathRequests.h>
 #include <xrpld/rpc/Context.h>
 #include <xrpld/rpc/detail/LegacyPathFind.h>
@@ -37,7 +36,7 @@ doRipplePathFind(RPC::JsonContext& context)
         }
 
         PathRequest::pointer request;
-        lpLedger = context.ledgerMaster.getClosedLedger();
+        lpLedger = context.ledgerDataProvider.getClosedLedger();
 
         // It doesn't look like there's much odd happening here, but you should
         // be aware this code runs in a JobQueue::Coro, which is a coroutine.

@@ -1,4 +1,3 @@
-#include <xrpld/app/ledger/LedgerMaster.h>
 #include <xrpld/app/misc/AMMUtils.h>
 #include <xrpld/rpc/Context.h>
 #include <xrpld/rpc/detail/RPCLedgerHelpers.h>
@@ -231,7 +230,7 @@ doAMMInfo(RPC::JsonContext& context)
     if (!result.isMember(jss::ledger_index) &&
         !result.isMember(jss::ledger_hash))
         result[jss::ledger_current_index] = ledger->header().seq;
-    result[jss::validated] = context.ledgerMaster.isValidated(*ledger);
+    result[jss::validated] = context.ledgerDataProvider.isValidated(*ledger);
 
     return result;
 }

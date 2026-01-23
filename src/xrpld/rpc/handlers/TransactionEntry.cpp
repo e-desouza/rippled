@@ -1,4 +1,3 @@
-#include <xrpld/app/ledger/LedgerMaster.h>
 #include <xrpld/app/misc/DeliverMax.h>
 #include <xrpld/rpc/Context.h>
 #include <xrpld/rpc/detail/RPCLedgerHelpers.h>
@@ -61,16 +60,16 @@ doTransactionEntry(RPC::JsonContext& context)
 
                 if (!lpLedger->open())
                     jvResult[jss::ledger_hash] = to_string(
-                        context.ledgerMaster.getHashBySeq(lpLedger->seq()));
+                        context.ledgerDataProvider.getHashBySeq(lpLedger->seq()));
 
                 bool const validated =
-                    context.ledgerMaster.isValidated(*lpLedger);
+                    context.ledgerDataProvider.isValidated(*lpLedger);
 
                 jvResult[jss::validated] = validated;
                 if (validated)
                 {
                     jvResult[jss::ledger_index] = lpLedger->seq();
-                    if (auto closeTime = context.ledgerMaster.getCloseTimeBySeq(
+                    if (auto closeTime = context.ledgerDataProvider.getCloseTimeBySeq(
                             lpLedger->seq()))
                         jvResult[jss::close_time_iso] =
                             to_string_iso(*closeTime);

@@ -1,4 +1,3 @@
-#include <xrpld/app/ledger/LedgerMaster.h>
 #include <xrpld/app/main/Application.h>
 #include <xrpld/app/misc/DeliverMax.h>
 #include <xrpld/app/misc/Transaction.h>
@@ -118,7 +117,7 @@ getLedgerRange(
     std::uint32_t uValidatedMin;
     std::uint32_t uValidatedMax;
     bool bValidated =
-        context.ledgerMaster.getValidatedRange(uValidatedMin, uValidatedMax);
+        context.ledgerDataProvider.getValidatedRange(uValidatedMin, uValidatedMax);
 
     if (!bValidated)
     {
@@ -174,7 +173,7 @@ getLedgerRange(
                     }
 
                     bool validated =
-                        context.ledgerMaster.isValidated(*ledgerView);
+                        context.ledgerDataProvider.isValidated(*ledgerView);
 
                     if (!validated ||
                         ledgerView->header().seq > uValidatedMax ||
@@ -309,11 +308,11 @@ populateJsonResponse(
                         jvObj[jss::hash] = to_string(txn->getID());
                         jvObj[jss::ledger_index] = txn->getLedger();
                         jvObj[jss::ledger_hash] =
-                            to_string(context.ledgerMaster.getHashBySeq(
+                            to_string(context.ledgerDataProvider.getHashBySeq(
                                 txn->getLedger()));
 
                         if (auto closeTime =
-                                context.ledgerMaster.getCloseTimeBySeq(
+                                context.ledgerDataProvider.getCloseTimeBySeq(
                                     txn->getLedger()))
                             jvObj[jss::close_time_iso] =
                                 to_string_iso(*closeTime);

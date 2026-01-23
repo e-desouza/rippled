@@ -1,4 +1,3 @@
-#include <xrpld/app/ledger/LedgerMaster.h>
 #include <xrpld/app/main/Application.h>
 #include <xrpld/app/paths/PathRequests.h>
 #include <xrpld/rpc/Context.h>
@@ -16,7 +15,7 @@ doPathFind(RPC::JsonContext& context)
     if (context.app.config().PATH_SEARCH_MAX == 0)
         return rpcError(rpcNOT_SUPPORTED);
 
-    auto lpLedger = context.ledgerMaster.getClosedLedger();
+    auto lpLedger = context.ledgerDataProvider.getClosedLedger();
 
     if (!context.params.isMember(jss::subcommand) ||
         !context.params[jss::subcommand].isString())

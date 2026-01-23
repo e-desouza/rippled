@@ -1,4 +1,3 @@
-#include <xrpld/app/ledger/LedgerMaster.h>
 #include <xrpld/app/misc/Transaction.h>
 #include <xrpld/app/tx/apply.h>
 #include <xrpld/rpc/Context.h>
@@ -40,7 +39,7 @@ doSubmit(RPC::JsonContext& context)
             context.apiVersion,
             failType,
             context.role,
-            context.ledgerMaster.getValidatedLedgerAge(),
+            context.ledgerDataProvider.getValidatedLedgerAge(),
             context.app,
             RPC::getProcessTxnFn(context.netOps));
 
@@ -85,7 +84,7 @@ doSubmit(RPC::JsonContext& context)
         auto [validity, reason] = checkValidity(
             context.app.getHashRouter(),
             *stTx,
-            context.ledgerMaster.getCurrentLedger()->rules(),
+            context.ledgerDataProvider.getCurrentLedger()->rules(),
             context.app.config());
         if (validity != Validity::Valid)
         {

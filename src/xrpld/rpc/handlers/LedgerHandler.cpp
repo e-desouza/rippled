@@ -317,7 +317,7 @@ doLedgerGrpc(RPC::GRPCContext<org::xrpl::rpc::v1::GetLedgerRequest>& context)
         response.set_skiplist_included(true);
     }
 
-    response.set_validated(context.ledgerMaster.isValidated(*ledger));
+    response.set_validated(context.ledgerDataProvider.isValidated(*ledger));
 
     auto end = std::chrono::system_clock::now();
     auto duration =

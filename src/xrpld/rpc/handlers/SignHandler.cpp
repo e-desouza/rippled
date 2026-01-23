@@ -1,4 +1,3 @@
-#include <xrpld/app/ledger/LedgerMaster.h>
 #include <xrpld/rpc/Context.h>
 #include <xrpld/rpc/detail/TransactionSign.h>
 
@@ -30,7 +29,7 @@ doSign(RPC::JsonContext& context)
         context.apiVersion,
         failType,
         context.role,
-        context.ledgerMaster.getValidatedLedgerAge(),
+        context.ledgerDataProvider.getValidatedLedgerAge(),
         context.app);
 
     ret[jss::deprecated] =

@@ -1,4 +1,3 @@
-#include <xrpld/app/ledger/LedgerMaster.h>
 #include <xrpld/app/main/Application.h>
 #include <xrpld/rpc/Context.h>
 #include <xrpld/rpc/detail/RPCLedgerHelpers.h>
@@ -65,7 +64,7 @@ iteratePriceData(
         uint256 prevTx = chain->getFieldH256(sfPreviousTxnID);
         std::uint32_t prevSeq = chain->getFieldU32(sfPreviousTxnLgrSeq);
 
-        auto const ledger = context.ledgerMaster.getLedgerBySeq(prevSeq);
+        auto const ledger = context.ledgerDataProvider.getLedgerBySeq(prevSeq);
         if (!ledger)
             return;  // LCOV_EXCL_LINE
 
