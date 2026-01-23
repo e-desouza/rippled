@@ -71,6 +71,11 @@ public:
     // ledger
     [[nodiscard]] virtual std::shared_ptr<ReadView const>
     getPublishedLedger() = 0;
+
+    // Transaction lookup
+    // Iff a txn exists at the specified ledger and offset then return its txnid
+    [[nodiscard]] virtual std::optional<uint256>
+    txnIdFromIndex(std::uint32_t ledgerSeq, std::uint32_t txnIndex) = 0;
 };
 
 }  // namespace xrpl

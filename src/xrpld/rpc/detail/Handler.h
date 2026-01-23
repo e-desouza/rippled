@@ -1,7 +1,6 @@
 #ifndef XRPL_RPC_HANDLER_H_INCLUDED
 #define XRPL_RPC_HANDLER_H_INCLUDED
 
-#include <xrpld/app/ledger/LedgerMaster.h>
 #include <xrpld/app/misc/NetworkOPs.h>
 #include <xrpld/rpc/RPCHandler.h>
 #include <xrpld/rpc/Status.h>
@@ -87,7 +86,7 @@ conditionMet(Condition condition_required, T& context)
     if (!context.app.config().standalone() &&
         condition_required != NO_CONDITION)
     {
-        if (context.ledgerMaster.getValidatedLedgerAge() >
+        if (context.ledgerDataProvider.getValidatedLedgerAge() >
             Tuning::maxValidatedLedgerAge)
         {
             if (context.apiVersion == 1)
@@ -95,8 +94,8 @@ conditionMet(Condition condition_required, T& context)
             return rpcNOT_SYNCED;
         }
 
-        auto const cID = context.ledgerMaster.getCurrentLedgerIndex();
-        auto const vID = context.ledgerMaster.getValidLedgerIndex();
+        auto const cID = context.ledgerDataProvider.getCurrentLedgerIndex();
+        auto const vID = context.ledgerDataProvider.getValidLedgerIndex();
 
         if (cID + 10 < vID)
         {
@@ -110,7 +109,7 @@ conditionMet(Condition condition_required, T& context)
     }
 
     if ((condition_required != NO_CONDITION) &&
-        !context.ledgerMaster.getClosedLedger())
+        !context.ledgerDataProvider.getClosedLedger())
     {
         if (context.apiVersion == 1)
             return rpcNO_CLOSED;

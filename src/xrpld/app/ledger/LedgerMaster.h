@@ -256,7 +256,7 @@ public:
 
     // Iff a txn exists at the specified ledger and offset then return its txnid
     std::optional<uint256>
-    txnIdFromIndex(uint32_t ledgerSeq, uint32_t txnIndex);
+    txnIdFromIndex(std::uint32_t ledgerSeq, std::uint32_t txnIndex) override;
 
 private:
     void

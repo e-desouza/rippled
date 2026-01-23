@@ -85,14 +85,19 @@ LedgerHandler::writeResult(Json::Value& value)
     }
     else
     {
-        auto& master = context_.app.getLedgerMaster();
         {
             auto& closed = value[jss::closed] = Json::objectValue;
-            addJson(closed, {*master.getClosedLedger(), &context_, 0});
+            addJson(
+                closed,
+                {*context_.ledgerDataProvider.getClosedLedger(), &context_, 0});
         }
         {
             auto& open = value[jss::open] = Json::objectValue;
-            addJson(open, {*master.getCurrentLedger(), &context_, 0});
+            addJson(
+                open,
+                {*context_.ledgerDataProvider.getCurrentLedger(),
+                 &context_,
+                 0});
         }
     }
 
@@ -185,7 +190,7 @@ doLedgerGrpc(RPC::GRPCContext<org::xrpl::rpc::v1::GetLedgerRequest>& context)
     if (request.get_objects())
     {
         std::shared_ptr<ReadView const> parent =
-            context.app.getLedgerMaster().getLedgerBySeq(ledger->seq() - 1);
+            context.ledgerDataProvider.getLedgerBySeq(ledger->seq() - 1);
 
         std::shared_ptr<Ledger const> base =
             std::dynamic_pointer_cast<Ledger const>(parent);

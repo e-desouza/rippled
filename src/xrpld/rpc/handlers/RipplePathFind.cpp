@@ -1,4 +1,3 @@
-#include <xrpld/app/ledger/LedgerMaster.h>
 #include <xrpld/app/paths/PathRequests.h>
 #include <xrpld/rpc/Context.h>
 #include <xrpld/rpc/detail/LegacyPathFind.h>
@@ -28,7 +27,7 @@ doRipplePathFind(RPC::JsonContext& context)
     {
         // No ledger specified, use pathfinding defaults
         // and dispatch to pathfinding engine
-        if (context.app.getLedgerMaster().getValidatedLedgerAge() >
+        if (context.ledgerDataProvider.getValidatedLedgerAge() >
             RPC::Tuning::maxValidatedLedgerAge)
         {
             if (context.apiVersion == 1)

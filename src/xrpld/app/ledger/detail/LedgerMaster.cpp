@@ -2222,9 +2222,9 @@ LedgerMaster::minSqlSeq()
 }
 
 std::optional<uint256>
-LedgerMaster::txnIdFromIndex(uint32_t ledgerSeq, uint32_t txnIndex)
+LedgerMaster::txnIdFromIndex(std::uint32_t ledgerSeq, std::uint32_t txnIndex)
 {
-    uint32_t first = 0, last = 0;
+    std::uint32_t first = 0, last = 0;
 
     if (!getValidatedRange(first, last) || last < ledgerSeq)
         return {};
