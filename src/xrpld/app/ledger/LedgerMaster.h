@@ -45,7 +45,7 @@ public:
     LedgerIndex
     getCurrentLedgerIndex() override;
     LedgerIndex
-    getValidLedgerIndex();
+    getValidLedgerIndex() override;
 
     bool
     isCompatible(ReadView const&, beast::Journal::Stream, char const* reason);
@@ -75,7 +75,7 @@ public:
     // This is the last ledger we published to clients and can lag the validated
     // ledger
     std::shared_ptr<ReadView const>
-    getPublishedLedger();
+    getPublishedLedger() override;
 
     std::chrono::seconds
     getPublishedLedgerAge();

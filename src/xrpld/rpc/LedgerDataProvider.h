@@ -63,6 +63,14 @@ public:
     // Additional methods needed by RPC
     [[nodiscard]] virtual bool
     haveLedger(std::uint32_t seq) = 0;
+
+    [[nodiscard]] virtual LedgerIndex
+    getValidLedgerIndex() = 0;
+
+    // This is the last ledger we published to clients and can lag the validated
+    // ledger
+    [[nodiscard]] virtual std::shared_ptr<ReadView const>
+    getPublishedLedger() = 0;
 };
 
 }  // namespace xrpl
