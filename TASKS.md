@@ -132,10 +132,16 @@ Create a `LedgerDataProvider` interface to break the massive `rpc → app` depen
 - `src/xrpld/app/ledger/LedgerMaster.h` - Implement interface
 - 30+ RPC handlers in `src/xrpld/rpc/handlers/` - Migrate to interface
 
+**Progress:**
+- ✅ Interface created (4cc8735096)
+- ✅ LedgerMaster implements interface (4cc8735096)
+- ✅ RPC Context updated to use LedgerDataProvider (6acf7b9801)
+- 🔄 Migrating RPC handlers (5 handlers migrated)
+
 **Acceptance Criteria:**
-- [ ] Interface defined in core module (lower tier)
-- [ ] LedgerMaster implements interface
-- [ ] At least 5 RPC handlers migrated as proof of concept
+- [x] Interface defined in core module (lower tier)
+- [x] LedgerMaster implements interface
+- [x] At least 5 RPC handlers migrated as proof of concept
 - [ ] Build compiles without errors
 - [ ] All tests pass
 - [ ] New unit tests for interface
@@ -176,7 +182,9 @@ Instead of creating a complex interface, simply pass the overlay port as a param
 
 ### Task 2.3: Move NodeFamily to app Module
 
-**Status:** [ ] Not Started
+**Status:** [x] Complete
+**Completed:** 2026-01-23
+**Commit:** 6acf7b9801
 **Risk:** Medium
 **Estimated Effort:** 1 week
 **Dependencies:** Task 2.1
@@ -185,6 +193,12 @@ Instead of creating a complex interface, simply pass the overlay port as a param
 
 **Description:**
 Move NodeFamily from shamap to app, extracting interfaces for its app dependencies.
+
+**Completed Actions:**
+- Moved `NodeFamily.h` and `NodeFamily.cpp` from `src/xrpld/shamap/` to `src/xrpld/app/main/`
+- Updated include path in `Application.cpp`
+- Removed empty `src/xrpld/shamap/` directory
+- Verified compilation and levelization check passes
 
 ---
 
@@ -387,6 +401,8 @@ Before marking any task complete:
 | 2.2 json_body.h move | f16079e56c | 2026-01-22 | Moved to xrpl/server |
 | 2.2 ServerCounts extraction | b5939e20d3 | 2026-01-22 | overlay→rpc cycle broken |
 | 2.1 LedgerDataProvider | 4cc8735096 | 2026-01-22 | Interface + LedgerMaster implementation |
+| 2.1 RPC Context update | 6acf7b9801 | 2026-01-23 | Context uses LedgerDataProvider, 5 handlers migrated |
+| 2.3 NodeFamily move | 6acf7b9801 | 2026-01-23 | Moved to app/main, shamap→app cycle broken |
 | 4.1 CMakePresets.json | (pending commit) | Jan 2026 | IDE integration |
 | 4.2 jtx README | (pending commit) | Jan 2026 | Testing framework docs |
 
