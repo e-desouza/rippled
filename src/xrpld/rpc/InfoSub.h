@@ -1,8 +1,6 @@
 #ifndef XRPL_NET_INFOSUB_H_INCLUDED
 #define XRPL_NET_INFOSUB_H_INCLUDED
 
-#include <xrpld/app/misc/Manifest.h>
-
 #include <xrpl/basics/CountedObject.h>
 #include <xrpl/json/json_value.h>
 #include <xrpl/protocol/Book.h>
@@ -10,6 +8,8 @@
 #include <xrpl/resource/Consumer.h>
 
 namespace xrpl {
+
+struct Manifest;
 
 // Operations that clients may wish to perform against the network
 // Master operational handler, server sequencer, network tracker
