@@ -1,5 +1,5 @@
+#include <xrpld/app/amm/PermissionedDEXHelpers.h>
 #include <xrpld/app/misc/DelegateUtils.h>
-#include <xrpld/app/misc/PermissionedDEXHelpers.h>
 #include <xrpld/app/paths/RippleCalc.h>
 #include <xrpld/app/tx/detail/Payment.h>
 

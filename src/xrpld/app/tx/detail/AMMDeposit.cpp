@@ -1,5 +1,5 @@
-#include <xrpld/app/misc/AMMHelpers.h>
-#include <xrpld/app/misc/AMMUtils.h>
+#include <xrpld/app/amm/AMMHelpers.h>
+#include <xrpld/app/amm/AMMUtils.h>
 #include <xrpld/app/tx/detail/AMMDeposit.h>
 
 #include <xrpl/ledger/Sandbox.h>

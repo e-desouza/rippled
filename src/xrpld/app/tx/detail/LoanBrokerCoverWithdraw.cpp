@@ -1,6 +1,6 @@
 #include <xrpld/app/tx/detail/LoanBrokerCoverWithdraw.h>
 //
-#include <xrpld/app/misc/LendingHelpers.h>
+#include <xrpld/app/amm/LendingHelpers.h>
 #include <xrpld/app/tx/detail/Payment.h>
 
 #include <xrpl/ledger/CredentialHelpers.h>

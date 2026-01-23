@@ -1,8 +1,8 @@
 #ifndef XRPL_APP_TX_AMMLIQUIDITY_H_INCLUDED
 #define XRPL_APP_TX_AMMLIQUIDITY_H_INCLUDED
 
-#include <xrpld/app/misc/AMMHelpers.h>
-#include <xrpld/app/misc/AMMUtils.h>
+#include <xrpld/app/amm/AMMHelpers.h>
+#include <xrpld/app/amm/AMMUtils.h>
 #include <xrpld/app/paths/AMMContext.h>
 
 #include <xrpl/basics/Log.h>

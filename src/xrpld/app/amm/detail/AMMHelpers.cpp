@@ -1,4 +1,4 @@
-#include <xrpld/app/misc/AMMHelpers.h>
+#include <xrpld/app/amm/AMMHelpers.h>
 
 namespace xrpl {
 

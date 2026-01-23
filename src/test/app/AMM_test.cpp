@@ -6,8 +6,8 @@
 #include <test/jtx/amount.h>
 #include <test/jtx/sendmax.h>
 
-#include <xrpld/app/misc/AMMHelpers.h>
-#include <xrpld/app/misc/AMMUtils.h>
+#include <xrpld/app/amm/AMMHelpers.h>
+#include <xrpld/app/amm/AMMUtils.h>
 #include <xrpld/app/paths/AMMContext.h>
 #include <xrpld/app/tx/detail/AMMBid.h>
 

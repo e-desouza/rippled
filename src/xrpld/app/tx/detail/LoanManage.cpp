@@ -1,6 +1,6 @@
 #include <xrpld/app/tx/detail/LoanManage.h>
 //
-#include <xrpld/app/misc/LendingHelpers.h>
+#include <xrpld/app/amm/LendingHelpers.h>
 
 #include <xrpl/protocol/STTakesAsset.h>
 #include <xrpl/protocol/TxFlags.h>

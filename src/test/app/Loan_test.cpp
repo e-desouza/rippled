@@ -3,7 +3,7 @@
 #include <test/jtx.h>
 #include <test/jtx/mpt.h>
 
-#include <xrpld/app/misc/LendingHelpers.h>
+#include <xrpld/app/amm/LendingHelpers.h>
 #include <xrpld/app/misc/LoadFeeTrack.h>
 #include <xrpld/app/tx/detail/Batch.h>
 #include <xrpld/app/tx/detail/LoanSet.h>

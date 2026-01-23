@@ -1,7 +1,7 @@
 #ifndef XRPL_APP_PATHS_IMPL_STRANDFLOW_H_INCLUDED
 #define XRPL_APP_PATHS_IMPL_STRANDFLOW_H_INCLUDED
 
-#include <xrpld/app/misc/AMMHelpers.h>
+#include <xrpld/app/amm/AMMHelpers.h>
 #include <xrpld/app/paths/AMMContext.h>
 #include <xrpld/app/paths/Flow.h>
 #include <xrpld/app/paths/detail/AmountSpec.h>

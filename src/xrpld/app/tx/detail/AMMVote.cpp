@@ -1,4 +1,4 @@
-#include <xrpld/app/misc/AMMUtils.h>
+#include <xrpld/app/amm/AMMUtils.h>
 #include <xrpld/app/tx/detail/AMMVote.h>
 
 #include <xrpl/ledger/Sandbox.h>

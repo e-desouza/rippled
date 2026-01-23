@@ -1,6 +1,6 @@
 #include <test/jtx.h>
 
-#include <xrpld/app/misc/AMMHelpers.h>
+#include <xrpld/app/amm/AMMHelpers.h>
 
 #include <xrpl/protocol/Quality.h>
 

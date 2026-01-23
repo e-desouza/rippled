@@ -1,5 +1,5 @@
-#include <xrpld/app/misc/AMMHelpers.h>
-#include <xrpld/app/misc/AMMUtils.h>
+#include <xrpld/app/amm/AMMHelpers.h>
+#include <xrpld/app/amm/AMMUtils.h>
 #include <xrpld/app/tx/detail/InvariantCheck.h>
 #include <xrpld/app/tx/detail/NFTokenUtils.h>
 #include <xrpld/app/tx/detail/PermissionedDomainSet.h>

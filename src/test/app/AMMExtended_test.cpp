@@ -5,7 +5,7 @@
 #include <test/jtx/amount.h>
 #include <test/jtx/sendmax.h>
 
-#include <xrpld/app/misc/AMMUtils.h>
+#include <xrpld/app/amm/AMMUtils.h>
 #include <xrpld/app/paths/AMMContext.h>
 #include <xrpld/app/paths/AMMOffer.h>
 #include <xrpld/app/paths/Flow.h>

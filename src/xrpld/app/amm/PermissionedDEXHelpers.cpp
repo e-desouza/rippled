@@ -1,4 +1,4 @@
-#include <xrpld/app/misc/PermissionedDEXHelpers.h>
+#include <xrpld/app/amm/PermissionedDEXHelpers.h>
 
 #include <xrpl/ledger/CredentialHelpers.h>
 

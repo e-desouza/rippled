@@ -206,6 +206,7 @@ xrpld.peerfinder > xrpld.core
 xrpld.peerfinder > xrpl.protocol
 xrpld.perflog > xrpl.basics
 xrpld.perflog > xrpl.core
+xrpld.perflog > xrpld.app
 xrpld.perflog > xrpld.rpc
 xrpld.perflog > xrpl.json
 xrpld.rpc > xrpl.basics

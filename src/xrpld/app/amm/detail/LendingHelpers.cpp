@@ -1,4 +1,4 @@
-#include <xrpld/app/misc/LendingHelpers.h>
+#include <xrpld/app/amm/LendingHelpers.h>
 // DO NOT REMOVE forces header file include to sort first
 #include <xrpld/app/tx/detail/VaultCreate.h>
 

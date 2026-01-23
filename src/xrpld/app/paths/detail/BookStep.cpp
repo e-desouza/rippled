@@ -1,4 +1,4 @@
-#include <xrpld/app/misc/AMMUtils.h>
+#include <xrpld/app/amm/AMMUtils.h>
 #include <xrpld/app/paths/AMMLiquidity.h>
 #include <xrpld/app/paths/AMMOffer.h>
 #include <xrpld/app/paths/detail/FlatSets.h>

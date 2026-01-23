@@ -1,6 +1,6 @@
 #include <xrpld/app/tx/detail/LoanBrokerDelete.h>
 //
-#include <xrpld/app/misc/LendingHelpers.h>
+#include <xrpld/app/amm/LendingHelpers.h>
 
 #include <xrpl/protocol/STTakesAsset.h>
 
