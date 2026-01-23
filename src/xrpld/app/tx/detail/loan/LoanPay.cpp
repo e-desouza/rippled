@@ -1,7 +1,7 @@
-#include <xrpld/app/tx/detail/LoanPay.h>
+#include <xrpld/app/tx/detail/loan/LoanPay.h>
 //
 #include <xrpld/app/amm/LendingHelpers.h>
-#include <xrpld/app/tx/detail/LoanManage.h>
+#include <xrpld/app/tx/detail/loan/LoanManage.h>
 
 #include <xrpl/json/to_string.h>
 #include <xrpl/protocol/Protocol.h>

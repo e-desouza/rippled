@@ -1,4 +1,4 @@
-#include <xrpld/app/tx/detail/LoanBrokerCoverWithdraw.h>
+#include <xrpld/app/tx/detail/loan/LoanBrokerCoverWithdraw.h>
 //
 #include <xrpld/app/amm/LendingHelpers.h>
 #include <xrpld/app/tx/detail/Payment.h>

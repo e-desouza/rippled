@@ -1,4 +1,4 @@
-#include <xrpld/app/tx/detail/LoanBrokerCoverClawback.h>
+#include <xrpld/app/tx/detail/loan/LoanBrokerCoverClawback.h>
 //
 #include <xrpld/app/amm/LendingHelpers.h>
 

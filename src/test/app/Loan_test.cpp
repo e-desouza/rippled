@@ -6,7 +6,7 @@
 #include <xrpld/app/amm/LendingHelpers.h>
 #include <xrpld/app/misc/LoadFeeTrack.h>
 #include <xrpld/app/tx/detail/Batch.h>
-#include <xrpld/app/tx/detail/LoanSet.h>
+#include <xrpld/app/tx/detail/loan/LoanSet.h>
 
 #include <xrpl/beast/xor_shift_engine.h>
 #include <xrpl/protocol/SField.h>

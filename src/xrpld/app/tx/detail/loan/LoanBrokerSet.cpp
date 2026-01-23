@@ -1,4 +1,4 @@
-#include <xrpld/app/tx/detail/LoanBrokerSet.h>
+#include <xrpld/app/tx/detail/loan/LoanBrokerSet.h>
 //
 #include <xrpld/app/amm/LendingHelpers.h>
 

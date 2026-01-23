@@ -1,6 +1,6 @@
 #include <test/jtx.h>
 
-#include <xrpld/app/tx/detail/LoanBrokerCoverDeposit.h>
+#include <xrpld/app/tx/detail/loan/LoanBrokerCoverDeposit.h>
 
 #include <xrpl/beast/unit_test/suite.h>
 

@@ -929,7 +929,7 @@ TRANSACTION(ttBATCH, 71, Batch,
 
 /** This transaction creates and updates a Loan Broker */
 #if TRANSACTION_INCLUDE
-#   include <xrpld/app/tx/detail/LoanBrokerSet.h>
+#   include <xrpld/app/tx/detail/loan/LoanBrokerSet.h>
 #endif
 TRANSACTION(ttLOAN_BROKER_SET, 74, LoanBrokerSet,
     Delegation::delegable,
@@ -946,7 +946,7 @@ TRANSACTION(ttLOAN_BROKER_SET, 74, LoanBrokerSet,
 
 /** This transaction deletes a Loan Broker */
 #if TRANSACTION_INCLUDE
-#   include <xrpld/app/tx/detail/LoanBrokerDelete.h>
+#   include <xrpld/app/tx/detail/loan/LoanBrokerDelete.h>
 #endif
 TRANSACTION(ttLOAN_BROKER_DELETE, 75, LoanBrokerDelete,
     Delegation::delegable,
@@ -957,7 +957,7 @@ TRANSACTION(ttLOAN_BROKER_DELETE, 75, LoanBrokerDelete,
 
 /** This transaction deposits First Loss Capital into a Loan Broker */
 #if TRANSACTION_INCLUDE
-#   include <xrpld/app/tx/detail/LoanBrokerCoverDeposit.h>
+#   include <xrpld/app/tx/detail/loan/LoanBrokerCoverDeposit.h>
 #endif
 TRANSACTION(ttLOAN_BROKER_COVER_DEPOSIT, 76, LoanBrokerCoverDeposit,
     Delegation::delegable,
@@ -969,7 +969,7 @@ TRANSACTION(ttLOAN_BROKER_COVER_DEPOSIT, 76, LoanBrokerCoverDeposit,
 
 /** This transaction withdraws First Loss Capital from a Loan Broker */
 #if TRANSACTION_INCLUDE
-#   include <xrpld/app/tx/detail/LoanBrokerCoverWithdraw.h>
+#   include <xrpld/app/tx/detail/loan/LoanBrokerCoverWithdraw.h>
 #endif
 TRANSACTION(ttLOAN_BROKER_COVER_WITHDRAW, 77, LoanBrokerCoverWithdraw,
     Delegation::delegable,
@@ -984,7 +984,7 @@ TRANSACTION(ttLOAN_BROKER_COVER_WITHDRAW, 77, LoanBrokerCoverWithdraw,
 /** This transaction claws back First Loss Capital from a Loan Broker to
     the issuer of the capital */
 #if TRANSACTION_INCLUDE
-#   include <xrpld/app/tx/detail/LoanBrokerCoverClawback.h>
+#   include <xrpld/app/tx/detail/loan/LoanBrokerCoverClawback.h>
 #endif
 TRANSACTION(ttLOAN_BROKER_COVER_CLAWBACK, 78, LoanBrokerCoverClawback,
     Delegation::delegable,
@@ -996,7 +996,7 @@ TRANSACTION(ttLOAN_BROKER_COVER_CLAWBACK, 78, LoanBrokerCoverClawback,
 
 /** This transaction creates a Loan */
 #if TRANSACTION_INCLUDE
-#   include <xrpld/app/tx/detail/LoanSet.h>
+#   include <xrpld/app/tx/detail/loan/LoanSet.h>
 #endif
 TRANSACTION(ttLOAN_SET, 80, LoanSet,
     Delegation::delegable,
@@ -1023,7 +1023,7 @@ TRANSACTION(ttLOAN_SET, 80, LoanSet,
 
 /** This transaction deletes an existing Loan */
 #if TRANSACTION_INCLUDE
-#   include <xrpld/app/tx/detail/LoanDelete.h>
+#   include <xrpld/app/tx/detail/loan/LoanDelete.h>
 #endif
 TRANSACTION(ttLOAN_DELETE, 81, LoanDelete,
     Delegation::delegable,
@@ -1034,7 +1034,7 @@ TRANSACTION(ttLOAN_DELETE, 81, LoanDelete,
 
 /** This transaction is used to change the delinquency status of an existing Loan */
 #if TRANSACTION_INCLUDE
-#   include <xrpld/app/tx/detail/LoanManage.h>
+#   include <xrpld/app/tx/detail/loan/LoanManage.h>
 #endif
 TRANSACTION(ttLOAN_MANAGE, 82, LoanManage,
     Delegation::delegable,
@@ -1048,7 +1048,7 @@ TRANSACTION(ttLOAN_MANAGE, 82, LoanManage,
 
 /** The Borrower uses this transaction to make a Payment on the Loan. */
 #if TRANSACTION_INCLUDE
-#   include <xrpld/app/tx/detail/LoanPay.h>
+#   include <xrpld/app/tx/detail/loan/LoanPay.h>
 #endif
 TRANSACTION(ttLOAN_PAY, 84, LoanPay,
     Delegation::delegable,
