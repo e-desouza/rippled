@@ -395,7 +395,7 @@ TRANSACTION(ttCLAWBACK, 30, Clawback,
 
 /** This transaction claws back tokens from an AMM pool. */
 #if TRANSACTION_INCLUDE
-#   include <xrpld/app/tx/detail/AMMClawback.h>
+#   include <xrpld/app/tx/detail/amm/AMMClawback.h>
 #endif
 TRANSACTION(ttAMM_CLAWBACK, 31, AMMClawback,
     Delegation::delegable,
@@ -410,7 +410,7 @@ TRANSACTION(ttAMM_CLAWBACK, 31, AMMClawback,
 
 /** This transaction type creates an AMM instance */
 #if TRANSACTION_INCLUDE
-#   include <xrpld/app/tx/detail/AMMCreate.h>
+#   include <xrpld/app/tx/detail/amm/AMMCreate.h>
 #endif
 TRANSACTION(ttAMM_CREATE, 35, AMMCreate,
     Delegation::delegable,
@@ -424,7 +424,7 @@ TRANSACTION(ttAMM_CREATE, 35, AMMCreate,
 
 /** This transaction type deposits into an AMM instance */
 #if TRANSACTION_INCLUDE
-#   include <xrpld/app/tx/detail/AMMDeposit.h>
+#   include <xrpld/app/tx/detail/amm/AMMDeposit.h>
 #endif
 TRANSACTION(ttAMM_DEPOSIT, 36, AMMDeposit,
     Delegation::delegable,
@@ -442,7 +442,7 @@ TRANSACTION(ttAMM_DEPOSIT, 36, AMMDeposit,
 
 /** This transaction type withdraws from an AMM instance */
 #if TRANSACTION_INCLUDE
-#   include <xrpld/app/tx/detail/AMMWithdraw.h>
+#   include <xrpld/app/tx/detail/amm/AMMWithdraw.h>
 #endif
 TRANSACTION(ttAMM_WITHDRAW, 37, AMMWithdraw,
     Delegation::delegable,
@@ -459,7 +459,7 @@ TRANSACTION(ttAMM_WITHDRAW, 37, AMMWithdraw,
 
 /** This transaction type votes for the trading fee */
 #if TRANSACTION_INCLUDE
-#   include <xrpld/app/tx/detail/AMMVote.h>
+#   include <xrpld/app/tx/detail/amm/AMMVote.h>
 #endif
 TRANSACTION(ttAMM_VOTE, 38, AMMVote,
     Delegation::delegable,
@@ -473,7 +473,7 @@ TRANSACTION(ttAMM_VOTE, 38, AMMVote,
 
 /** This transaction type bids for the auction slot */
 #if TRANSACTION_INCLUDE
-#   include <xrpld/app/tx/detail/AMMBid.h>
+#   include <xrpld/app/tx/detail/amm/AMMBid.h>
 #endif
 TRANSACTION(ttAMM_BID, 39, AMMBid,
     Delegation::delegable,
@@ -489,7 +489,7 @@ TRANSACTION(ttAMM_BID, 39, AMMBid,
 
 /** This transaction type deletes AMM in the empty state */
 #if TRANSACTION_INCLUDE
-#   include <xrpld/app/tx/detail/AMMDelete.h>
+#   include <xrpld/app/tx/detail/amm/AMMDelete.h>
 #endif
 TRANSACTION(ttAMM_DELETE, 40, AMMDelete,
     Delegation::delegable,

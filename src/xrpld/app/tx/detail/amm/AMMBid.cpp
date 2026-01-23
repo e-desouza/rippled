@@ -1,6 +1,6 @@
 #include <xrpld/app/amm/AMMHelpers.h>
 #include <xrpld/app/amm/AMMUtils.h>
-#include <xrpld/app/tx/detail/AMMBid.h>
+#include <xrpld/app/tx/detail/amm/AMMBid.h>
 
 #include <xrpl/ledger/Sandbox.h>
 #include <xrpl/ledger/View.h>

@@ -9,7 +9,7 @@
 #include <xrpld/app/amm/AMMHelpers.h>
 #include <xrpld/app/amm/AMMUtils.h>
 #include <xrpld/app/paths/AMMContext.h>
-#include <xrpld/app/tx/detail/AMMBid.h>
+#include <xrpld/app/tx/detail/amm/AMMBid.h>
 
 #include <xrpl/basics/Number.h>
 #include <xrpl/protocol/AMMCore.h>

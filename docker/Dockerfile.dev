@@ -1,0 +1,129 @@
+# Multi-stage build for rippled development environment
+# This Dockerfile provides a pre-configured environment with all dependencies
+# cached to significantly reduce build times for new developers.
+
+# =============================================================================
+# Stage 1: Base image with build tools
+# =============================================================================
+FROM debian:bookworm-slim AS base
+
+# Avoid interactive prompts during package installation
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    # Build essentials
+    build-essential \
+    gcc-12 g++-12 \
+    # Build tools
+    cmake \
+    ninja-build \
+    pkg-config \
+    # Python (for Conan)
+    python3 \
+    python3-pip \
+    python3-venv \
+    python-is-python3 \
+    # Version control and utilities
+    git \
+    curl \
+    wget \
+    ca-certificates \
+    # Library dependencies
+    libc6-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set up compiler alternatives (use GCC 12 as default)
+RUN update-alternatives --install /usr/bin/cc cc /usr/bin/gcc-12 999 && \
+    update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-12 100 \
+        --slave /usr/bin/g++ g++ /usr/bin/g++-12 && \
+    update-alternatives --install /usr/bin/c++ c++ /usr/bin/g++-12 100
+
+# Install Conan package manager
+RUN pip install --break-system-packages conan
+
+# Initialize Conan profile
+RUN conan profile detect
+
+# =============================================================================
+# Stage 2: Dependency layer with pre-built Conan packages
+# =============================================================================
+FROM base AS deps
+
+WORKDIR /rippled-deps
+
+# Copy only files needed for dependency resolution
+COPY conanfile.py conan.lock ./
+COPY conan/ ./conan/
+
+# Configure Conan profiles and remotes
+RUN conan config install conan/profiles/ -tf $(conan config home)/profiles/ && \
+    conan remote add --index 0 xrplf https://conan.ripplex.io
+
+# Pre-install all dependencies for Release build (cached layer)
+RUN conan install . --output-folder build --build missing \
+    --settings build_type=Release \
+    --options='&:tests=True' \
+    --options='&:xrpld=True' || true
+
+# Also build Debug dependencies
+RUN conan install . --output-folder build --build missing \
+    --settings build_type=Debug \
+    --options='&:tests=True' \
+    --options='&:xrpld=True' || true
+
+# =============================================================================
+# Stage 3: Development environment
+# =============================================================================
+FROM base AS dev
+
+# Create non-root user for development
+ARG USERNAME=developer
+ARG USER_UID=1000
+ARG USER_GID=$USER_UID
+
+RUN groupadd --gid $USER_GID $USERNAME \
+    && useradd --uid $USER_UID --gid $USER_GID -m $USERNAME \
+    && apt-get update \
+    && apt-get install -y --no-install-recommends sudo \
+    && echo $USERNAME ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/$USERNAME \
+    && chmod 0440 /etc/sudoers.d/$USERNAME \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy Conan cache from deps stage
+COPY --from=deps /root/.conan2 /home/$USERNAME/.conan2
+RUN chown -R $USERNAME:$USERNAME /home/$USERNAME/.conan2
+
+# Configure Conan for the developer user
+USER $USERNAME
+RUN conan profile detect || true
+RUN conan remote add --index 0 xrplf https://conan.ripplex.io || true
+
+WORKDIR /workspace
+
+# Default command
+CMD ["/bin/bash"]
+
+# =============================================================================
+# Stage 4: Builder (for CI/CD or standalone builds)
+# =============================================================================
+FROM base AS builder
+
+WORKDIR /workspace
+
+# Copy Conan cache from deps stage
+COPY --from=deps /root/.conan2 /root/.conan2
+
+# Configure Conan remote
+RUN conan remote add --index 0 xrplf https://conan.ripplex.io || true
+
+# Default command runs a full build
+CMD ["/bin/bash", "-c", "\
+    conan install . --output-folder build --build missing --settings build_type=Release && \
+    cmake -B build -G Ninja \
+        -DCMAKE_TOOLCHAIN_FILE=build/generators/conan_toolchain.cmake \
+        -DCMAKE_BUILD_TYPE=Release \
+        -Dxrpld=ON -Dtests=ON && \
+    cmake --build build --parallel \
+"]
+

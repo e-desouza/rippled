@@ -1,5 +1,5 @@
 #include <xrpld/app/amm/AMMUtils.h>
-#include <xrpld/app/tx/detail/AMMVote.h>
+#include <xrpld/app/tx/detail/amm/AMMVote.h>
 
 #include <xrpl/ledger/Sandbox.h>
 #include <xrpl/protocol/AMMCore.h>

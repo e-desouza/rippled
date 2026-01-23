@@ -1,7 +1,7 @@
 #include <xrpld/app/amm/AMMHelpers.h>
 #include <xrpld/app/amm/AMMUtils.h>
-#include <xrpld/app/tx/detail/AMMClawback.h>
-#include <xrpld/app/tx/detail/AMMWithdraw.h>
+#include <xrpld/app/tx/detail/amm/AMMClawback.h>
+#include <xrpld/app/tx/detail/amm/AMMWithdraw.h>
 
 #include <xrpl/ledger/Sandbox.h>
 #include <xrpl/ledger/View.h>

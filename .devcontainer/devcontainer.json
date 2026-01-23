@@ -1,0 +1,49 @@
+{
+  "name": "rippled Development",
+  "build": {
+    "dockerfile": "../docker/Dockerfile.dev",
+    "context": "..",
+    "target": "dev"
+  },
+  "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind",
+  "workspaceFolder": "/workspace",
+  "remoteUser": "developer",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-vscode.cpptools",
+        "ms-vscode.cmake-tools",
+        "twxs.cmake",
+        "llvm-vs-code-extensions.vscode-clangd",
+        "xaver.clang-format",
+        "ms-vscode.cpptools-extension-pack"
+      ],
+      "settings": {
+        "cmake.configureOnOpen": false,
+        "cmake.buildDirectory": "${workspaceFolder}/build",
+        "cmake.generator": "Ninja",
+        "cmake.configureSettings": {
+          "CMAKE_TOOLCHAIN_FILE": "build/generators/conan_toolchain.cmake",
+          "CMAKE_BUILD_TYPE": "Release",
+          "xrpld": "ON",
+          "tests": "ON"
+        },
+        "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
+        "C_Cpp.default.compileCommands": "${workspaceFolder}/build/compile_commands.json",
+        "editor.formatOnSave": true,
+        "clang-format.executable": "/usr/bin/clang-format"
+      }
+    }
+  },
+  "mounts": [
+    "source=rippled-conan-cache,target=/home/developer/.conan2,type=volume"
+  ],
+  "postCreateCommand": "conan config install conan/profiles/ -tf $(conan config home)/profiles/ && conan remote add --index 0 xrplf https://conan.ripplex.io || true",
+  "postStartCommand": "echo 'Dev container ready! Run: conan install . --output-folder build --build missing && cmake -B build -G Ninja -DCMAKE_TOOLCHAIN_FILE=build/generators/conan_toolchain.cmake -DCMAKE_BUILD_TYPE=Release -Dxrpld=ON -Dtests=ON'",
+  "features": {},
+  "forwardPorts": [],
+  "containerEnv": {
+    "CONAN_HOME": "/home/developer/.conan2"
+  }
+}
+

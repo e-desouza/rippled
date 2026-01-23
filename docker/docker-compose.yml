@@ -1,0 +1,113 @@
+# Docker Compose configuration for rippled development
+# 
+# Usage:
+#   docker-compose -f docker/docker-compose.yml up -d dev    # Start dev environment
+#   docker-compose -f docker/docker-compose.yml run --rm build  # Run a build
+#   docker-compose -f docker/docker-compose.yml run --rm test   # Run tests
+
+services:
+  # Interactive development environment
+  dev:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.dev
+      target: dev
+    container_name: rippled-dev
+    volumes:
+      - ..:/workspace:cached
+      - conan-cache:/home/developer/.conan2
+    working_dir: /workspace
+    stdin_open: true
+    tty: true
+    command: /bin/bash
+    user: developer
+
+  # One-shot build service
+  build:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.dev
+      target: builder
+    volumes:
+      - ..:/workspace:cached
+      - conan-cache-root:/root/.conan2
+    working_dir: /workspace
+    command: |
+      bash -c "
+        set -e
+        echo '=== Installing Conan dependencies ==='
+        conan install . --output-folder build --build missing \
+          --settings build_type=Release \
+          --options='&:tests=True' \
+          --options='&:xrpld=True'
+        
+        echo '=== Configuring CMake ==='
+        cmake -B build -G Ninja \
+          -DCMAKE_TOOLCHAIN_FILE=build/generators/conan_toolchain.cmake \
+          -DCMAKE_BUILD_TYPE=Release \
+          -Dxrpld=ON -Dtests=ON
+        
+        echo '=== Building rippled ==='
+        cmake --build build --parallel
+        
+        echo '=== Build complete ==='
+      "
+
+  # Debug build service
+  build-debug:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.dev
+      target: builder
+    volumes:
+      - ..:/workspace:cached
+      - conan-cache-root:/root/.conan2
+    working_dir: /workspace
+    command: |
+      bash -c "
+        set -e
+        echo '=== Installing Conan dependencies (Debug) ==='
+        conan install . --output-folder build --build missing \
+          --settings build_type=Debug \
+          --options='&:tests=True' \
+          --options='&:xrpld=True'
+        
+        echo '=== Configuring CMake (Debug) ==='
+        cmake -B build -G Ninja \
+          -DCMAKE_TOOLCHAIN_FILE=build/generators/conan_toolchain.cmake \
+          -DCMAKE_BUILD_TYPE=Debug \
+          -Dxrpld=ON -Dtests=ON
+        
+        echo '=== Building rippled (Debug) ==='
+        cmake --build build --parallel
+        
+        echo '=== Build complete ==='
+      "
+
+  # Test runner service
+  test:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.dev
+      target: builder
+    volumes:
+      - ..:/workspace:cached
+      - conan-cache-root:/root/.conan2
+    working_dir: /workspace
+    command: |
+      bash -c "
+        set -e
+        if [ ! -f build/xrpld ]; then
+          echo 'Error: xrpld binary not found. Run build service first.'
+          exit 1
+        fi
+        echo '=== Running unit tests ==='
+        ./build/xrpld --unittest --unittest-jobs 2
+      "
+
+volumes:
+  # Persistent Conan cache for developer user
+  conan-cache:
+  # Persistent Conan cache for root user (build services)
+  conan-cache-root:
+

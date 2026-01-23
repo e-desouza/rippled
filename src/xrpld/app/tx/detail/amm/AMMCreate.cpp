@@ -1,7 +1,7 @@
 #include <xrpld/app/amm/AMMHelpers.h>
 #include <xrpld/app/amm/AMMUtils.h>
 #include <xrpld/app/ledger/OrderBookDB.h>
-#include <xrpld/app/tx/detail/AMMCreate.h>
+#include <xrpld/app/tx/detail/amm/AMMCreate.h>
 
 #include <xrpl/ledger/Sandbox.h>
 #include <xrpl/ledger/View.h>

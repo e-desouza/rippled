@@ -1,6 +1,6 @@
 #include <xrpld/app/amm/AMMHelpers.h>
 #include <xrpld/app/amm/AMMUtils.h>
-#include <xrpld/app/tx/detail/AMMWithdraw.h>
+#include <xrpld/app/tx/detail/amm/AMMWithdraw.h>
 
 #include <xrpl/basics/Number.h>
 #include <xrpl/ledger/Sandbox.h>
