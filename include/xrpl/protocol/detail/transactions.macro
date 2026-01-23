@@ -827,7 +827,7 @@ TRANSACTION(ttDELEGATE_SET, 64, DelegateSet,
 
 /** This transaction creates a single asset vault. */
 #if TRANSACTION_INCLUDE
-#   include <xrpld/app/tx/detail/VaultCreate.h>
+#   include <xrpld/app/tx/detail/vault/VaultCreate.h>
 #endif
 TRANSACTION(ttVAULT_CREATE, 65, VaultCreate,
     Delegation::delegable,
@@ -845,7 +845,7 @@ TRANSACTION(ttVAULT_CREATE, 65, VaultCreate,
 
 /** This transaction updates a single asset vault. */
 #if TRANSACTION_INCLUDE
-#   include <xrpld/app/tx/detail/VaultSet.h>
+#   include <xrpld/app/tx/detail/vault/VaultSet.h>
 #endif
 TRANSACTION(ttVAULT_SET, 66, VaultSet,
     Delegation::delegable,
@@ -860,7 +860,7 @@ TRANSACTION(ttVAULT_SET, 66, VaultSet,
 
 /** This transaction deletes a single asset vault. */
 #if TRANSACTION_INCLUDE
-#   include <xrpld/app/tx/detail/VaultDelete.h>
+#   include <xrpld/app/tx/detail/vault/VaultDelete.h>
 #endif
 TRANSACTION(ttVAULT_DELETE, 67, VaultDelete,
     Delegation::delegable,
@@ -872,7 +872,7 @@ TRANSACTION(ttVAULT_DELETE, 67, VaultDelete,
 
 /** This transaction trades assets for shares with a vault. */
 #if TRANSACTION_INCLUDE
-#   include <xrpld/app/tx/detail/VaultDeposit.h>
+#   include <xrpld/app/tx/detail/vault/VaultDeposit.h>
 #endif
 TRANSACTION(ttVAULT_DEPOSIT, 68, VaultDeposit,
     Delegation::delegable,
@@ -885,7 +885,7 @@ TRANSACTION(ttVAULT_DEPOSIT, 68, VaultDeposit,
 
 /** This transaction trades shares for assets with a vault. */
 #if TRANSACTION_INCLUDE
-#   include <xrpld/app/tx/detail/VaultWithdraw.h>
+#   include <xrpld/app/tx/detail/vault/VaultWithdraw.h>
 #endif
 TRANSACTION(ttVAULT_WITHDRAW, 69, VaultWithdraw,
     Delegation::delegable,
@@ -900,7 +900,7 @@ TRANSACTION(ttVAULT_WITHDRAW, 69, VaultWithdraw,
 
 /** This transaction claws back tokens from a vault. */
 #if TRANSACTION_INCLUDE
-#   include <xrpld/app/tx/detail/VaultClawback.h>
+#   include <xrpld/app/tx/detail/vault/VaultClawback.h>
 #endif
 TRANSACTION(ttVAULT_CLAWBACK, 70, VaultClawback,
     Delegation::delegable,

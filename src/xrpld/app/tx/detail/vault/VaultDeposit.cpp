@@ -1,5 +1,5 @@
 #include <xrpld/app/tx/detail/MPTokenAuthorize.h>
-#include <xrpld/app/tx/detail/VaultDeposit.h>
+#include <xrpld/app/tx/detail/vault/VaultDeposit.h>
 
 #include <xrpl/ledger/CredentialHelpers.h>
 #include <xrpl/ledger/View.h>

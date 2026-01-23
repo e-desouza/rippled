@@ -1,4 +1,4 @@
-#include <xrpld/app/tx/detail/VaultSet.h>
+#include <xrpld/app/tx/detail/vault/VaultSet.h>
 
 #include <xrpl/ledger/View.h>
 #include <xrpl/protocol/Asset.h>

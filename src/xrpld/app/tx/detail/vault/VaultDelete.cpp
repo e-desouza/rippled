@@ -1,4 +1,4 @@
-#include <xrpld/app/tx/detail/VaultDelete.h>
+#include <xrpld/app/tx/detail/vault/VaultDelete.h>
 
 #include <xrpl/ledger/View.h>
 #include <xrpl/protocol/Feature.h>

@@ -1,4 +1,4 @@
-#include <xrpld/app/tx/detail/VaultClawback.h>
+#include <xrpld/app/tx/detail/vault/VaultClawback.h>
 //
 #include <xrpl/beast/utility/instrumentation.h>
 #include <xrpl/ledger/View.h>

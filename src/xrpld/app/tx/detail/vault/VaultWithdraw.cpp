@@ -1,4 +1,4 @@
-#include <xrpld/app/tx/detail/VaultWithdraw.h>
+#include <xrpld/app/tx/detail/vault/VaultWithdraw.h>
 
 #include <xrpl/ledger/CredentialHelpers.h>
 #include <xrpl/ledger/View.h>

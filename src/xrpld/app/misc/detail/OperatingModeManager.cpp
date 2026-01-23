@@ -151,6 +151,8 @@ OperatingModeManager::OperatingModeManager(
 {
 }
 
+OperatingModeManager::~OperatingModeManager() = default;
+
 OperatingMode
 OperatingModeManager::getOperatingMode() const
 {

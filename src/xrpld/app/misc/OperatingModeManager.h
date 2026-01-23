@@ -9,6 +9,7 @@
 #include <atomic>
 #include <chrono>
 #include <functional>
+#include <memory>
 #include <mutex>
 
 namespace xrpl {
@@ -53,6 +54,15 @@ public:
         beast::Journal journal,
         ModeChangeCallback onModeChange,
         GetValidatedLedgerAgeCallback getValidatedLedgerAge);
+
+    /** Destructor - must be defined in .cpp where StateAccounting is complete */
+    ~OperatingModeManager();
+
+    // Non-copyable, non-movable due to atomics and unique_ptr
+    OperatingModeManager(OperatingModeManager const&) = delete;
+    OperatingModeManager& operator=(OperatingModeManager const&) = delete;
+    OperatingModeManager(OperatingModeManager&&) = delete;
+    OperatingModeManager& operator=(OperatingModeManager&&) = delete;
 
     // --- Operating Mode Accessors ---
 
