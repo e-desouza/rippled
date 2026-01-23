@@ -3,7 +3,7 @@
 
 #include <xrpld/app/consensus/RCLCxPeerPos.h>
 #include <xrpld/app/ledger/detail/LedgerReplayMsgHandler.h>
-#include <xrpld/app/misc/HashRouter.h>
+#include <xrpld/app/txqueue/HashRouter.h>
 #include <xrpld/overlay/Squelch.h>
 #include <xrpld/overlay/detail/OverlayImpl.h>
 #include <xrpld/overlay/detail/ProtocolVersion.h>

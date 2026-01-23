@@ -1,4 +1,4 @@
-#include <xrpld/app/misc/CanonicalTXSet.h>
+#include <xrpld/app/txqueue/CanonicalTXSet.h>
 
 namespace xrpl {
 

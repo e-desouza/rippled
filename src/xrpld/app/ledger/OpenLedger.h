@@ -2,7 +2,7 @@
 #define XRPL_APP_LEDGER_OPENLEDGER_H_INCLUDED
 
 #include <xrpld/app/ledger/Ledger.h>
-#include <xrpld/app/misc/CanonicalTXSet.h>
+#include <xrpld/app/txqueue/CanonicalTXSet.h>
 #include <xrpld/core/Config.h>
 
 #include <xrpl/basics/Log.h>

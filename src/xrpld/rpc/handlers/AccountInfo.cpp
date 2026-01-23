@@ -1,5 +1,5 @@
 #include <xrpld/app/main/Application.h>
-#include <xrpld/app/misc/TxQ.h>
+#include <xrpld/app/txqueue/TxQ.h>
 #include <xrpld/rpc/Context.h>
 #include <xrpld/rpc/GRPCHandlers.h>
 #include <xrpld/rpc/detail/RPCLedgerHelpers.h>

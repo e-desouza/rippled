@@ -2,10 +2,10 @@
 #include <xrpld/app/main/Application.h>
 #include <xrpld/app/misc/DeliverMax.h>
 #include <xrpld/app/misc/Transaction.h>
-#include <xrpld/app/misc/TxQ.h>
 #include <xrpld/app/paths/Pathfinder.h>
 #include <xrpld/app/tx/apply.h>  // Validity::Valid
 #include <xrpld/app/tx/applySteps.h>
+#include <xrpld/app/txqueue/TxQ.h>
 #include <xrpld/rpc/detail/LegacyPathFind.h>
 #include <xrpld/rpc/detail/RPCHelpers.h>
 #include <xrpld/rpc/detail/TransactionSign.h>

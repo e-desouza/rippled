@@ -12,14 +12,14 @@
 #include <xrpld/app/main/Tuning.h>
 #include <xrpld/app/misc/AmendmentTable.h>
 #include <xrpld/app/misc/DeliverMax.h>
-#include <xrpld/app/misc/HashRouter.h>
 #include <xrpld/app/misc/LoadFeeTrack.h>
 #include <xrpld/app/misc/NetworkOPs.h>
 #include <xrpld/app/misc/Transaction.h>
-#include <xrpld/app/misc/TxQ.h>
 #include <xrpld/app/misc/detail/AccountTxPaging.h>
 #include <xrpld/app/rdb/backend/SQLiteDatabase.h>
 #include <xrpld/app/tx/apply.h>
+#include <xrpld/app/txqueue/HashRouter.h>
+#include <xrpld/app/txqueue/TxQ.h>
 #include <xrpld/app/validators/ValidatorKeys.h>
 #include <xrpld/app/validators/ValidatorList.h>
 #include <xrpld/consensus/Consensus.h>

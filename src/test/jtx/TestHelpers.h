@@ -3,7 +3,7 @@
 
 #include <test/jtx/Env.h>
 
-#include <xrpld/app/misc/TxQ.h>
+#include <xrpld/app/txqueue/TxQ.h>
 
 #include <xrpl/basics/base_uint.h>
 #include <xrpl/beast/unit_test/suite.h>

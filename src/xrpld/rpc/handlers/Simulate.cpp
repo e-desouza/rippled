@@ -1,9 +1,9 @@
 #include <xrpld/app/ledger/LedgerMaster.h>
 #include <xrpld/app/ledger/OpenLedger.h>
-#include <xrpld/app/misc/HashRouter.h>
 #include <xrpld/app/misc/Transaction.h>
-#include <xrpld/app/misc/TxQ.h>
 #include <xrpld/app/tx/apply.h>
+#include <xrpld/app/txqueue/HashRouter.h>
+#include <xrpld/app/txqueue/TxQ.h>
 #include <xrpld/rpc/Context.h>
 #include <xrpld/rpc/DeliveredAmount.h>
 #include <xrpld/rpc/GRPCHandlers.h>

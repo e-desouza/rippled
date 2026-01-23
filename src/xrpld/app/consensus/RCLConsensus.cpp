@@ -8,11 +8,11 @@
 #include <xrpld/app/ledger/LocalTxs.h>
 #include <xrpld/app/ledger/OpenLedger.h>
 #include <xrpld/app/misc/AmendmentTable.h>
-#include <xrpld/app/misc/HashRouter.h>
 #include <xrpld/app/misc/LoadFeeTrack.h>
 #include <xrpld/app/misc/NegativeUNLVote.h>
 #include <xrpld/app/misc/NetworkOPs.h>
-#include <xrpld/app/misc/TxQ.h>
+#include <xrpld/app/txqueue/HashRouter.h>
+#include <xrpld/app/txqueue/TxQ.h>
 #include <xrpld/app/validators/ValidatorKeys.h>
 #include <xrpld/app/validators/ValidatorList.h>
 #include <xrpld/consensus/LedgerTiming.h>

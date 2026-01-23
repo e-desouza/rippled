@@ -7,8 +7,8 @@
 
 #include <xrpld/app/main/Application.h>
 #include <xrpld/app/misc/LoadFeeTrack.h>
-#include <xrpld/app/misc/TxQ.h>
 #include <xrpld/app/tx/apply.h>
+#include <xrpld/app/txqueue/TxQ.h>
 
 #include <xrpl/protocol/ErrorCodes.h>
 #include <xrpl/protocol/jss.h>

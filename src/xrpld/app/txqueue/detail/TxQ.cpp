@@ -1,7 +1,7 @@
 #include <xrpld/app/ledger/OpenLedger.h>
 #include <xrpld/app/main/Application.h>
-#include <xrpld/app/misc/TxQ.h>
 #include <xrpld/app/tx/apply.h>
+#include <xrpld/app/txqueue/TxQ.h>
 
 #include <xrpl/basics/mulDiv.h>
 #include <xrpl/protocol/Feature.h>

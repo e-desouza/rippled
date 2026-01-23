@@ -11,9 +11,9 @@
 #include <xrpld/app/misc/NetworkOPs.h>
 #include <xrpld/app/misc/SHAMapStore.h>
 #include <xrpld/app/misc/Transaction.h>
-#include <xrpld/app/misc/TxQ.h>
 #include <xrpld/app/paths/PathRequests.h>
 #include <xrpld/app/rdb/RelationalDatabase.h>
+#include <xrpld/app/txqueue/TxQ.h>
 #include <xrpld/app/validators/ValidatorList.h>
 #include <xrpld/core/TimeKeeper.h>
 #include <xrpld/overlay/Overlay.h>

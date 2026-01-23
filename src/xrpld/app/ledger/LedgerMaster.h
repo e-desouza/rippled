@@ -8,7 +8,7 @@
 #include <xrpld/app/ledger/LedgerHolder.h>
 #include <xrpld/app/ledger/LedgerReplay.h>
 #include <xrpld/app/main/Application.h>
-#include <xrpld/app/misc/CanonicalTXSet.h>
+#include <xrpld/app/txqueue/CanonicalTXSet.h>
 #include <xrpld/rpc/LedgerDataProvider.h>
 
 #include <xrpl/basics/RangeSet.h>

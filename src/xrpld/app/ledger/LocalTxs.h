@@ -1,7 +1,7 @@
 #ifndef XRPL_APP_LEDGER_LOCALTXS_H_INCLUDED
 #define XRPL_APP_LEDGER_LOCALTXS_H_INCLUDED
 
-#include <xrpld/app/misc/CanonicalTXSet.h>
+#include <xrpld/app/txqueue/CanonicalTXSet.h>
 
 #include <xrpl/ledger/ReadView.h>
 

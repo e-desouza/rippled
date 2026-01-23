@@ -1,9 +1,9 @@
 #include <xrpld/app/ledger/LedgerMaster.h>
 #include <xrpld/app/main/Application.h>
-#include <xrpld/app/misc/HashRouter.h>
 #include <xrpld/app/misc/Transaction.h>
 #include <xrpld/app/rdb/backend/SQLiteDatabase.h>
 #include <xrpld/app/tx/apply.h>
+#include <xrpld/app/txqueue/HashRouter.h>
 #include <xrpld/rpc/CTID.h>
 
 #include <xrpl/basics/safe_cast.h>

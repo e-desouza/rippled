@@ -1,7 +1,7 @@
 #include <test/jtx.h>
 #include <test/jtx/envconfig.h>
 
-#include <xrpld/app/misc/TxQ.h>
+#include <xrpld/app/txqueue/TxQ.h>
 #include <xrpld/rpc/detail/Tuning.h>
 
 #include <xrpl/beast/utility/temp_dir.h>

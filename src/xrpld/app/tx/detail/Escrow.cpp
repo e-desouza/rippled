@@ -1,6 +1,6 @@
-#include <xrpld/app/misc/HashRouter.h>
 #include <xrpld/app/tx/detail/Escrow.h>
 #include <xrpld/app/tx/detail/MPTokenAuthorize.h>
+#include <xrpld/app/txqueue/HashRouter.h>
 #include <xrpld/conditions/Condition.h>
 #include <xrpld/conditions/Fulfillment.h>
 

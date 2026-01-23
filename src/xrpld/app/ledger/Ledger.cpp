@@ -3,8 +3,8 @@
 #include <xrpld/app/ledger/LedgerToJson.h>
 #include <xrpld/app/ledger/PendingSaves.h>
 #include <xrpld/app/main/Application.h>
-#include <xrpld/app/misc/HashRouter.h>
 #include <xrpld/app/rdb/backend/SQLiteDatabase.h>
+#include <xrpld/app/txqueue/HashRouter.h>
 #include <xrpld/consensus/LedgerTiming.h>
 #include <xrpld/core/Config.h>
 #include <xrpld/core/SociDB.h>

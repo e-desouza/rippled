@@ -1,4 +1,4 @@
-#include <xrpld/app/misc/HashRouter.h>
+#include <xrpld/app/txqueue/HashRouter.h>
 #include <xrpld/core/Config.h>
 
 namespace xrpl {

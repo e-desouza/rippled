@@ -2,7 +2,7 @@
 #define XRPL_RPC_RPCHELPERS_H_INCLUDED
 
 #include <xrpld/app/misc/NetworkOPs.h>
-#include <xrpld/app/misc/TxQ.h>
+#include <xrpld/app/txqueue/TxQ.h>
 #include <xrpld/rpc/Context.h>
 #include <xrpld/rpc/Status.h>
 #include <xrpld/rpc/detail/Tuning.h>
