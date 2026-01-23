@@ -2,6 +2,7 @@
 #include <xrpld/app/ledger/LedgerToJson.h>
 #include <xrpld/app/ledger/OpenLedger.h>
 #include <xrpld/app/main/Application.h>
+#include <xrpld/rpc/LedgerDataProvider.h>
 #include <xrpld/rpc/detail/RPCLedgerHelpers.h>
 
 #include <xrpl/protocol/RPCErr.h>
@@ -14,12 +15,12 @@ namespace RPC {
 namespace {
 
 bool
-isValidatedOld(LedgerMaster& ledgerMaster, bool standalone)
+isValidatedOld(LedgerDataProvider& provider, bool standalone)
 {
     if (standalone)
         return false;
 
-    return ledgerMaster.getValidatedLedgerAge() > Tuning::maxValidatedLedgerAge;
+    return provider.getValidatedLedgerAge() > Tuning::maxValidatedLedgerAge;
 }
 
 template <class T>
@@ -220,7 +221,7 @@ template <class T>
 Status
 getLedger(T& ledger, uint256 const& ledgerHash, Context const& context)
 {
-    ledger = context.ledgerMaster.getLedgerByHash(ledgerHash);
+    ledger = context.ledgerDataProvider.getLedgerByHash(ledgerHash);
     if (ledger == nullptr)
         return {rpcLGR_NOT_FOUND, "ledgerNotFound"};
     return Status::OK;
@@ -230,10 +231,10 @@ template <class T>
 Status
 getLedger(T& ledger, uint32_t ledgerIndex, Context const& context)
 {
-    ledger = context.ledgerMaster.getLedgerBySeq(ledgerIndex);
+    ledger = context.ledgerDataProvider.getLedgerBySeq(ledgerIndex);
     if (ledger == nullptr)
     {
-        auto cur = context.ledgerMaster.getCurrentLedger();
+        auto cur = context.ledgerDataProvider.getCurrentLedger();
         if (cur->header().seq == ledgerIndex)
         {
             ledger = cur;
@@ -243,8 +244,10 @@ getLedger(T& ledger, uint32_t ledgerIndex, Context const& context)
     if (ledger == nullptr)
         return {rpcLGR_NOT_FOUND, "ledgerNotFound"};
 
-    if (ledger->header().seq > context.ledgerMaster.getValidLedgerIndex() &&
-        isValidatedOld(context.ledgerMaster, context.app.config().standalone()))
+    if (ledger->header().seq >
+            context.ledgerDataProvider.getValidLedgerIndex() &&
+        isValidatedOld(
+            context.ledgerDataProvider, context.app.config().standalone()))
     {
         ledger.reset();
         if (context.apiVersion == 1)
@@ -259,7 +262,8 @@ template <class T>
 Status
 getLedger(T& ledger, LedgerShortcut shortcut, Context const& context)
 {
-    if (isValidatedOld(context.ledgerMaster, context.app.config().standalone()))
+    if (isValidatedOld(
+            context.ledgerDataProvider, context.app.config().standalone()))
     {
         if (context.apiVersion == 1)
             return {rpcNO_NETWORK, "InsufficientNetworkMode"};
@@ -268,7 +272,7 @@ getLedger(T& ledger, LedgerShortcut shortcut, Context const& context)
 
     if (shortcut == LedgerShortcut::Validated)
     {
-        ledger = context.ledgerMaster.getValidatedLedger();
+        ledger = context.ledgerDataProvider.getValidatedLedger();
         if (ledger == nullptr)
         {
             if (context.apiVersion == 1)
@@ -283,13 +287,13 @@ getLedger(T& ledger, LedgerShortcut shortcut, Context const& context)
     {
         if (shortcut == LedgerShortcut::Current)
         {
-            ledger = context.ledgerMaster.getCurrentLedger();
+            ledger = context.ledgerDataProvider.getCurrentLedger();
             XRPL_ASSERT(
                 ledger->open(), "xrpl::RPC::getLedger : current is open");
         }
         else if (shortcut == LedgerShortcut::Closed)
         {
-            ledger = context.ledgerMaster.getClosedLedger();
+            ledger = context.ledgerDataProvider.getClosedLedger();
             XRPL_ASSERT(
                 !ledger->open(), "xrpl::RPC::getLedger : closed is not open");
         }
@@ -308,7 +312,7 @@ getLedger(T& ledger, LedgerShortcut shortcut, Context const& context)
         static auto const minSequenceGap = 10;
 
         if (ledger->header().seq + minSequenceGap <
-            context.ledgerMaster.getValidLedgerIndex())
+            context.ledgerDataProvider.getValidLedgerIndex())
         {
             ledger.reset();
             if (context.apiVersion == 1)
@@ -372,7 +376,7 @@ lookupLedger(
         result[jss::ledger_current_index] = info.seq;
     }
 
-    result[jss::validated] = context.ledgerMaster.isValidated(*ledger);
+    result[jss::validated] = context.ledgerDataProvider.isValidated(*ledger);
     return Status::OK;
 }
 
@@ -395,7 +399,7 @@ getOrAcquireLedger(RPC::JsonContext const& context)
     auto const hasIndex = context.params.isMember(jss::ledger_index);
     std::uint32_t ledgerIndex = 0;
 
-    auto& ledgerMaster = context.app.getLedgerMaster();
+    auto& ledgerDataProvider = context.ledgerDataProvider;
     LedgerHash ledgerHash;
 
     if ((hasHash + hasIndex) != 1)
@@ -422,7 +426,7 @@ getOrAcquireLedger(RPC::JsonContext const& context)
                 RPC::expected_field_error(jss::ledger_index, "number"));
 
         // We need a validated ledger to get the hash from the sequence
-        if (ledgerMaster.getValidatedLedgerAge() >
+        if (ledgerDataProvider.getValidatedLedgerAge() >
             RPC::Tuning::maxValidatedLedgerAge)
         {
             if (context.apiVersion == 1)
@@ -431,7 +435,7 @@ getOrAcquireLedger(RPC::JsonContext const& context)
         }
 
         ledgerIndex = jsonIndex.asInt();
-        auto ledger = ledgerMaster.getValidatedLedger();
+        auto ledger = ledgerDataProvider.getValidatedLedger();
 
         if (ledgerIndex >= ledger->header().seq)
             return Unexpected(RPC::make_param_error("Ledger index too large"));
@@ -451,7 +455,7 @@ getOrAcquireLedger(RPC::JsonContext const& context)
             XRPL_ASSERT(
                 refHash, "xrpl::RPC::getOrAcquireLedger : nonzero ledger hash");
 
-            ledger = ledgerMaster.getLedgerByHash(*refHash);
+            ledger = ledgerDataProvider.getLedgerByHash(*refHash);
             if (!ledger)
             {
                 // We don't have the ledger we need to figure out which
@@ -495,7 +499,7 @@ getOrAcquireLedger(RPC::JsonContext const& context)
 
     // In standalone mode, accept the ledger from the ledger cache
     if (!ledger && context.app.config().standalone())
-        ledger = ledgerMaster.getLedgerByHash(ledgerHash);
+        ledger = ledgerDataProvider.getLedgerByHash(ledgerHash);
 
     if (ledger)
         return ledger;

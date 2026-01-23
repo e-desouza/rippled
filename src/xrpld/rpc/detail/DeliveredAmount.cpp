@@ -1,8 +1,8 @@
-#include <xrpld/app/ledger/LedgerMaster.h>
 #include <xrpld/app/ledger/OpenLedger.h>
 #include <xrpld/app/misc/Transaction.h>
 #include <xrpld/rpc/Context.h>
 #include <xrpld/rpc/DeliveredAmount.h>
+#include <xrpld/rpc/LedgerDataProvider.h>
 
 #include <xrpl/protocol/Feature.h>
 #include <xrpl/protocol/RPCErr.h>
@@ -124,7 +124,8 @@ getDeliveredAmount(
         auto const getCloseTime =
             [&context,
              &getLedgerIndex]() -> std::optional<NetClock::time_point> {
-            return context.ledgerMaster.getCloseTimeBySeq(getLedgerIndex());
+            return context.ledgerDataProvider.getCloseTimeBySeq(
+                getLedgerIndex());
         };
         return getDeliveredAmount(
             getLedgerIndex, getCloseTime, serializedTx, transactionMeta);
