@@ -21,8 +21,8 @@
 | ---- | ----------------------------------- | ----------- | ------ | -------------- |
 | 3.1  | Split app/misc into Focused Modules | 3-4 weeks   | High   | ✅ Complete    |
 | 3.2  | Split app/tx/detail into Submodules | 2-3 weeks   | High   | ✅ Complete    |
-| 3.3  | Split NetworkOPs                    | 4 weeks     | High   | ⏳ Not Started |
-| 3.4  | Split PeerImp                       | 4 days      | Medium | 🔄 In Progress |
+| 3.3  | Split NetworkOPs                    | 4 weeks     | High   | 🔄 In Progress |
+| 3.4  | Split PeerImp                       | 4 days      | Medium | ✅ Complete    |
 | 3.5  | Runtime Transaction Registry        | 3-4 weeks   | Medium | ⏳ Not Started |
 | 3.6  | Consensus Adaptor Decoupling        | 16-20 days  | Medium | ⏳ Not Started |
 
@@ -281,7 +281,7 @@ Split the app/tx/detail directory (50+ transactors) into logical submodules by t
 
 ### Task 3.3: Split NetworkOPs
 
-**Status:** [ ] Not Started
+**Status:** [/] In Progress (Phase 1 Complete - Interfaces Created)
 **Risk:** High
 **Estimated Effort:** 4 weeks
 **Dependencies:** Phase 2 complete
@@ -290,6 +290,18 @@ Split the app/tx/detail directory (50+ transactors) into logical submodules by t
 
 **Description:**
 Split the monolithic NetworkOPs class (~4000 lines) into focused responsibility-driven components: NetworkState, ConsensusCoordinator, TransactionSubmission, and PubSubManager.
+
+**Progress:**
+
+- [x] Phase 1: Create Interfaces (Week 1)
+  - [x] INetworkState.h - Operating mode, amendment/UNL blocking
+  - [x] ITransactionProcessor.h - Transaction submission and batch processing
+  - [x] IConsensusCoordinator.h - Consensus lifecycle management
+  - [x] IPubSubManager.h - Subscription/notification management
+  - [x] INetworkInfo.h - Server info queries
+- [ ] Phase 2: Create Implementations (Week 2)
+- [ ] Phase 3: Create Facade and Wire Components (Week 3)
+- [ ] Phase 4: Migration and Testing (Week 4)
 
 ---
 
