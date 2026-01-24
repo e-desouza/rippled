@@ -7,6 +7,7 @@ ignorePaths:
   - docs/**/*.puml
   - cmake/**
   - LICENSE.md
+  - .augment-guidelines
 language: en
 allowCompoundWords: true
 ignoreRandomStrings: true
@@ -238,6 +239,7 @@ words:
   - txjson
   - txn
   - txns
+  - txqueue
   - txs
   - UBSAN
   - ubsan

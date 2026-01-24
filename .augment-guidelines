@@ -1,0 +1,99 @@
+# Augment Guidelines for rippled Project
+
+## Build System
+
+### Distributed Compilation with distcc-pump
+
+This project uses distcc-pump for distributed compilation across remote build servers.
+
+#### Environment Setup
+
+```bash
+# Set the distcc hosts (4 remote servers with 4 jobs each)
+export DISTCC_HOSTS="10.100.1.17,cpp,lzo/4 10.100.1.18,cpp,lzo/4 10.100.1.19,cpp,lzo/4 10.100.1.20,cpp,lzo/4"
+```
+
+#### Building with distcc-pump
+
+Always use `distcc-pump` wrapper with ninja for distributed builds:
+
+```bash
+cd .build && distcc-pump ninja -j20
+```
+
+**Important**: Use `distcc-pump` (not plain `distcc`) because:
+- Pump mode distributes preprocessing to remote hosts
+- This avoids Intel AMX intrinsics header incompatibilities between local and remote machines
+- Plain distcc preprocesses locally which can cause build failures due to platform-specific headers
+
+#### Clean Build
+
+```bash
+cd .build
+ninja -t clean
+distcc-pump ninja -j20
+```
+
+#### ccache Integration
+
+ccache is configured for this project:
+- Max size: 10 GB
+- Compiler check: content
+- Hash dir: false
+
+For incremental builds, ccache will automatically cache compilation results.
+
+### CMake Configuration
+
+The project uses CMake with Ninja generator. To reconfigure:
+
+```bash
+cd .build
+cmake /home/edesouza/Projects/rippled -G Ninja \
+    -DCMAKE_BUILD_TYPE=Debug \
+    -DCMAKE_C_COMPILER=/usr/bin/gcc-13 \
+    -DCMAKE_CXX_COMPILER=/usr/bin/g++-13 \
+    -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
+    -DCMAKE_C_COMPILER_LAUNCHER=ccache \
+    -DCMAKE_TOOLCHAIN_FILE=/home/edesouza/Projects/rippled/.build/build/generators/conan_toolchain.cmake
+```
+
+To build xrpld binary (not just library), add `-Dxrpld=ON`.
+
+### Troubleshooting distcc
+
+If distcc fails:
+
+1. Clear backoff files:
+   ```bash
+   rm -rf ~/.distcc/lock/backoff*
+   ```
+
+2. Check remote hosts are accessible:
+   ```bash
+   for host in 10.100.1.17 10.100.1.18 10.100.1.19 10.100.1.20; do
+       nc -zv $host 3632 && echo "$host OK" || echo "$host FAILED"
+   done
+   ```
+
+3. Verify GCC version on remotes matches local (13.3.0):
+   ```bash
+   g++-13 --version
+   ```
+
+4. If pump mode fails with path errors, ensure symlink exists:
+   ```bash
+   ls -la /usr/local/lib/python3.12/dist-packages/include_server
+   # Should point to /usr/lib/python3/dist-packages/include_server
+   ```
+
+## Code Style
+
+- Run `pre-commit run clang-format --files <files>` before committing
+- The project uses C++20 standard
+
+## Testing
+
+- Tests are in `src/test/`
+- Use the jtx testing framework for transaction tests
+- See `src/test/jtx/README.md` for testing documentation
