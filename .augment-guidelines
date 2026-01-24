@@ -2,46 +2,59 @@
 
 ## Build System
 
-### Distributed Compilation with distcc-pump
+### Local Builds (Default)
 
-This project uses distcc-pump for distributed compilation across remote build servers.
+This project uses local compilation with ccache for faster incremental builds.
 
-#### Environment Setup
+#### Build Commands
 
+Standard build with logging (recommended):
 ```bash
-# Set the distcc hosts (4 remote servers with 4 jobs each)
-export DISTCC_HOSTS="10.100.1.17,cpp,lzo/4 10.100.1.18,cpp,lzo/4 10.100.1.19,cpp,lzo/4 10.100.1.20,cpp,lzo/4"
+cd .build && ninja -j4 2>&1 | tee build.log
 ```
 
-#### Building with distcc-pump
-
-Always use `distcc-pump` wrapper with ninja for distributed builds:
-
+Build with output redirected to file only (quieter):
 ```bash
-cd .build && distcc-pump ninja -j20
+cd .build && ninja -j4 > build.log 2>&1
 ```
 
-**Important**: Use `distcc-pump` (not plain `distcc`) because:
-- Pump mode distributes preprocessing to remote hosts
-- This avoids Intel AMX intrinsics header incompatibilities between local and remote machines
-- Plain distcc preprocesses locally which can cause build failures due to platform-specific headers
+#### Parallelism Settings
+
+- **Local machine has 4 CPU cores**
+- Recommended: `ninja -j4` (one job per core)
+- For memory-constrained builds: `ninja -j2`
+
+#### Build Logging
+
+Always capture build output to log files for debugging:
+- `2>&1 | tee build.log` - Shows output and saves to file
+- `> build.log 2>&1` - Redirects all output to file (quieter)
+- Log files are created in the `.build/` directory
 
 #### Clean Build
 
 ```bash
 cd .build
 ninja -t clean
-distcc-pump ninja -j20
+ninja -j4 2>&1 | tee build.log
 ```
 
 #### ccache Integration
 
-ccache is configured for this project:
+ccache is configured for faster incremental builds:
 - Max size: 10 GB
 - Compiler check: content
 - Hash dir: false
 
-For incremental builds, ccache will automatically cache compilation results.
+Check ccache statistics:
+```bash
+ccache -s
+```
+
+Clear ccache if needed:
+```bash
+ccache -C
+```
 
 ### CMake Configuration
 
@@ -60,32 +73,39 @@ cmake /home/edesouza/Projects/rippled -G Ninja \
 
 To build xrpld binary (not just library), add `-Dxrpld=ON`.
 
-### Troubleshooting distcc
+### Distributed Compilation with distcc-pump (Optional/Alternative)
 
-If distcc fails:
+For faster builds when remote build servers are available, distcc-pump can be used.
+**Note**: This is optional and not the default build method.
 
-1. Clear backoff files:
-   ```bash
-   rm -rf ~/.distcc/lock/backoff*
-   ```
+#### Environment Setup for distcc
 
-2. Check remote hosts are accessible:
-   ```bash
-   for host in 10.100.1.17 10.100.1.18 10.100.1.19 10.100.1.20; do
-       nc -zv $host 3632 && echo "$host OK" || echo "$host FAILED"
-   done
-   ```
+```bash
+# Disable any existing distcc settings first
+unset DISTCC_HOSTS
+unset CCACHE_PREFIX
 
-3. Verify GCC version on remotes matches local (13.3.0):
-   ```bash
-   g++-13 --version
-   ```
+# Set the distcc hosts (4 remote servers with 4 jobs each)
+export DISTCC_HOSTS="10.100.1.17,cpp,lzo/4 10.100.1.18,cpp,lzo/4 10.100.1.19,cpp,lzo/4 10.100.1.20,cpp,lzo/4"
+```
 
-4. If pump mode fails with path errors, ensure symlink exists:
-   ```bash
-   ls -la /usr/local/lib/python3.12/dist-packages/include_server
-   # Should point to /usr/lib/python3/dist-packages/include_server
-   ```
+#### Building with distcc-pump
+
+```bash
+cd .build && distcc-pump ninja -j20 2>&1 | tee build.log
+```
+
+**Important**: Use `distcc-pump` (not plain `distcc`) because:
+- Pump mode distributes preprocessing to remote hosts
+- This avoids Intel AMX intrinsics header incompatibilities
+- Plain distcc preprocesses locally which can cause build failures
+
+#### Troubleshooting distcc
+
+1. Clear backoff files: `rm -rf ~/.distcc/lock/backoff*`
+2. Check remote hosts: `nc -zv 10.100.1.17 3632`
+3. Verify GCC version matches local (13.3.0): `g++-13 --version`
+4. Ensure include_server symlink exists at `/usr/local/lib/python3.12/dist-packages/include_server`
 
 ## Code Style
 

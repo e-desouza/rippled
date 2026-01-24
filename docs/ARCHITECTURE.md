@@ -4,20 +4,68 @@ This document provides a comprehensive guide to the rippled codebase architectur
 
 ## Table of Contents
 
-1. [Overview](#overview)
-2. [Module System](#module-system)
-3. [Levelization (Dependency Rules)](#levelization-dependency-rules)
-4. [Dependency Inversion Patterns](#dependency-inversion-patterns)
-5. [Module Responsibilities](#module-responsibilities)
-6. [Adding New Features](#adding-new-features)
-7. [Testing Architecture](#testing-architecture)
-8. [Appendix: Architecture Diagrams](#appendix-architecture-diagrams)
+1. [High-Level Overview](#high-level-overview)
+2. [Module Structure](#module-structure)
+3. [Key Subsystems](#key-subsystems)
+4. [Threading Model](#threading-model)
+5. [Build System](#build-system)
+6. [Levelization (Dependency Rules)](#levelization-dependency-rules)
+7. [Dependency Inversion Patterns](#dependency-inversion-patterns)
+8. [Module Responsibilities](#module-responsibilities)
+9. [Adding New Features](#adding-new-features)
+10. [Testing Architecture](#testing-architecture)
+11. [Appendix: Architecture Diagrams](#appendix-architecture-diagrams)
 
 ---
 
-## Overview
+## High-Level Overview
 
-rippled is the reference server implementation for the XRP Ledger, a decentralized cryptographic ledger. The codebase is written in modern C++ and follows strict architectural principles to maintain modularity, testability, and clear dependency relationships.
+### System Purpose
+
+rippled is the reference server implementation for the **XRP Ledger (XRPL)**, a decentralized cryptographic ledger designed for fast, low-cost international payments. The server:
+
+- Participates in the peer-to-peer network
+- Validates and processes transactions
+- Maintains a complete or partial copy of the ledger
+- Provides JSON-RPC and WebSocket APIs for clients
+- Participates in the consensus process (if configured as a validator)
+
+### Core Components
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                           Client Applications                            │
+│                    (Wallets, Exchanges, dApps)                           │
+└───────────────────────────────┬─────────────────────────────────────────┘
+                                │ JSON-RPC / WebSocket / gRPC
+┌───────────────────────────────▼─────────────────────────────────────────┐
+│                            RPC Layer                                     │
+│                   (src/xrpld/rpc/)                                      │
+└───────────────────────────────┬─────────────────────────────────────────┘
+                                │
+┌───────────────────────────────▼─────────────────────────────────────────┐
+│                         Application Layer                                │
+│    ┌──────────────┐  ┌──────────────┐  ┌──────────────────────────┐     │
+│    │ NetworkOPs   │  │ LedgerMaster │  │ Transaction Processing   │     │
+│    │ (Operations) │  │ (Ledger Mgmt)│  │ (Transactors)            │     │
+│    └──────────────┘  └──────────────┘  └──────────────────────────┘     │
+│                        (src/xrpld/app/)                                  │
+└───────────────────────────────┬─────────────────────────────────────────┘
+                                │
+┌──────────────────┬────────────┴────────────┬────────────────────────────┐
+│   Consensus      │       Overlay           │        Storage             │
+│   (RPCA)         │    (P2P Network)        │      (NodeStore)           │
+│ src/xrpld/       │   src/xrpld/            │   src/libxrpl/             │
+│ consensus/       │   overlay/              │   nodestore/               │
+└──────────────────┴─────────────────────────┴────────────────────────────┘
+```
+
+### Data Flow
+
+1. **Transaction Submission**: Client submits via RPC → Validated → Added to Open Ledger → Broadcast to peers
+2. **Consensus**: Validators propose → Negotiate → Agree on transaction set → Close ledger
+3. **Ledger Storage**: Validated ledger → Serialized to SHAMap → Persisted to NodeStore
+4. **Peer Sync**: New peer connects → Requests missing ledgers → Validates and stores
 
 ### Design Principles
 
@@ -28,52 +76,297 @@ rippled is the reference server implementation for the XRP Ledger, a decentraliz
 
 ---
 
-## Module System
+## Module Structure
+
+### libxrpl (Reusable Library)
+
+The library layer provides reusable components that can be used independently of the daemon:
+
+| Module        | Location                 | Purpose                                                                                                                    |
+| ------------- | ------------------------ | -------------------------------------------------------------------------------------------------------------------------- |
+| **basics**    | `src/libxrpl/basics/`    | Fundamental utilities: logging (`Journal`), containers (`TaggedCache`), types (`base_uint`), string utilities, SSL context |
+| **beast**     | `src/libxrpl/beast/`     | Networking foundations derived from Boost.Beast: clock, insight metrics, networking utilities                              |
+| **crypto**    | `src/libxrpl/crypto/`    | Cryptographic primitives: secure PRNG, RFC1751 encoding, secure memory erasure                                             |
+| **json**      | `src/libxrpl/json/`      | JSON parsing and serialization: reader, writer, value types                                                                |
+| **protocol**  | `src/libxrpl/protocol/`  | XRP Ledger protocol types: `STObject`, `STTx`, `AccountID`, `Issue`, serialization formats, features/amendments            |
+| **ledger**    | `src/libxrpl/ledger/`    | Ledger data structures: `ReadView`, `ApplyView`, `OpenView`, `PaymentSandbox`                                              |
+| **nodestore** | `src/libxrpl/nodestore/` | Key-value persistence: `Database`, `NodeObject`, backend factories (NuDB, RocksDB)                                         |
+| **shamap**    | `src/libxrpl/shamap/`    | Merkle tree implementation: `SHAMap`, `SHAMapTreeNode`, synchronization                                                    |
+| **resource**  | `src/libxrpl/resource/`  | Resource management: rate limiting, load tracking                                                                          |
+| **server**    | `src/libxrpl/server/`    | HTTP/WebSocket server utilities                                                                                            |
+| **core**      | `src/libxrpl/core/`      | Core services: `JobQueue`, `Workers`                                                                                       |
+| **net**       | `src/libxrpl/net/`       | Network utilities: HTTP client, SSL certificate registration                                                               |
+
+### xrpld (Daemon Implementation)
+
+The daemon layer contains application-specific server code:
+
+| Module         | Location                | Purpose                                                                               |
+| -------------- | ----------------------- | ------------------------------------------------------------------------------------- |
+| **app**        | `src/xrpld/app/`        | Application layer: transaction processing, ledger management, AMM, pathfinding        |
+| **consensus**  | `src/xrpld/consensus/`  | RPCA implementation: `Consensus`, `ConsensusProposal`, `Validations`                  |
+| **overlay**    | `src/xrpld/overlay/`    | Peer-to-peer networking: `Overlay`, `Peer`, `Message`, protocol message handling      |
+| **peerfinder** | `src/xrpld/peerfinder/` | Peer discovery: finding and maintaining connections to other nodes                    |
+| **rpc**        | `src/xrpld/rpc/`        | JSON-RPC API: handlers for all RPC methods (`account_info`, `submit`, `ledger`, etc.) |
+| **core**       | `src/xrpld/core/`       | Daemon core services: `Config`, database connections                                  |
+| **conditions** | `src/xrpld/conditions/` | Crypto-conditions support for escrow                                                  |
+| **perflog**    | `src/xrpld/perflog/`    | Performance logging and metrics                                                       |
 
 ### Directory Structure
-
-The codebase is organized into two main source areas:
 
 ```
 rippled/
 ├── include/xrpl/       # Public headers (library interface)
-│   ├── basics/         # Fundamental utilities (logging, types, containers)
-│   ├── beast/          # Boost.Beast-derived networking and utilities
-│   ├── core/           # Core abstractions (Config, Job, Workers)
-│   ├── crypto/         # Cryptographic primitives
-│   ├── json/           # JSON parsing and serialization
-│   ├── ledger/         # Ledger data structures and views
-│   ├── net/            # Network utilities
-│   ├── nodestore/      # Key-value persistence layer
-│   ├── protocol/       # XRP Ledger protocol types (STObject, transactions)
-│   ├── resource/       # Resource management and rate limiting
-│   ├── server/         # HTTP/WebSocket server abstractions
-│   └── shamap/         # Shared map (Merkle tree) implementation
-│
-├── src/xrpld/          # Implementation (daemon/server code)
-│   ├── app/            # Application layer (transactions, ledger management)
-│   ├── conditions/     # Crypto-conditions support
-│   ├── consensus/      # Consensus algorithm implementation
-│   ├── core/           # Core daemon services
-│   ├── overlay/        # Peer-to-peer network layer
-│   ├── peerfinder/     # Peer discovery
-│   ├── perflog/        # Performance logging
-│   ├── rpc/            # JSON-RPC handlers
-│   └── shamap/         # SHAMap application extensions
-│
-└── src/test/           # Test framework and tests
-    ├── jtx/            # JSON Transaction test framework
-    └── [module]/       # Tests organized by module
+├── src/libxrpl/        # Library implementation
+├── src/xrpld/          # Daemon implementation
+│   ├── app/
+│   │   ├── consensus/  # RCL consensus adaptor
+│   │   ├── ledger/     # LedgerMaster, InboundLedgers
+│   │   ├── main/       # Application entry point
+│   │   ├── misc/       # NetworkOPs, amendments
+│   │   ├── paths/      # Payment pathfinding
+│   │   ├── tx/         # Transaction processors (transactors)
+│   │   └── validators/ # Validator key management
+│   └── ...
+└── src/test/           # Tests organized by module
 ```
 
-### libxrpl vs xrpld
+---
 
-| Aspect | libxrpl (`include/xrpl/`, `src/libxrpl/`) | xrpld (`src/xrpld/`) |
-|--------|-------------------------------------------|----------------------|
-| Purpose | Reusable library components | Application-specific server code |
-| Headers | Public API in `include/xrpl/` | Internal headers only |
-| Dependencies | Lower-level, minimal | Can depend on libxrpl |
-| Reusability | Can be used by external projects | Specific to rippled daemon |
+## Key Subsystems
+
+### Consensus (RPCA - Ripple Protocol Consensus Algorithm)
+
+The XRP Ledger uses a Byzantine fault-tolerant consensus algorithm that does not require proof-of-work.
+
+**Location:** `src/xrpld/consensus/` (generic) and `src/xrpld/app/consensus/` (XRP Ledger specific)
+
+**Key Components:**
+
+- `Consensus` - Generic consensus state machine (`Consensus.h`)
+- `RCLConsensus` - XRP Ledger-specific consensus adaptor
+- `ConsensusProposal` - Proposed transaction set from a validator
+- `Validations` - Tracks validations from trusted validators
+
+**Consensus Phases:**
+
+1. **Open**: Accept transactions into the open ledger
+2. **Establish**: Validators propose and negotiate transaction sets
+3. **Accept**: Agreed transaction set is applied, ledger closed
+4. **Validated**: Supermajority of validators confirm the ledger
+
+```cpp
+// Consensus checking (src/xrpld/consensus/Consensus.cpp)
+ConsensusState checkConsensus(...) {
+    // Check if 80%+ of UNL validators agree
+    if (checkConsensusReached(currentAgree, currentProposers, ...))
+        return ConsensusState::Yes;
+    // ...
+}
+```
+
+### Ledger Storage (NodeStore)
+
+The NodeStore provides persistent storage for ledger data using a content-addressable key-value store.
+
+**Location:** `src/libxrpl/nodestore/`
+
+**Backends:**
+
+- **NuDB** (default) - Optimized append-only database (`backend/NuDBFactory.cpp`)
+- **RocksDB** - Facebook's LSM-tree database (`backend/RocksDBFactory.cpp`)
+- **Memory** - In-memory store for testing (`backend/MemoryFactory.cpp`)
+
+**Key Classes:**
+
+- `Database` - Abstract storage interface
+- `NodeObject` - Stored data blob with type tag
+- `SHAMapStore` - Manages ledger state storage and online delete
+
+### Peer-to-Peer Networking (Overlay)
+
+The Overlay manages connections to other nodes in the XRP Ledger network.
+
+**Location:** `src/xrpld/overlay/`
+
+**Key Components:**
+
+- `Overlay` - Manages all peer connections
+- `PeerImp` - Represents a single peer connection
+- `PeerFinder` - Discovers and maintains peer connections
+- `Message` - Protocol buffer messages (defined in `src/xrpl/proto/`)
+
+**Connection Flow:**
+
+1. TLS handshake with peer
+2. HTTP upgrade to XRPL protocol
+3. Exchange public keys and session signatures
+4. Protocol message exchange via protobuf
+
+### Transaction Processing Pipeline
+
+**Location:** `src/xrpld/app/tx/`
+
+**Pipeline Stages:**
+
+1. **Submission** (`NetworkOPs::submitTransaction`)
+2. **Validation** (`preflight` - syntactic, `preclaim` - semantic)
+3. **Application** (`doApply` - execute transaction logic)
+4. **Fee Processing** (`TxQ` - queue management)
+
+**Key Classes:**
+
+- `Transactor` - Base class for all transaction types
+- `TxQ` - Transaction queue with fee escalation
+- `HashRouter` - Deduplication and routing
+
+```cpp
+// Transaction application (src/xrpld/app/tx/apply.cpp)
+std::pair<TER, bool> apply(Application& app, OpenView& view,
+    STTx const& tx, ApplyFlags flags, beast::Journal j);
+```
+
+### RPC/API Layer
+
+**Location:** `src/xrpld/rpc/`
+
+**Supported Protocols:**
+
+- JSON-RPC over HTTP/HTTPS
+- WebSocket (with subscriptions)
+- gRPC (optional)
+
+**Key Components:**
+
+- `ServerHandler` - HTTP/WebSocket request handling
+- `RPCHandler` - Routes requests to handlers
+- `handlers/` - Individual RPC method implementations
+
+---
+
+## Threading Model
+
+### Job Queue System
+
+The `JobQueue` manages asynchronous work units across multiple worker threads.
+
+**Location:** `src/libxrpl/core/detail/JobQueue.cpp`, `include/xrpl/core/JobQueue.h`
+
+**Key Concepts:**
+
+- **Job Types** - Prioritized categories (e.g., `jtACCEPT`, `jtTRANSACTION`, `jtRPC`)
+- **Workers** - Thread pool executing jobs
+- **Coroutines** - Suspendable jobs for long-running RPC operations
+
+```cpp
+// Adding a job (src/xrpld/app/consensus/RCLConsensus.cpp)
+app_.getJobQueue().addJob(
+    jtACCEPT,
+    "AcceptLedger",
+    [=, this]() { this->doAccept(...); });
+```
+
+**Job Priority Levels:**
+
+```
+jtACCEPT         - Ledger acceptance (highest priority)
+jtTRANSACTION    - Transaction processing
+jtVALIDATION     - Validation processing
+jtRPC            - RPC requests
+jtCLIENT         - Client subscriptions (lower priority)
+```
+
+### Strand-Based Async I/O
+
+Network I/O uses Boost.Asio with strand-based serialization for thread safety.
+
+**Pattern:**
+
+```cpp
+// All operations on a peer run on its strand
+boost::asio::strand<boost::asio::io_context::executor_type> strand_;
+
+// Post work to strand
+boost::asio::post(strand_, [this]() {
+    // This code is serialized with other strand operations
+});
+```
+
+### Thread Safety Patterns
+
+1. **Mutex Protection** - Standard `std::mutex` for shared state
+2. **Strand Serialization** - Boost.Asio strands for I/O objects
+3. **Lock-Free Structures** - `std::atomic` for counters and flags
+4. **Immutable Sharing** - `std::shared_ptr<const T>` for shared data
+
+**Application Thread Pool:**
+
+```cpp
+// BasicApp creates the I/O service threads (src/xrpld/app/main/BasicApp.cpp)
+BasicApp::BasicApp(std::size_t numberOfThreads) {
+    while (numberOfThreads--)
+        threads_.emplace_back([this]() { io_context_.run(); });
+}
+```
+
+---
+
+## Build System
+
+### CMake Structure
+
+The project uses CMake 3.16+ as its build system.
+
+**Key Files:**
+
+- `CMakeLists.txt` - Root build configuration
+- `cmake/` - CMake modules and utilities
+- `CMakePresets.json` - Build presets (if present)
+
+**Build Targets:**
+
+- `xrpl_core` - Core library
+- `rippled` - Main executable
+- Unit tests (when `-Dtests=ON`)
+
+### Conan for Dependencies
+
+Dependencies are managed via Conan package manager.
+
+**Key Dependencies:**
+
+- Boost (asio, beast, filesystem, program_options)
+- OpenSSL (cryptography, TLS)
+- gRPC + Protobuf (optional gRPC API)
+- NuDB (default database backend)
+- RocksDB (optional database backend)
+- lz4 (compression)
+- SOCI + SQLite3 (relational database)
+
+### Building rippled
+
+```bash
+# Install dependencies via Conan
+conan install . --output-folder=build --build=missing
+
+# Configure with CMake
+cmake --preset conan-release  # or conan-debug
+
+# Build
+cmake --build build --parallel
+
+# Run tests (if built with -Dtests=ON)
+./build/rippled --unittest
+```
+
+**Common Build Options:**
+
+```bash
+-Dtests=ON          # Enable unit tests
+-Drocksdb=ON        # Enable RocksDB backend (default: ON)
+-Dcoverage=ON       # Enable code coverage
+-Donly_docs=ON      # Build only documentation
+```
 
 ---
 
@@ -82,6 +375,7 @@ rippled/
 ### What is Levelization?
 
 Levelization is the practice of organizing modules into hierarchical tiers where:
+
 - **Lower tiers** are more independent (fewer dependencies)
 - **Higher tiers** depend on lower tiers
 - **Cycles are prohibited** between tiers
@@ -92,26 +386,26 @@ This ensures a clean dependency graph, faster compilation, and easier testing.
 
 #### libxrpl Modules (Reusable Libraries)
 
-| Level | Module(s) | Description |
-|-------|-----------|-------------|
-| 01 | `xrpl/beast` | Networking and utility foundations |
-| 02 | `xrpl/basics` | Fundamental types and utilities |
-| 03 | `xrpl/json`, `xrpl/crypto` | JSON handling, cryptographic primitives |
-| 04 | `xrpl/protocol` | XRP Ledger protocol types |
-| 05 | `xrpl/core`, `xrpl/resource`, `xrpl/server` | Core services |
-| 06 | `xrpl/ledger`, `xrpl/nodestore`, `xrpl/net` | Data storage and networking |
-| 07 | `xrpl/shamap` | Merkle tree implementation |
+| Level | Module(s)                                   | Description                             |
+| ----- | ------------------------------------------- | --------------------------------------- |
+| 01    | `xrpl/beast`                                | Networking and utility foundations      |
+| 02    | `xrpl/basics`                               | Fundamental types and utilities         |
+| 03    | `xrpl/json`, `xrpl/crypto`                  | JSON handling, cryptographic primitives |
+| 04    | `xrpl/protocol`                             | XRP Ledger protocol types               |
+| 05    | `xrpl/core`, `xrpl/resource`, `xrpl/server` | Core services                           |
+| 06    | `xrpl/ledger`, `xrpl/nodestore`, `xrpl/net` | Data storage and networking             |
+| 07    | `xrpl/shamap`                               | Merkle tree implementation              |
 
 #### xrpld Modules (Application Implementation)
 
-| Level | Module(s) | Description |
-|-------|-----------|-------------|
-| 05 | `xrpld/conditions`, `xrpld/consensus` | Crypto-conditions, consensus logic |
-| 06 | `xrpld/core`, `xrpld/peerfinder` | Daemon core, peer discovery |
-| 07 | `xrpld/shamap`, `xrpld/overlay` | Network overlay layer |
-| 08 | `xrpld/app` | Application layer (transactions, ledgers) |
-| 09 | `xrpld/rpc` | RPC handlers |
-| 10 | `xrpld/perflog` | Performance logging |
+| Level | Module(s)                             | Description                               |
+| ----- | ------------------------------------- | ----------------------------------------- |
+| 05    | `xrpld/conditions`, `xrpld/consensus` | Crypto-conditions, consensus logic        |
+| 06    | `xrpld/core`, `xrpld/peerfinder`      | Daemon core, peer discovery               |
+| 07    | `xrpld/shamap`, `xrpld/overlay`       | Network overlay layer                     |
+| 08    | `xrpld/app`                           | Application layer (transactions, ledgers) |
+| 09    | `xrpld/rpc`                           | RPC handlers                              |
+| 10    | `xrpld/perflog`                       | Performance logging                       |
 
 ### Running Levelization Checks
 
@@ -130,13 +424,13 @@ cat .github/scripts/levelization/results/ordering.txt
 
 The following cycles exist in the codebase and are being addressed:
 
-| Cycle | Direction | Notes |
-|-------|-----------|-------|
-| `xrpld.app ↔ xrpld.overlay` | overlay > app | Overlay needs app for message handling |
-| `xrpld.app ↔ xrpld.peerfinder` | peerfinder ~= app | Peer discovery integration |
-| `xrpld.app ↔ xrpld.rpc` | rpc > app | RPC handlers access application state |
-| `test.jtx ↔ test.toplevel` | toplevel > jtx | Test framework dependencies |
-| `test.jtx ↔ test.unit_test` | unit_test == jtx | Test utilities |
+| Cycle                           | Direction         | Notes                                  |
+| ------------------------------- | ----------------- | -------------------------------------- |
+| `xrpld.app ↔ xrpld.overlay`    | overlay > app     | Overlay needs app for message handling |
+| `xrpld.app ↔ xrpld.peerfinder` | peerfinder ~= app | Peer discovery integration             |
+| `xrpld.app ↔ xrpld.rpc`        | rpc > app         | RPC handlers access application state  |
+| `test.jtx ↔ test.toplevel`     | toplevel > jtx    | Test framework dependencies            |
+| `test.jtx ↔ test.unit_test`    | unit_test == jtx  | Test utilities                         |
 
 **Note**: The `>` symbol indicates which module should be at a higher level. The `~=` and `==` symbols indicate unclear ordering.
 
@@ -174,6 +468,7 @@ class LedgerMaster : public LedgerDataProvider {
 Factory functions (`make_XXX()`) create concrete implementations while allowing callers to depend only on abstract interfaces.
 
 **Examples in codebase:**
+
 - `make_Overlay()` - Creates the peer-to-peer overlay network
 - `make_SHAMapStore()` - Creates ledger storage
 - `make_LoadManager()` - Creates load management
@@ -229,38 +524,38 @@ This pattern centralizes dependency injection and makes the system's structure e
 
 ### Core Modules
 
-| Module | Responsibility |
-|--------|----------------|
-| `xrpl/basics` | Fundamental utilities: logging (`Journal`), containers (`TaggedCache`), types (`base_uint`), string utilities |
-| `xrpl/protocol` | XRP Ledger protocol types: `STObject`, `STTx`, `AccountID`, `Issue`, serialization formats |
-| `xrpl/ledger` | Ledger views and iterators: `ReadView`, `ApplyView`, `Sandbox` |
-| `xrpld/core` | Daemon services: `Config`, `JobQueue`, `Workers`, database connections |
+| Module          | Responsibility                                                                                                |
+| --------------- | ------------------------------------------------------------------------------------------------------------- |
+| `xrpl/basics`   | Fundamental utilities: logging (`Journal`), containers (`TaggedCache`), types (`base_uint`), string utilities |
+| `xrpl/protocol` | XRP Ledger protocol types: `STObject`, `STTx`, `AccountID`, `Issue`, serialization formats                    |
+| `xrpl/ledger`   | Ledger views and iterators: `ReadView`, `ApplyView`, `Sandbox`                                                |
+| `xrpld/core`    | Daemon services: `Config`, `JobQueue`, `Workers`, database connections                                        |
 
 ### Application Modules
 
-| Module | Responsibility |
-|--------|----------------|
-| `xrpld/app/consensus` | Consensus algorithm: `RCLConsensus`, `RCLValidations` |
-| `xrpld/app/ledger` | Ledger management: `LedgerMaster`, `InboundLedgers`, `OpenLedger` |
-| `xrpld/app/main` | Application entry point: `Application`, `Main.cpp` |
-| `xrpld/app/misc` | Miscellaneous: `NetworkOPs`, `AmendmentTable`, `LoadFeeTrack` |
-| `xrpld/app/paths` | Payment pathfinding: `Pathfinder`, `RippleCalc`, `Flow` |
-| `xrpld/app/tx` | Transaction processing: `apply()`, `applySteps()`, transactors |
+| Module                | Responsibility                                                    |
+| --------------------- | ----------------------------------------------------------------- |
+| `xrpld/app/consensus` | Consensus algorithm: `RCLConsensus`, `RCLValidations`             |
+| `xrpld/app/ledger`    | Ledger management: `LedgerMaster`, `InboundLedgers`, `OpenLedger` |
+| `xrpld/app/main`      | Application entry point: `Application`, `Main.cpp`                |
+| `xrpld/app/misc`      | Miscellaneous: `NetworkOPs`, `AmendmentTable`, `LoadFeeTrack`     |
+| `xrpld/app/paths`     | Payment pathfinding: `Pathfinder`, `RippleCalc`, `Flow`           |
+| `xrpld/app/tx`        | Transaction processing: `apply()`, `applySteps()`, transactors    |
 
 ### Network Modules
 
-| Module | Responsibility |
-|--------|----------------|
-| `xrpld/overlay` | Peer-to-peer networking: `Overlay`, `Peer`, message handling |
-| `xrpld/peerfinder` | Peer discovery: finding and managing peer connections |
-| `xrpld/rpc` | JSON-RPC API: handlers for all RPC methods |
+| Module             | Responsibility                                               |
+| ------------------ | ------------------------------------------------------------ |
+| `xrpld/overlay`    | Peer-to-peer networking: `Overlay`, `Peer`, message handling |
+| `xrpld/peerfinder` | Peer discovery: finding and managing peer connections        |
+| `xrpld/rpc`        | JSON-RPC API: handlers for all RPC methods                   |
 
 ### Storage Modules
 
-| Module | Responsibility |
-|--------|----------------|
-| `xrpl/nodestore` | Key-value persistence: backend abstraction, NuDB, RocksDB |
-| `xrpl/shamap` | Merkle tree (SHAMap): used for ledger state and transaction sets |
+| Module           | Responsibility                                                   |
+| ---------------- | ---------------------------------------------------------------- |
+| `xrpl/nodestore` | Key-value persistence: backend abstraction, NuDB, RocksDB        |
+| `xrpl/shamap`    | Merkle tree (SHAMap): used for ledger state and transaction sets |
 
 ---
 
@@ -268,18 +563,19 @@ This pattern centralizes dependency injection and makes the system's structure e
 
 ### Where to Put New Code
 
-| Type of Code | Location | Notes |
-|--------------|----------|-------|
-| New transaction type | `src/xrpld/app/tx/detail/` | Create a transactor class |
-| New RPC handler | `src/xrpld/rpc/handlers/` | Implement handler function |
-| Protocol types | `include/xrpl/protocol/` | New SFields, formats |
-| Test utilities | `src/test/jtx/` | Extend the jtx framework |
+| Type of Code         | Location                   | Notes                      |
+| -------------------- | -------------------------- | -------------------------- |
+| New transaction type | `src/xrpld/app/tx/detail/` | Create a transactor class  |
+| New RPC handler      | `src/xrpld/rpc/handlers/`  | Implement handler function |
+| Protocol types       | `include/xrpl/protocol/`   | New SFields, formats       |
+| Test utilities       | `src/test/jtx/`            | Extend the jtx framework   |
 
 ### Adding New Transactions
 
 For detailed guidance on implementing new transactions, see [FEATURE_DEVELOPMENT.md](./FEATURE_DEVELOPMENT.md).
 
 High-level steps:
+
 1. Define new `SField`s in `include/xrpl/protocol/SField.h`
 2. Add transaction format in `include/xrpl/protocol/TxFormats.h`
 3. Create transactor in `src/xrpld/app/tx/detail/`
@@ -350,15 +646,15 @@ class MyTest : public beast::unit_test::suite {
 
 Tests are organized to mirror the source structure:
 
-| Test Directory | Tests For |
-|----------------|-----------|
-| `src/test/app/` | Transaction processing, application logic |
-| `src/test/rpc/` | RPC handlers |
-| `src/test/ledger/` | Ledger views and operations |
-| `src/test/protocol/` | Protocol types and serialization |
-| `src/test/consensus/` | Consensus algorithm |
-| `src/test/overlay/` | Peer-to-peer networking |
-| `src/test/nodestore/` | Storage backends |
+| Test Directory        | Tests For                                 |
+| --------------------- | ----------------------------------------- |
+| `src/test/app/`       | Transaction processing, application logic |
+| `src/test/rpc/`       | RPC handlers                              |
+| `src/test/ledger/`    | Ledger views and operations               |
+| `src/test/protocol/`  | Protocol types and serialization          |
+| `src/test/consensus/` | Consensus algorithm                       |
+| `src/test/overlay/`   | Peer-to-peer networking                   |
+| `src/test/nodestore/` | Storage backends                          |
 
 ### Running Tests
 
@@ -529,4 +825,3 @@ sequenceDiagram
 - [FEATURE_DEVELOPMENT.md](./FEATURE_DEVELOPMENT.md) - Detailed feature implementation guide
 - [src/test/jtx/README.md](../src/test/jtx/README.md) - Test framework documentation
 - [.github/scripts/levelization/README.md](../.github/scripts/levelization/README.md) - Levelization tooling
-
