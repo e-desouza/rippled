@@ -23,7 +23,7 @@
 | 3.2  | Split app/tx/detail into Submodules | 2-3 weeks   | High   | ✅ Complete    |
 | 3.3  | Split NetworkOPs                    | 4 weeks     | High   | 🔄 In Progress |
 | 3.4  | Split PeerImp                       | 4 days      | Medium | ✅ Complete    |
-| 3.5  | Runtime Transaction Registry        | 3-4 weeks   | Medium | ⏳ Not Started |
+| 3.5  | Runtime Transaction Registry        | 3-4 weeks   | Low    | ❌ Deferred    |
 | 3.6  | Consensus Adaptor Decoupling        | 16-20 days  | Medium | ⏳ Not Started |
 
 ---
@@ -329,7 +329,7 @@ Split the PeerImp class (~3000 lines) into focused protocol handlers and message
 
 ### Task 3.5: Runtime Transaction Registry
 
-**Status:** [ ] Not Started
+**Status:** [-] Deferred (Do Not Implement)
 **Risk:** Medium
 **Estimated Effort:** 3-4 weeks
 **Dependencies:** Phase 2 complete
@@ -338,6 +338,21 @@ Split the PeerImp class (~3000 lines) into focused protocol handlers and message
 
 **Description:**
 Replace compile-time transaction type registration with a runtime registry pattern to enable pluggable transaction handlers and improve extensibility.
+
+**Decision: DO NOT IMPLEMENT**
+
+After analysis, this task provides marginal benefits that don't justify the effort:
+
+- The current X-macro system works reliably
+- Performance benefit is negligible (<0.01% improvement)
+- Main benefits (testability, extensibility) are "nice to have" not essential
+- 3-4 weeks of effort better spent on higher-impact tasks (3.3, 3.6)
+
+Reconsider only if:
+
+- Planning to add many new transaction types
+- Building a plugin system for custom transactions
+- Significantly expanding unit test coverage of transaction handlers
 
 ---
 
@@ -501,8 +516,8 @@ Before marking any task complete:
 
 ## Remaining Tasks
 
-| Task | Description                    | Est. Effort | Risk   |
-| ---- | ------------------------------ | ----------- | ------ |
-| 3.3  | Split NetworkOPs (~4000 lines) | 4 weeks     | High   |
-| 3.5  | Runtime Transaction Registry   | 3-4 weeks   | Medium |
-| 3.6  | Consensus Adaptor Decoupling   | 16-20 days  | Medium |
+| Task    | Description                      | Est. Effort   | Risk    |
+| ------- | -------------------------------- | ------------- | ------- | ----------- |
+| 3.3     | Split NetworkOPs (~4000 lines)   | 4 weeks       | High    |
+| ~~3.5~~ | ~~Runtime Transaction Registry~~ | ~~3-4 weeks~~ | ~~Low~~ | ❌ Deferred |
+| 3.6     | Consensus Adaptor Decoupling     | 16-20 days    | Medium  |
