@@ -6,6 +6,12 @@
 #include <xrpld/app/txqueue/HashRouter.h>
 #include <xrpld/overlay/Squelch.h>
 #include <xrpld/overlay/detail/OverlayImpl.h>
+// NOTE: PeerMetrics and PeerTracker are available for future refactoring.
+// They encapsulate metrics and ledger tracking functionality that currently
+// exists inline in PeerImp. A future iteration can migrate PeerImp to use
+// these classes instead of the internal Metrics class and tracking_ members.
+#include <xrpld/overlay/detail/PeerMetrics.h>
+#include <xrpld/overlay/detail/PeerTracker.h>
 #include <xrpld/overlay/detail/ProtocolVersion.h>
 #include <xrpld/peerfinder/PeerfinderManager.h>
 
