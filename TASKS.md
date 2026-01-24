@@ -24,7 +24,7 @@
 | 3.3  | Split NetworkOPs                    | 4 weeks     | High   | 🔄 In Progress |
 | 3.4  | Split PeerImp                       | 4 days      | Medium | ✅ Complete    |
 | 3.5  | Runtime Transaction Registry        | 3-4 weeks   | Low    | ❌ Deferred    |
-| 3.6  | Consensus Adaptor Decoupling        | 16-20 days  | Medium | ⏳ Not Started |
+| 3.6  | Consensus Adaptor Decoupling        | 16-20 days  | Medium | 🔄 In Progress |
 
 ---
 
@@ -299,7 +299,12 @@ Split the monolithic NetworkOPs class (~4000 lines) into focused responsibility-
   - [x] IConsensusCoordinator.h - Consensus lifecycle management
   - [x] IPubSubManager.h - Subscription/notification management
   - [x] INetworkInfo.h - Server info queries
-- [ ] Phase 2: Create Implementations (Week 2)
+- [/] Phase 2: Create Implementations (Week 2)
+  - [x] NetworkStateImpl - Full implementation (commit 28114a73c0)
+  - [x] NetworkInfoImpl - Stub implementation (commit 28114a73c0)
+  - [ ] TransactionProcessorImpl
+  - [ ] ConsensusCoordinatorImpl
+  - [ ] PubSubManagerImpl
 - [ ] Phase 3: Create Facade and Wire Components (Week 3)
 - [ ] Phase 4: Migration and Testing (Week 4)
 
@@ -358,7 +363,7 @@ Reconsider only if:
 
 ### Task 3.6: Consensus Adaptor Decoupling
 
-**Status:** [ ] Not Started
+**Status:** [/] In Progress - Interfaces Complete
 **Risk:** Medium
 **Estimated Effort:** 16-20 days
 **Dependencies:** Phase 2 complete
@@ -367,6 +372,15 @@ Reconsider only if:
 
 **Description:**
 Decouple the consensus adaptor from NetworkOPs and Application to enable cleaner testing and alternative consensus implementations.
+
+**Progress:**
+
+- [x] Step 1: Create 8 focused interfaces (commit 2317dc44ff)
+  - ILedgerProvider, IOverlayBroadcaster, IConsensusJobScheduler, ITxSetManager
+  - IMessageRouter, IConsensusTimeSource, IValidationTracker, IOperatingMode
+- [ ] Step 2: Create wrapper implementations
+- [ ] Step 3: Refactor RCLConsensus::Adaptor to use interfaces
+- [ ] Step 4: Wire implementations in Application
 
 ---
 
