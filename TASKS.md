@@ -305,7 +305,9 @@ Split the monolithic NetworkOPs class (~4000 lines) into focused responsibility-
   - [x] TransactionProcessorImpl - Stub implementation (commit 04d6cd3a35)
   - [x] ConsensusCoordinatorImpl - Stub implementation (commit 04d6cd3a35)
   - [x] PubSubManagerImpl - Stub implementation (commit 04d6cd3a35)
-- [ ] Phase 3: Create Facade and Wire Components (Week 3)
+- [x] Phase 3: Create NetworkOPsAdapter (Week 3) ✅
+  - [x] NetworkOPsAdapter.h - Adapter wrapping NetworkOPs (commit 6cd239639e)
+  - [x] NetworkOPsAdapter.cpp - Implements all 5 interfaces by delegation
 - [ ] Phase 4: Migration and Testing (Week 4)
 
 ---
@@ -380,7 +382,10 @@ Decouple the consensus adaptor from NetworkOPs and Application to enable cleaner
 - [x] Step 1: Create 8 focused interfaces (commit 2317dc44ff)
   - ILedgerProvider, IOverlayBroadcaster, IConsensusJobScheduler, ITxSetManager
   - IMessageRouter, IConsensusTimeSource, IValidationTracker, IOperatingMode
-- [ ] Step 2: Create wrapper implementations
+- [x] Step 2: Create wrapper implementations (commit 00a89e6931)
+  - LedgerProviderImpl, OverlayBroadcasterImpl, ConsensusJobSchedulerImpl
+  - TxSetManagerImpl, MessageRouterImpl, ConsensusTimeSourceImpl
+  - ValidationTrackerImpl, OperatingModeImpl
 - [ ] Step 3: Refactor RCLConsensus::Adaptor to use interfaces
 - [ ] Step 4: Wire implementations in Application
 
