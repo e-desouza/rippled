@@ -9,6 +9,16 @@ The `==` indicates a bidirectional dependency at the same level.
 - `test.jtx` includes `test.unit_test` (1 include)
 - `test.unit_test` includes `test.jtx` (1 include)
 
+## Levelization Hierarchy (from README.md)
+
+| Level | Module                                     |
+| ----- | ------------------------------------------ |
+| 11    | test/jtx (lower, more independent)         |
+| 12    | test/unit_test (higher, can depend on jtx) |
+
+**Allowed direction:** `test.unit_test` → `test.jtx` (Level 12 → Level 11)
+**Forbidden direction:** `test.jtx` → `test.unit_test` (Level 11 → Level 12)
+
 ## Dependency Analysis
 
 ### jtx → unit_test Dependency (1 include)
@@ -51,22 +61,26 @@ Both modules have legitimate needs for each other's functionality.
 test.unit_test > test.jtx  (unit_test depends on jtx - ALLOWED)
 ```
 
-### Option B: Move TestSuite to test.unit_test
+### Option B: Move TestSuite to test.unit_test (NOT RECOMMENDED)
 
-Alternatively, move `TestSuite.h` to `test/unit_test/`:
+**Gemini's suggestion:** Move `TestSuite.h` to `test/unit_test/` because it's a generic utility.
 
 **Move:** `src/test/jtx/TestSuite.h` → `src/test/unit_test/TestSuite.h`
 
-**Update includes:**
-
-- `test/unit_test/FileDirGuard.h` - Change to `test/unit_test/TestSuite.h`
-- All files including `test/jtx/TestSuite.h`
-
-**Result:**
+**Problem:** This would require `test.jtx` to include from `test.unit_test`:
 
 ```
-test.jtx > test.unit_test  (jtx depends on unit_test - ALLOWED)
+test.jtx > test.unit_test  (Level 11 → Level 12 - FORBIDDEN!)
 ```
+
+While semantically `TestSuite.h` is a generic utility, the levelization hierarchy
+places `test.jtx` at Level 11 (lower) and `test.unit_test` at Level 12 (higher).
+Moving `TestSuite` to `unit_test` would create a new forbidden dependency.
+
+**Gemini's semantic argument is valid** - `TestSuite.h` has no jtx-specific dependencies.
+However, the levelization hierarchy must be respected. If we want to follow Gemini's
+semantic organization, we would need to swap the levels of `jtx` and `unit_test` in
+the desired hierarchy, which is a larger architectural decision.
 
 ### Option C: Create shared test.base module
 
