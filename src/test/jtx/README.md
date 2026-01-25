@@ -7,21 +7,22 @@ The `jtx` (JSON Transaction) testing framework provides a fluent, expressive API
 ### Env (Environment)
 
 `Env` is the central class that simulates a standalone XRP Ledger node. It manages:
+
 - Account creation and funding
 - Transaction submission
 - Ledger advancement
 - State queries and verification
 
 ```cpp
-#include <test/jtx.h>
+#include <test/jtx/Env.h>
 
 class MyTest : public beast::unit_test::suite {
     void testExample() {
         using namespace jtx;
-        
+
         // Create environment with all supported amendments
         Env env(*this);
-        
+
         // Or with specific features enabled/disabled
         Env env2(*this, testable_amendments() - featureSomeFeature);
     }
@@ -109,31 +110,31 @@ auto const closed = env.closed();          // Last closed ledger
 
 ## Transaction Helpers
 
-| Helper | Description |
-|--------|-------------|
-| `pay(from, to, amount)` | Create a Payment transaction |
-| `trust(account, amount)` | Create/modify a trust line |
-| `offer(account, pays, gets)` | Create an offer |
-| `offer_cancel(account, seq)` | Cancel an offer |
-| `fset(account, flag)` | Set account flag |
-| `fclear(account, flag)` | Clear account flag |
-| `noop(account)` | AccountSet with no changes |
-| `regkey(account, key)` | Set regular key |
-| `signers(account, quorum, signers)` | Set up multisig |
+| Helper                              | Description                  |
+| ----------------------------------- | ---------------------------- |
+| `pay(from, to, amount)`             | Create a Payment transaction |
+| `trust(account, amount)`            | Create/modify a trust line   |
+| `offer(account, pays, gets)`        | Create an offer              |
+| `offer_cancel(account, seq)`        | Cancel an offer              |
+| `fset(account, flag)`               | Set account flag             |
+| `fclear(account, flag)`             | Clear account flag           |
+| `noop(account)`                     | AccountSet with no changes   |
+| `regkey(account, key)`              | Set regular key              |
+| `signers(account, quorum, signers)` | Set up multisig              |
 
 ## Funclets (Transaction Modifiers)
 
 Funclets modify transaction properties before submission:
 
-| Funclet | Description |
-|---------|-------------|
-| `ter(code)` | Set expected transaction result |
-| `fee(amount)` | Set transaction fee |
-| `seq(n)` | Set sequence number |
-| `sig(account)` | Sign with specific account |
-| `msig(accounts...)` | Multi-sign transaction |
-| `memo(data, format, type)` | Add memo |
-| `require(conditions...)` | Add post-conditions |
+| Funclet                    | Description                     |
+| -------------------------- | ------------------------------- |
+| `ter(code)`                | Set expected transaction result |
+| `fee(amount)`              | Set transaction fee             |
+| `seq(n)`                   | Set sequence number             |
+| `sig(account)`             | Sign with specific account      |
+| `msig(accounts...)`        | Multi-sign transaction          |
+| `memo(data, format, type)` | Add memo                        |
+| `require(conditions...)`   | Add post-conditions             |
 
 ## Amounts
 
@@ -147,7 +148,7 @@ any(USD(100))               // Any issuer acceptable
 ## Writing a New Test
 
 ```cpp
-#include <test/jtx.h>
+#include <test/jtx/Env.h>
 #include <xrpl/beast/unit_test.h>
 #include <xrpl/protocol/Feature.h>
 
@@ -158,31 +159,31 @@ class MyFeature_test : public beast::unit_test::suite {
     void testBasicFunctionality() {
         testcase("Basic functionality");
         using namespace jtx;
-        
+
         Env env(*this);
         auto const alice = Account("alice");
         auto const bob = Account("bob");
-        
+
         env.fund(XRP(10000), alice, bob);
         env.close();
-        
+
         // Test your feature
         env(pay(alice, bob, XRP(100)));
         env.require(balance(bob, XRP(10100)));
-        
+
         // Test error case
         env(pay(alice, bob, XRP(1000000)), ter(tecUNFUNDED_PAYMENT));
     }
-    
+
     void testWithSpecificAmendments() {
         testcase("With specific amendments");
         using namespace jtx;
-        
+
         // Test with feature disabled
         Env env(*this, testable_amendments() - featureMyNewFeature);
         // ... test legacy behavior
     }
-    
+
     void run() override {
         testBasicFunctionality();
         testWithSpecificAmendments();
@@ -194,4 +195,3 @@ BEAST_DEFINE_TESTSUITE(MyFeature, app, ripple);
 }  // namespace test
 }  // namespace xrpl
 ```
-
