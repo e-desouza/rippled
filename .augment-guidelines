@@ -14,10 +14,88 @@
   - ccache lock conflicts
   - Potential build failures from resource exhaustion
 
-**Correct pattern for parallel sub-agents:**
+**Correct patterns for parallel sub-agents:**
+
+**Option 1: Sequential builds (simple)**
 1. Sub-agent A: Generate code, then build and verify
 2. Sub-agent B: Generate code, wait for A to finish building, then build
 3. OR: One sub-agent does all building after others complete code generation
+
+**Option 2: Parallel builds on separate machines (preferred for testing multiple tasks)**
+1. Sub-agent A: Build locally in `.build/`
+2. Sub-agent B: Sync code to Azure TEE VM and build there
+
+This allows true parallel testing without resource conflicts.
+
+### Azure TEE VM for Parallel Builds
+
+When testing multiple tasks simultaneously, use the Azure TEE VM (same machines used for distcc) as a separate build environment.
+
+#### Syncing Code to Azure VM
+
+```bash
+# Sync the entire project to Azure VM (use any of the distcc hosts)
+rsync -avz --exclude='.build' --exclude='.git/objects' \
+    /home/edesouza/Projects/rippled/ \
+    edesouza@10.100.1.17:/home/edesouza/Projects/rippled-test/
+
+# Or use a specific test branch/directory name
+rsync -avz --exclude='.build' --exclude='.git/objects' \
+    /home/edesouza/Projects/rippled/ \
+    edesouza@10.100.1.17:/home/edesouza/Projects/rippled-task-3-6/
+```
+
+#### Building on Azure VM
+
+```bash
+# SSH to the VM and build
+ssh edesouza@10.100.1.17 "cd /home/edesouza/Projects/rippled-test/.build && ninja -j4 > build.log 2>&1"
+
+# Check build results
+ssh edesouza@10.100.1.17 "tail -50 /home/edesouza/Projects/rippled-test/.build/build.log"
+
+# Check for errors
+ssh edesouza@10.100.1.17 "grep -i 'error:' /home/edesouza/Projects/rippled-test/.build/build.log | head -20"
+```
+
+#### Initial Setup on Azure VM (one-time)
+
+If the VM doesn't have a build directory configured:
+```bash
+ssh edesouza@10.100.1.17 << 'EOF'
+cd /home/edesouza/Projects/rippled-test
+mkdir -p .build && cd .build
+cmake .. -G Ninja \
+    -DCMAKE_BUILD_TYPE=Debug \
+    -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
+    -DCMAKE_C_COMPILER_LAUNCHER=ccache
+EOF
+```
+
+#### Azure VM Hosts (same as distcc)
+
+| Host | IP | Purpose |
+|------|-----|---------|
+| TEE VM 1 | 10.100.1.17 | Primary remote build |
+| TEE VM 2 | 10.100.1.18 | Alternative remote build |
+| TEE VM 3 | 10.100.1.19 | Alternative remote build |
+| TEE VM 4 | 10.100.1.20 | Alternative remote build |
+
+#### Parallel Build Pattern for Sub-Agents
+
+When running parallel sub-agents that both need to build:
+```
+Sub-agent A (local):
+  1. Make code changes
+  2. Build locally: cd .build && ninja -j4 > build.log 2>&1
+  3. Verify and test
+
+Sub-agent B (remote):
+  1. Make code changes
+  2. Sync to VM: rsync -avz --exclude='.build' ... edesouza@10.100.1.17:...
+  3. Build on VM: ssh edesouza@10.100.1.17 "cd ... && ninja -j4 > build.log 2>&1"
+  4. Check results: ssh edesouza@10.100.1.17 "tail -50 .../build.log"
+```
 
 ## Build System
 
