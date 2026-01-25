@@ -17,14 +17,14 @@
 
 ### Phase 3 Task Breakdown
 
-| Task | Description                         | Est. Effort | Risk   | Status         |
-| ---- | ----------------------------------- | ----------- | ------ | -------------- |
-| 3.1  | Split app/misc into Focused Modules | 3-4 weeks   | High   | ✅ Complete    |
-| 3.2  | Split app/tx/detail into Submodules | 2-3 weeks   | High   | ✅ Complete    |
-| 3.3  | Split NetworkOPs                    | 4 weeks     | High   | 🔄 In Progress |
-| 3.4  | Split PeerImp                       | 4 days      | Medium | ✅ Complete    |
-| 3.5  | Runtime Transaction Registry        | 3-4 weeks   | Low    | ❌ Deferred    |
-| 3.6  | Consensus Adaptor Decoupling        | 16-20 days  | Medium | 🔄 In Progress |
+| Task | Description                         | Est. Effort | Risk   | Status       |
+| ---- | ----------------------------------- | ----------- | ------ | ------------ |
+| 3.1  | Split app/misc into Focused Modules | 3-4 weeks   | High   | ✅ Complete  |
+| 3.2  | Split app/tx/detail into Submodules | 2-3 weeks   | High   | ✅ Complete  |
+| 3.3  | Split NetworkOPs                    | 4 weeks     | High   | 🔄 Phase 3/4 |
+| 3.4  | Split PeerImp                       | 4 days      | Medium | ✅ Complete  |
+| 3.5  | Runtime Transaction Registry        | 3-4 weeks   | Low    | ❌ Deferred  |
+| 3.6  | Consensus Adaptor Decoupling        | 16-20 days  | Medium | 🔄 Step 3/4  |
 
 ---
 
@@ -528,17 +528,45 @@ Before marking any task complete:
 | 4.1 CMakePresets.json             | acc18fc82e | 2026-01-23 | IDE integration                            |
 | 4.2 jtx README                    | 94d29c4069 | 2026-01-23 | Testing framework docs                     |
 | 4.3, 4.4, 4.5 Documentation       | 5e792bed5a | 2026-01-23 | Docker, Architecture, Feature guides       |
+| 3.3 NetworkOPsAdapter             | 6cd239639e | 2026-01-25 | Created adapter implementing 5 interfaces  |
+| 3.4 PeerTracker/PeerMetrics       | (prev)     | 2026-01-24 | Helper classes for peer management         |
+| 3.6 Consensus Interfaces (Step 1) | 00a89e6931 | 2026-01-25 | 8 focused interfaces created               |
+| 3.6 Wrappers (Step 2)             | 00a89e6931 | 2026-01-25 | 8 wrapper implementations                  |
+| 3.6 ConsensusAdaptorDeps (Step 3) | f33d282f14 | 2026-01-25 | Deps struct + new Adaptor constructor      |
 
 ## In Progress Tasks
 
-| Task              | Status         | Notes                                                         |
-| ----------------- | -------------- | ------------------------------------------------------------- |
-| 3.4 Split PeerImp | 🔄 In Progress | PeerTracker.h/cpp and PeerMetrics.h created, need integration |
+| Task | Status         | Notes                                                                          |
+| ---- | -------------- | ------------------------------------------------------------------------------ |
+| 3.3  | 🔄 In Progress | NetworkOPsAdapter created, Phase 4 integration pending                         |
+| 3.4  | ✅ Complete    | PeerTracker.h/cpp and PeerMetrics.h created                                    |
+| 3.6  | 🔄 In Progress | 8 interfaces + wrappers + ConsensusAdaptorDeps complete, Step 4 wiring pending |
 
 ## Remaining Tasks
 
 | Task    | Description                      | Est. Effort   | Risk    |
 | ------- | -------------------------------- | ------------- | ------- | ----------- |
-| 3.3     | Split NetworkOPs (~4000 lines)   | 4 weeks       | High    |
 | ~~3.5~~ | ~~Runtime Transaction Registry~~ | ~~3-4 weeks~~ | ~~Low~~ | ❌ Deferred |
-| 3.6     | Consensus Adaptor Decoupling     | 16-20 days    | Medium  |
+
+## Task 3.6 Consensus Adaptor Decoupling - Details
+
+**Status:** Steps 1-3 Complete, Step 4 In Progress
+
+### Completed Work:
+
+- **Step 1:** Created 8 focused interfaces in `src/xrpld/consensus/`:
+  - `ILedgerProvider.h`, `IOverlayBroadcaster.h`, `IConsensusJobScheduler.h`
+  - `ITxSetManager.h`, `IMessageRouter.h`, `IConsensusTimeSource.h`
+  - `IValidationTracker.h`, `IOperatingMode.h`
+- **Step 2:** Created 8 wrapper implementations in `src/xrpld/consensus/detail/`
+- **Step 3:** Created `ConsensusAdaptorDeps.h` and added new `Adaptor` constructor
+
+### Remaining Work (Step 4):
+
+To fully wire the interfaces in `NetworkOPsImp::mConsensus`:
+
+1. Create wrapper instances after Application subsystems are initialized
+2. Build `ConsensusAdaptorDeps` struct from wrapper references
+3. Use new `RCLConsensus` constructor with deps
+
+This is optional - the existing code path works without interfaces.
