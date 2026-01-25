@@ -1,3 +1,4 @@
+#include <test/jtx.h>
 #include <test/jtx/Oracle.h>
 
 #include <xrpl/protocol/jss.h>

@@ -29,11 +29,10 @@
 #include <memory>
 #include <set>
 
-namespace ripple {
-class Peer;
-}  // namespace ripple
-
 namespace xrpl {
+
+// Forward declaration of Peer (defined in xrpld/overlay/Peer.h)
+class Peer;
 
 /// Peer identifier type (matches Peer::id_t)
 using PeerId = std::uint32_t;
@@ -135,7 +134,7 @@ public:
      * @param f Function to call for each peer
      */
     virtual void
-    foreach(std::function<void(std::shared_ptr<ripple::Peer> const&)> f) = 0;
+    foreach(std::function<void(std::shared_ptr<Peer> const&)> f) = 0;
 };
 
 }  // namespace xrpl

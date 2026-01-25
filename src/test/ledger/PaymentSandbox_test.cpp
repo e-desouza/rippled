@@ -1,3 +1,4 @@
+#include <test/jtx.h>
 #include <test/jtx/PathSet.h>
 
 #include <xrpl/ledger/ApplyViewImpl.h>

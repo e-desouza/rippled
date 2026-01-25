@@ -2,6 +2,7 @@
 #include <test/jtx/mpt.h>
 #include <test/jtx/pay.h>
 #include <test/jtx/require.h>
+#include <test/jtx/trust.h>
 
 #include <xrpl/protocol/SField.h>
 #include <xrpl/protocol/jss.h>

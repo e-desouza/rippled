@@ -73,7 +73,7 @@ OverlayBroadcasterImpl::relay(
 
 void
 OverlayBroadcasterImpl::foreach(
-    std::function<void(std::shared_ptr<ripple::Peer> const&)> f)
+    std::function<void(std::shared_ptr<Peer> const&)> f)
 {
     overlay_.foreach(std::move(f));
 }
