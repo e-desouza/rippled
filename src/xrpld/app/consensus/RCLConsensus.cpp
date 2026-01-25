@@ -103,6 +103,56 @@ RCLConsensus::Adaptor::Adaptor(
     }
 }
 
+RCLConsensus::Adaptor::Adaptor(
+    Application& app,
+    std::unique_ptr<FeeVote>&& feeVote,
+    LedgerMaster& ledgerMaster,
+    LocalTxs& localTxs,
+    InboundTransactions& inboundTransactions,
+    ValidatorKeys const& validatorKeys,
+    beast::Journal journal,
+    ConsensusAdaptorDeps deps)
+    : app_(app)
+    , feeVote_(std::move(feeVote))
+    , ledgerMaster_(ledgerMaster)
+    , localTxs_(localTxs)
+    , inboundTransactions_{inboundTransactions}
+    , j_(journal)
+    , validatorKeys_(validatorKeys)
+    , valCookie_(
+          1 +
+          rand_int(
+              crypto_prng(),
+              std::numeric_limits<std::uint64_t>::max() - 1))
+    , nUnlVote_(validatorKeys_.nodeID, j_)
+    , deps_(deps)
+{
+    XRPL_ASSERT(
+        valCookie_, "xrpl::RCLConsensus::Adaptor::Adaptor : nonzero cookie");
+
+    JLOG(j_.info())
+        << "Consensus engine started with interface deps (cookie: " +
+            std::to_string(valCookie_) + ")";
+
+    if (validatorKeys_.nodeID != beast::zero && validatorKeys_.keys)
+    {
+        JLOG(j_.info()) << "Validator identity: "
+                        << toBase58(
+                               TokenType::NodePublic,
+                               validatorKeys_.keys->masterPublicKey);
+
+        if (validatorKeys_.keys->masterPublicKey !=
+            validatorKeys_.keys->publicKey)
+        {
+            JLOG(j_.debug())
+                << "Validator ephemeral signing key: "
+                << toBase58(
+                       TokenType::NodePublic, validatorKeys_.keys->publicKey)
+                << " (seq: " << std::to_string(validatorKeys_.sequence) << ")";
+        }
+    }
+}
+
 std::optional<RCLCxLedger>
 RCLConsensus::Adaptor::acquireLedger(LedgerHash const& hash)
 {

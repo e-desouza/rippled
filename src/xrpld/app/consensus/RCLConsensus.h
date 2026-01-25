@@ -8,6 +8,7 @@
 #include <xrpld/app/misc/FeeVote.h>
 #include <xrpld/app/misc/NegativeUNLVote.h>
 #include <xrpld/consensus/Consensus.h>
+#include <xrpld/consensus/ConsensusAdaptorDeps.h>
 
 #include <xrpl/beast/utility/Journal.h>
 #include <xrpl/core/JobQueue.h>
@@ -70,6 +71,11 @@ class RCLConsensus
         RCLCensorshipDetector<TxID, LedgerIndex> censorshipDetector_;
         NegativeUNLVote nUnlVote_;
 
+        // Optional interface dependencies for decoupled consensus.
+        // When deps_ is set, we use the interfaces; otherwise, we fall back
+        // to the legacy Application-based approach.
+        std::optional<ConsensusAdaptorDeps> deps_;
+
     public:
         using Ledger_t = RCLCxLedger;
         using NodeID_t = NodeID;
@@ -79,6 +85,7 @@ class RCLConsensus
 
         using Result = ConsensusResult<Adaptor>;
 
+        /** Construct Adaptor with legacy dependencies (backward compatible). */
         Adaptor(
             Application& app,
             std::unique_ptr<FeeVote>&& feeVote,
@@ -87,6 +94,26 @@ class RCLConsensus
             InboundTransactions& inboundTransactions,
             ValidatorKeys const& validatorKeys,
             beast::Journal journal);
+
+        /** Construct Adaptor with decoupled interface dependencies.
+         *
+         * This constructor allows the consensus adaptor to use focused
+         * interfaces rather than depending directly on the Application
+         * object for all operations. The interfaces enable better testing
+         * and cleaner separation of concerns.
+         *
+         * @note Application is still needed for operations not yet
+         *       abstracted into interfaces (e.g., openLedger, config).
+         */
+        Adaptor(
+            Application& app,
+            std::unique_ptr<FeeVote>&& feeVote,
+            LedgerMaster& ledgerMaster,
+            LocalTxs& localTxs,
+            InboundTransactions& inboundTransactions,
+            ValidatorKeys const& validatorKeys,
+            beast::Journal journal,
+            ConsensusAdaptorDeps deps);
 
         bool
         validating() const
