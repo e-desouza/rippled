@@ -1,5 +1,6 @@
 #include <xrpld/app/tx/apply.h>
 #include <xrpld/app/tx/detail/Batch.h>
+#include <xrpld/app/tx/detail/RegisterTransaction.h>
 
 #include <xrpl/basics/Log.h>
 #include <xrpl/ledger/Sandbox.h>
@@ -520,5 +521,7 @@ Batch::doApply()
 {
     return tesSUCCESS;
 }
+
+REGISTER_TRANSACTION(ttBATCH, Batch)
 
 }  // namespace xrpl

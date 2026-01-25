@@ -1,4 +1,5 @@
 #include <xrpld/app/misc/DelegateUtils.h>
+#include <xrpld/app/tx/detail/RegisterTransaction.h>
 #include <xrpld/app/tx/detail/mptoken/MPTokenIssuanceSet.h>
 
 #include <xrpl/protocol/Feature.h>
@@ -336,5 +337,7 @@ MPTokenIssuanceSet::doApply()
 
     return tesSUCCESS;
 }
+
+REGISTER_TRANSACTION(ttMPTOKEN_ISSUANCE_SET, MPTokenIssuanceSet)
 
 }  // namespace xrpl

@@ -1,3 +1,4 @@
+#include <xrpld/app/tx/detail/RegisterTransaction.h>
 #include <xrpld/app/tx/detail/mptoken/MPTokenAuthorize.h>
 
 #include <xrpl/ledger/View.h>
@@ -173,5 +174,7 @@ MPTokenAuthorize::doApply()
         tx.getFlags(),
         tx[~sfHolder]);
 }
+
+REGISTER_TRANSACTION(ttMPTOKEN_AUTHORIZE, MPTokenAuthorize)
 
 }  // namespace xrpl

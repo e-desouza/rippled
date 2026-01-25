@@ -83,16 +83,16 @@ class RCLValidatedLedger;
 
 **Problem:** `IValidationTracker.h` uses `RCLValidatedLedger const&` parameters. Forward declarations work for references, but we need the complete type to call methods. This approach works IF the interface methods only take references.
 
-### Step 1: Move OperatingMode enum to consensus module
+### Step 1: Move OperatingMode enum to core module (shared by app and consensus)
 
 **Current location:** `src/xrpld/app/misc/NetworkOPs.h`
 
-**New location:** `src/xrpld/consensus/OperatingMode.h`
+**New location:** `src/xrpld/core/OperatingMode.h`
 
 ```cpp
-// src/xrpld/consensus/OperatingMode.h
-#ifndef RIPPLE_CONSENSUS_OPERATINGMODE_H_INCLUDED
-#define RIPPLE_CONSENSUS_OPERATINGMODE_H_INCLUDED
+// src/xrpld/core/OperatingMode.h
+#ifndef RIPPLE_CORE_OPERATINGMODE_H_INCLUDED
+#define RIPPLE_CORE_OPERATINGMODE_H_INCLUDED
 
 namespace ripple {
 
@@ -111,7 +111,7 @@ enum class OperatingMode {
 **Files to update:**
 
 - `src/xrpld/app/misc/NetworkOPs.h` - Include new header, remove enum definition
-- `src/xrpld/consensus/IOperatingMode.h` - Include `consensus/OperatingMode.h` instead
+- `src/xrpld/consensus/IOperatingMode.h` - Include `core/OperatingMode.h` instead
 
 ### Step 2: Create forward declaration header for RCLValidations
 

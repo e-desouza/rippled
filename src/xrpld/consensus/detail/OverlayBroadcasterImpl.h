@@ -41,7 +41,7 @@ public:
     void
     broadcast(protocol::TMValidation const& m) override;
 
-    std::set<Peer::id_t>
+    std::set<PeerId>
     relay(
         protocol::TMProposeSet const& m,
         uint256 const& suppression,
@@ -51,10 +51,11 @@ public:
     relay(
         uint256 const& hash,
         protocol::TMTransaction const& m,
-        std::set<Peer::id_t> const& skip) override;
+        std::set<PeerId> const& skip) override;
 
     void
-    foreach(std::function<void(std::shared_ptr<Peer> const&)> f) override;
+    foreach(
+        std::function<void(std::shared_ptr<ripple::Peer> const&)> f) override;
 
 private:
     Application& app_;

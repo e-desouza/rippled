@@ -1,4 +1,5 @@
 #include <xrpld/app/tx/detail/CreateCheck.h>
+#include <xrpld/app/tx/detail/RegisterTransaction.h>
 
 #include <xrpl/basics/Log.h>
 #include <xrpl/ledger/View.h>
@@ -213,5 +214,7 @@ CreateCheck::doApply()
     adjustOwnerCount(view(), sle, 1, viewJ);
     return tesSUCCESS;
 }
+
+REGISTER_TRANSACTION(ttCHECK_CREATE, CreateCheck)
 
 }  // namespace xrpl

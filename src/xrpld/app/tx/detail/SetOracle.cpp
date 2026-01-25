@@ -1,3 +1,4 @@
+#include <xrpld/app/tx/detail/RegisterTransaction.h>
 #include <xrpld/app/tx/detail/SetOracle.h>
 
 #include <xrpl/ledger/Sandbox.h>
@@ -309,5 +310,7 @@ SetOracle::doApply()
 
     return tesSUCCESS;
 }
+
+REGISTER_TRANSACTION(ttORACLE_SET, OracleSet)
 
 }  // namespace xrpl

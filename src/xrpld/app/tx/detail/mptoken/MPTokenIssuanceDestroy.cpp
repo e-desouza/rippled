@@ -1,3 +1,4 @@
+#include <xrpld/app/tx/detail/RegisterTransaction.h>
 #include <xrpld/app/tx/detail/mptoken/MPTokenIssuanceDestroy.h>
 
 #include <xrpl/ledger/View.h>
@@ -59,5 +60,7 @@ MPTokenIssuanceDestroy::doApply()
 
     return tesSUCCESS;
 }
+
+REGISTER_TRANSACTION(ttMPTOKEN_ISSUANCE_DESTROY, MPTokenIssuanceDestroy)
 
 }  // namespace xrpl

@@ -44,7 +44,7 @@ OverlayBroadcasterImpl::broadcast(protocol::TMValidation const& m)
     overlay_.broadcast(copy);
 }
 
-std::set<Peer::id_t>
+std::set<PeerId>
 OverlayBroadcasterImpl::relay(
     protocol::TMProposeSet const& m,
     uint256 const& suppression,
@@ -61,7 +61,7 @@ void
 OverlayBroadcasterImpl::relay(
     uint256 const& hash,
     protocol::TMTransaction const& m,
-    std::set<Peer::id_t> const& skip)
+    std::set<PeerId> const& skip)
 {
     // Overlay::relay for transactions has signature:
     //   relay(uint256 const& hash,
@@ -73,7 +73,7 @@ OverlayBroadcasterImpl::relay(
 
 void
 OverlayBroadcasterImpl::foreach(
-    std::function<void(std::shared_ptr<Peer> const&)> f)
+    std::function<void(std::shared_ptr<ripple::Peer> const&)> f)
 {
     overlay_.foreach(std::move(f));
 }

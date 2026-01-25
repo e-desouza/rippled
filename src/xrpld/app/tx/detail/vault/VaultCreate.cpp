@@ -1,3 +1,4 @@
+#include <xrpld/app/tx/detail/RegisterTransaction.h>
 #include <xrpld/app/tx/detail/mptoken/MPTokenAuthorize.h>
 #include <xrpld/app/tx/detail/mptoken/MPTokenIssuanceCreate.h>
 #include <xrpld/app/tx/detail/vault/VaultCreate.h>
@@ -235,5 +236,7 @@ VaultCreate::doApply()
 
     return tesSUCCESS;
 }
+
+REGISTER_TRANSACTION(ttVAULT_CREATE, VaultCreate)
 
 }  // namespace xrpl

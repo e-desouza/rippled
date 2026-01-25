@@ -1,4 +1,5 @@
 #include <xrpld/app/paths/Flow.h>
+#include <xrpld/app/tx/detail/RegisterTransaction.h>
 #include <xrpld/app/tx/detail/SignerEntries.h>
 #include <xrpld/app/tx/detail/Transactor.h>
 #include <xrpld/app/tx/detail/XChainBridge.h>
@@ -2237,5 +2238,16 @@ XChainCreateAccountCommit::doApply()
 
     return tesSUCCESS;
 }
+
+REGISTER_TRANSACTION(ttXCHAIN_CREATE_CLAIM_ID, XChainCreateClaimID)
+REGISTER_TRANSACTION(ttXCHAIN_COMMIT, XChainCommit)
+REGISTER_TRANSACTION(ttXCHAIN_CLAIM, XChainClaim)
+REGISTER_TRANSACTION(ttXCHAIN_ACCOUNT_CREATE_COMMIT, XChainAccountCreateCommit)
+REGISTER_TRANSACTION(ttXCHAIN_ADD_CLAIM_ATTESTATION, XChainAddClaimAttestation)
+REGISTER_TRANSACTION(
+    ttXCHAIN_ADD_ACCOUNT_CREATE_ATTESTATION,
+    XChainAddAccountCreateAttestation)
+REGISTER_TRANSACTION(ttXCHAIN_MODIFY_BRIDGE, XChainModifyBridge)
+REGISTER_TRANSACTION(ttXCHAIN_CREATE_BRIDGE, XChainCreateBridge)
 
 }  // namespace xrpl

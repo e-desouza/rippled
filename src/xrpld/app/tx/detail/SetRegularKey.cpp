@@ -1,3 +1,4 @@
+#include <xrpld/app/tx/detail/RegisterTransaction.h>
 #include <xrpld/app/tx/detail/SetRegularKey.h>
 
 #include <xrpl/basics/Log.h>
@@ -69,5 +70,7 @@ SetRegularKey::doApply()
 
     return tesSUCCESS;
 }
+
+REGISTER_TRANSACTION(ttREGULAR_KEY_SET, SetRegularKey)
 
 }  // namespace xrpl

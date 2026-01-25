@@ -1,3 +1,4 @@
+#include <xrpld/app/tx/detail/RegisterTransaction.h>
 #include <xrpld/app/tx/detail/vault/VaultClawback.h>
 //
 #include <xrpl/beast/utility/instrumentation.h>
@@ -462,5 +463,7 @@ VaultClawback::doApply()
 
     return tesSUCCESS;
 }
+
+REGISTER_TRANSACTION(ttVAULT_CLAWBACK, VaultClawback)
 
 }  // namespace xrpl

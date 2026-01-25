@@ -1,4 +1,5 @@
 #include <xrpld/app/tx/detail/PermissionedDomainDelete.h>
+#include <xrpld/app/tx/detail/RegisterTransaction.h>
 
 #include <xrpl/ledger/View.h>
 #include <xrpl/protocol/TxFlags.h>
@@ -63,5 +64,7 @@ PermissionedDomainDelete::doApply()
 
     return tesSUCCESS;
 }
+
+REGISTER_TRANSACTION(ttPERMISSIONED_DOMAIN_DELETE, PermissionedDomainDelete)
 
 }  // namespace xrpl

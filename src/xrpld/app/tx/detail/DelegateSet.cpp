@@ -1,4 +1,5 @@
 #include <xrpld/app/tx/detail/DelegateSet.h>
+#include <xrpld/app/tx/detail/RegisterTransaction.h>
 
 #include <xrpl/basics/Log.h>
 #include <xrpl/ledger/View.h>
@@ -128,5 +129,7 @@ DelegateSet::deleteDelegate(
 
     return tesSUCCESS;
 }
+
+REGISTER_TRANSACTION(ttDELEGATE_SET, DelegateSet)
 
 }  // namespace xrpl

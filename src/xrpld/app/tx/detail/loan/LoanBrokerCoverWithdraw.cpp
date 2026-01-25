@@ -2,6 +2,7 @@
 //
 #include <xrpld/app/amm/LendingHelpers.h>
 #include <xrpld/app/tx/detail/Payment.h>
+#include <xrpld/app/tx/detail/RegisterTransaction.h>
 
 #include <xrpl/ledger/CredentialHelpers.h>
 #include <xrpl/protocol/STTakesAsset.h>
@@ -183,5 +184,7 @@ LoanBrokerCoverWithdraw::doApply()
 }
 
 //------------------------------------------------------------------------------
+
+REGISTER_TRANSACTION(ttLOAN_BROKER_COVER_WITHDRAW, LoanBrokerCoverWithdraw)
 
 }  // namespace xrpl

@@ -1,4 +1,5 @@
 #include <xrpld/app/tx/detail/DID.h>
+#include <xrpld/app/tx/detail/RegisterTransaction.h>
 
 #include <xrpl/basics/Log.h>
 #include <xrpl/ledger/ApplyView.h>
@@ -193,5 +194,8 @@ DIDDelete::doApply()
 {
     return deleteSLE(ctx_, keylet::did(account_), account_);
 }
+
+REGISTER_TRANSACTION(ttDID_SET, DIDSet)
+REGISTER_TRANSACTION(ttDID_DELETE, DIDDelete)
 
 }  // namespace xrpl

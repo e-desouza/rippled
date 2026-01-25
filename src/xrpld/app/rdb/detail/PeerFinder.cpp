@@ -1,4 +1,4 @@
-#include <xrpld/app/rdb/PeerFinder.h>
+#include <xrpld/peerfinder/detail/PeerFinderDb.h>
 
 namespace xrpl {
 

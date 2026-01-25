@@ -1,3 +1,4 @@
+#include <xrpld/app/tx/detail/RegisterTransaction.h>
 #include <xrpld/app/tx/detail/vault/VaultSet.h>
 
 #include <xrpl/ledger/View.h>
@@ -179,5 +180,7 @@ VaultSet::doApply()
 
     return tesSUCCESS;
 }
+
+REGISTER_TRANSACTION(ttVAULT_SET, VaultSet)
 
 }  // namespace xrpl

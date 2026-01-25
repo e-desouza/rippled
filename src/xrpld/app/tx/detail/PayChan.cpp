@@ -1,4 +1,5 @@
 #include <xrpld/app/tx/detail/PayChan.h>
+#include <xrpld/app/tx/detail/RegisterTransaction.h>
 
 #include <xrpl/basics/Log.h>
 #include <xrpl/basics/chrono.h>
@@ -561,5 +562,9 @@ PayChanClaim::doApply()
 
     return tesSUCCESS;
 }
+
+REGISTER_TRANSACTION(ttPAYCHAN_CREATE, PayChanCreate)
+REGISTER_TRANSACTION(ttPAYCHAN_FUND, PayChanFund)
+REGISTER_TRANSACTION(ttPAYCHAN_CLAIM, PayChanClaim)
 
 }  // namespace xrpl

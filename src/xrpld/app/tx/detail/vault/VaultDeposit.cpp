@@ -1,3 +1,4 @@
+#include <xrpld/app/tx/detail/RegisterTransaction.h>
 #include <xrpld/app/tx/detail/mptoken/MPTokenAuthorize.h>
 #include <xrpld/app/tx/detail/vault/VaultDeposit.h>
 
@@ -288,5 +289,7 @@ VaultDeposit::doApply()
 
     return tesSUCCESS;
 }
+
+REGISTER_TRANSACTION(ttVAULT_DEPOSIT, VaultDeposit)
 
 }  // namespace xrpl

@@ -1,5 +1,5 @@
 #include <test/jtx/Env.h>
-#include <test/unit_test/SuiteJournal.h>
+#include <test/jtx/SuiteJournal.h>
 
 #include <xrpld/app/misc/AmendmentTable.h>
 #include <xrpld/core/ConfigSections.h>

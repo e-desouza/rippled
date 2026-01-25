@@ -1,4 +1,5 @@
 #include <xrpld/app/misc/DelegateUtils.h>
+#include <xrpld/app/tx/detail/RegisterTransaction.h>
 #include <xrpld/app/tx/detail/SetAccount.h>
 #include <xrpld/core/Config.h>
 
@@ -639,5 +640,7 @@ SetAccount::doApply()
 
     return tesSUCCESS;
 }
+
+REGISTER_TRANSACTION(ttACCOUNT_SET, SetAccount)
 
 }  // namespace xrpl

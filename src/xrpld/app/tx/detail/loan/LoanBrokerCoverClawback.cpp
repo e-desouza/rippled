@@ -1,6 +1,7 @@
 #include <xrpld/app/tx/detail/loan/LoanBrokerCoverClawback.h>
 //
 #include <xrpld/app/amm/LendingHelpers.h>
+#include <xrpld/app/tx/detail/RegisterTransaction.h>
 
 #include <xrpl/protocol/STTakesAsset.h>
 
@@ -348,5 +349,7 @@ LoanBrokerCoverClawback::doApply()
 }
 
 //------------------------------------------------------------------------------
+
+REGISTER_TRANSACTION(ttLOAN_BROKER_COVER_CLAWBACK, LoanBrokerCoverClawback)
 
 }  // namespace xrpl

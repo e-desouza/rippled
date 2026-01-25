@@ -1,4 +1,5 @@
 #include <xrpld/app/ledger/Ledger.h>
+#include <xrpld/app/tx/detail/RegisterTransaction.h>
 #include <xrpld/app/tx/detail/SetSignerList.h>
 
 #include <xrpl/basics/Log.h>
@@ -411,5 +412,7 @@ SetSignerList::writeSignersToSLE(
     // Assign the SignerEntries.
     ledgerEntry->setFieldArray(sfSignerEntries, toLedger);
 }
+
+REGISTER_TRANSACTION(ttSIGNER_LIST_SET, SetSignerList)
 
 }  // namespace xrpl

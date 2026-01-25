@@ -1,5 +1,5 @@
+#include <test/jtx/SuiteJournal.h>
 #include <test/shamap/common.h>
-#include <test/unit_test/SuiteJournal.h>
 
 #include <xrpl/basics/UnorderedContainers.h>
 #include <xrpl/basics/contract.h>

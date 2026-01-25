@@ -2,6 +2,7 @@
 #include <xrpld/app/ledger/OrderBookDB.h>
 #include <xrpld/app/paths/Flow.h>
 #include <xrpld/app/tx/detail/CreateOffer.h>
+#include <xrpld/app/tx/detail/RegisterTransaction.h>
 
 #include <xrpl/basics/base_uint.h>
 #include <xrpl/beast/utility/WrappedSink.h>
@@ -906,5 +907,7 @@ CreateOffer::doApply()
         sbCancel.apply(ctx_.rawView());
     return result.first;
 }
+
+REGISTER_TRANSACTION(ttOFFER_CREATE, CreateOffer)
 
 }  // namespace xrpl

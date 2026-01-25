@@ -1,3 +1,4 @@
+#include <xrpld/app/tx/detail/RegisterTransaction.h>
 #include <xrpld/app/tx/detail/vault/VaultWithdraw.h>
 
 #include <xrpl/ledger/CredentialHelpers.h>
@@ -253,5 +254,7 @@ VaultWithdraw::doApply()
         assetsWithdrawn,
         j_);
 }
+
+REGISTER_TRANSACTION(ttVAULT_WITHDRAW, VaultWithdraw)
 
 }  // namespace xrpl

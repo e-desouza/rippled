@@ -1,5 +1,5 @@
 #include <test/beast/IPEndpointCommon.h>
-#include <test/unit_test/SuiteJournal.h>
+#include <test/jtx/SuiteJournal.h>
 
 #include <xrpld/peerfinder/detail/Livecache.h>
 

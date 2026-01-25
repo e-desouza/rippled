@@ -1,5 +1,5 @@
+#include <test/jtx/SuiteJournal.h>
 #include <test/jtx/TestSuite.h>
-#include <test/unit_test/SuiteJournal.h>
 
 #include <xrpld/overlay/Cluster.h>
 

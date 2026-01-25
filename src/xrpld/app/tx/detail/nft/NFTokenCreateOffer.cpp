@@ -1,3 +1,4 @@
+#include <xrpld/app/tx/detail/RegisterTransaction.h>
 #include <xrpld/app/tx/detail/nft/NFTokenCreateOffer.h>
 #include <xrpld/app/tx/detail/nft/NFTokenUtils.h>
 
@@ -81,5 +82,7 @@ NFTokenCreateOffer::doApply()
         j_,
         ctx_.tx.getFlags());
 }
+
+REGISTER_TRANSACTION(ttNFTOKEN_CREATE_OFFER, NFTokenCreateOffer)
 
 }  // namespace xrpl

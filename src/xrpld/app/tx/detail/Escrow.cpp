@@ -1,4 +1,5 @@
 #include <xrpld/app/tx/detail/Escrow.h>
+#include <xrpld/app/tx/detail/RegisterTransaction.h>
 #include <xrpld/app/tx/detail/mptoken/MPTokenAuthorize.h>
 #include <xrpld/app/txqueue/HashRouter.h>
 #include <xrpld/conditions/Condition.h>
@@ -1320,5 +1321,9 @@ EscrowCancel::doApply()
 
     return tesSUCCESS;
 }
+
+REGISTER_TRANSACTION(ttESCROW_CREATE, EscrowCreate)
+REGISTER_TRANSACTION(ttESCROW_FINISH, EscrowFinish)
+REGISTER_TRANSACTION(ttESCROW_CANCEL, EscrowCancel)
 
 }  // namespace xrpl

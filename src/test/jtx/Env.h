@@ -5,12 +5,12 @@
 #include <test/jtx/Account.h>
 #include <test/jtx/JTx.h>
 #include <test/jtx/ManualTimeKeeper.h>
+#include <test/jtx/SuiteJournal.h>
 #include <test/jtx/amount.h>
 #include <test/jtx/envconfig.h>
 #include <test/jtx/require.h>
 #include <test/jtx/tags.h>
 #include <test/jtx/vault.h>
-#include <test/unit_test/SuiteJournal.h>
 
 #include <xrpld/app/ledger/Ledger.h>
 #include <xrpld/app/ledger/OpenLedger.h>

@@ -1,3 +1,4 @@
+#include <xrpld/app/tx/detail/RegisterTransaction.h>
 #include <xrpld/app/tx/detail/vault/VaultDelete.h>
 
 #include <xrpl/ledger/View.h>
@@ -211,5 +212,7 @@ VaultDelete::doApply()
 
     return tesSUCCESS;
 }
+
+REGISTER_TRANSACTION(ttVAULT_DELETE, VaultDelete)
 
 }  // namespace xrpl

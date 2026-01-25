@@ -3,6 +3,7 @@
 #include <xrpld/app/misc/AmendmentTable.h>
 #include <xrpld/app/misc/NetworkOPs.h>
 #include <xrpld/app/tx/detail/Change.h>
+#include <xrpld/app/tx/detail/RegisterTransaction.h>
 
 #include <xrpl/basics/Log.h>
 #include <xrpl/ledger/Sandbox.h>
@@ -406,5 +407,9 @@ Change::applyUNLModify()
     view().update(negUnlObject);
     return tesSUCCESS;
 }
+
+REGISTER_TRANSACTION(ttAMENDMENT, EnableAmendment)
+REGISTER_TRANSACTION(ttFEE, SetFee)
+REGISTER_TRANSACTION(ttUNL_MODIFY, UNLModify)
 
 }  // namespace xrpl

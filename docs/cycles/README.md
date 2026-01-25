@@ -21,7 +21,7 @@ Based on risk/effort analysis, here is the recommended order for removing cycles
 ### Cycle 1: app↔consensus (15 deps to break)
 
 - **Root Cause:** Interface headers include app types (OperatingMode enum, RCLValidations)
-- **Solution:** Move OperatingMode to consensus, move impl files to app
+- **Solution:** Move OperatingMode to `xrpld.core` (shared core header) and move consensus impl files to app
 - **Doc:** [cycle-1-app-consensus.md](cycle-1-app-consensus.md)
 
 ### Cycle 2: app↔overlay (35 deps to break)
@@ -38,8 +38,8 @@ Based on risk/effort analysis, here is the recommended order for removing cycles
 
 ### Cycle 4: app↔rpc (24 deps to break)
 
-- **Root Cause:** InfoSub and JSON utilities in rpc but used by app
-- **Solution:** Move InfoSub to app/misc, move JSON utilities to xrpl/json
+- **Root Cause:** App directly includes RPC types (InfoSub, Context, JSON helpers) and JSON utilities live under rpc but are used by app and lower-level code
+- **Solution:** Keep InfoSub in rpc and route app through app-level pub/sub interfaces; move JSON utilities to xrpl/json or xrpl/protocol
 - **Doc:** [cycle-4-app-rpc.md](cycle-4-app-rpc.md)
 
 ### Cycle 5: consensus↔overlay (3 deps to break)

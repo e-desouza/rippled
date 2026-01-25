@@ -2,6 +2,7 @@
 #include <xrpld/app/misc/DelegateUtils.h>
 #include <xrpld/app/paths/RippleCalc.h>
 #include <xrpld/app/tx/detail/Payment.h>
+#include <xrpld/app/tx/detail/RegisterTransaction.h>
 
 #include <xrpl/basics/Log.h>
 #include <xrpl/ledger/CredentialHelpers.h>
@@ -658,5 +659,7 @@ Payment::doApply()
 
     return tesSUCCESS;
 }
+
+REGISTER_TRANSACTION(ttPAYMENT, Payment)
 
 }  // namespace xrpl

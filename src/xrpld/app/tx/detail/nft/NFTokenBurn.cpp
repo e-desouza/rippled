@@ -1,3 +1,4 @@
+#include <xrpld/app/tx/detail/RegisterTransaction.h>
 #include <xrpld/app/tx/detail/nft/NFTokenBurn.h>
 #include <xrpld/app/tx/detail/nft/NFTokenUtils.h>
 
@@ -89,5 +90,7 @@ NFTokenBurn::doApply()
 
     return tesSUCCESS;
 }
+
+REGISTER_TRANSACTION(ttNFTOKEN_BURN, NFTokenBurn)
 
 }  // namespace xrpl

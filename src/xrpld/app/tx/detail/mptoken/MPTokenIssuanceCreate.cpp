@@ -1,3 +1,4 @@
+#include <xrpld/app/tx/detail/RegisterTransaction.h>
 #include <xrpld/app/tx/detail/mptoken/MPTokenIssuanceCreate.h>
 
 #include <xrpl/ledger/View.h>
@@ -160,5 +161,7 @@ MPTokenIssuanceCreate::doApply()
         });
     return result ? tesSUCCESS : result.error();
 }
+
+REGISTER_TRANSACTION(ttMPTOKEN_ISSUANCE_CREATE, MPTokenIssuanceCreate)
 
 }  // namespace xrpl

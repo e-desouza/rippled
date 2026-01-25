@@ -1,4 +1,5 @@
 #include <xrpld/app/amm/AMMUtils.h>
+#include <xrpld/app/tx/detail/RegisterTransaction.h>
 #include <xrpld/app/tx/detail/amm/AMMDelete.h>
 
 #include <xrpl/ledger/Sandbox.h>
@@ -52,5 +53,7 @@ AMMDelete::doApply()
 
     return ter;
 }
+
+REGISTER_TRANSACTION(ttAMM_DELETE, AMMDelete)
 
 }  // namespace xrpl

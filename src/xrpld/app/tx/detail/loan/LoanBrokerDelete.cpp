@@ -1,6 +1,7 @@
 #include <xrpld/app/tx/detail/loan/LoanBrokerDelete.h>
 //
 #include <xrpld/app/amm/LendingHelpers.h>
+#include <xrpld/app/tx/detail/RegisterTransaction.h>
 
 #include <xrpl/protocol/STTakesAsset.h>
 
@@ -193,5 +194,7 @@ LoanBrokerDelete::doApply()
 }
 
 //------------------------------------------------------------------------------
+
+REGISTER_TRANSACTION(ttLOAN_BROKER_DELETE, LoanBrokerDelete)
 
 }  // namespace xrpl

@@ -1,5 +1,6 @@
 #include <xrpld/app/amm/AMMHelpers.h>
 #include <xrpld/app/amm/AMMUtils.h>
+#include <xrpld/app/tx/detail/RegisterTransaction.h>
 #include <xrpld/app/tx/detail/amm/AMMClawback.h>
 #include <xrpld/app/tx/detail/amm/AMMWithdraw.h>
 
@@ -320,5 +321,7 @@ AMMClawback::equalWithdrawMatchingOneAmount(
         mPriorBalance,
         ctx_.journal);
 }
+
+REGISTER_TRANSACTION(ttAMM_CLAWBACK, AMMClawback)
 
 }  // namespace xrpl

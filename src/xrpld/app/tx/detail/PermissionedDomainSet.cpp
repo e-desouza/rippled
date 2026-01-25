@@ -1,4 +1,5 @@
 #include <xrpld/app/tx/detail/PermissionedDomainSet.h>
+#include <xrpld/app/tx/detail/RegisterTransaction.h>
 
 #include <xrpl/ledger/CredentialHelpers.h>
 #include <xrpl/ledger/View.h>
@@ -122,5 +123,7 @@ PermissionedDomainSet::doApply()
 
     return tesSUCCESS;
 }
+
+REGISTER_TRANSACTION(ttPERMISSIONED_DOMAIN_SET, PermissionedDomainSet)
 
 }  // namespace xrpl

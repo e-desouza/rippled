@@ -20,17 +20,23 @@
 #ifndef XRPL_CONSENSUS_IOVERLAY_BROADCASTER_H_INCLUDED
 #define XRPL_CONSENSUS_IOVERLAY_BROADCASTER_H_INCLUDED
 
-#include <xrpld/overlay/Peer.h>
-
 #include <xrpl/basics/base_uint.h>
 #include <xrpl/protocol/PublicKey.h>
 #include <xrpl/protocol/messages.h>
 
+#include <cstdint>
 #include <functional>
 #include <memory>
 #include <set>
 
+namespace ripple {
+class Peer;
+}  // namespace ripple
+
 namespace xrpl {
+
+/// Peer identifier type (matches Peer::id_t)
+using PeerId = std::uint32_t;
 
 /**
  * @brief Interface for broadcasting and relaying consensus messages to peers.
@@ -94,7 +100,7 @@ public:
      * @param validator The public key of the validator that issued the proposal
      * @return Set of peer IDs that have already sent us this proposal
      */
-    virtual std::set<Peer::id_t>
+    virtual std::set<PeerId>
     relay(
         protocol::TMProposeSet const& m,
         uint256 const& suppression,
@@ -114,7 +120,7 @@ public:
     relay(
         uint256 const& hash,
         protocol::TMTransaction const& m,
-        std::set<Peer::id_t> const& skip) = 0;
+        std::set<PeerId> const& skip) = 0;
 
     //--------------------------------------------------------------------------
     // Peer Iteration
@@ -129,7 +135,7 @@ public:
      * @param f Function to call for each peer
      */
     virtual void
-    foreach(std::function<void(std::shared_ptr<Peer> const&)> f) = 0;
+    foreach(std::function<void(std::shared_ptr<ripple::Peer> const&)> f) = 0;
 };
 
 }  // namespace xrpl

@@ -1,4 +1,9 @@
-#include <test/jtx.h>
+#include <test/jtx/amount.h>
+#include <test/jtx/credentials.h>
+#include <test/jtx/pay.h>
+#include <test/jtx/permissioned_dex.h>
+#include <test/jtx/permissioned_domains.h>
+#include <test/jtx/trust.h>
 
 #include <xrpl/beast/unit_test/suite.h>
 #include <xrpl/protocol/jss.h>

@@ -1,6 +1,7 @@
 #include <xrpld/app/ledger/Ledger.h>
 #include <xrpld/app/paths/Flow.h>
 #include <xrpld/app/tx/detail/CashCheck.h>
+#include <xrpld/app/tx/detail/RegisterTransaction.h>
 
 #include <xrpl/basics/Log.h>
 #include <xrpl/basics/scope.h>
@@ -474,5 +475,7 @@ CashCheck::doApply()
     psb.apply(ctx_.rawView());
     return tesSUCCESS;
 }
+
+REGISTER_TRANSACTION(ttCHECK_CASH, CashCheck)
 
 }  // namespace xrpl

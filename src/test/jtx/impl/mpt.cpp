@@ -1,4 +1,7 @@
-#include <test/jtx.h>
+#include <test/jtx/credentials.h>
+#include <test/jtx/mpt.h>
+#include <test/jtx/pay.h>
+#include <test/jtx/require.h>
 
 #include <xrpl/protocol/SField.h>
 #include <xrpl/protocol/jss.h>

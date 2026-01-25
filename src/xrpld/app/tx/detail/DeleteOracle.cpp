@@ -1,4 +1,5 @@
 #include <xrpld/app/tx/detail/DeleteOracle.h>
+#include <xrpld/app/tx/detail/RegisterTransaction.h>
 
 #include <xrpl/ledger/View.h>
 #include <xrpl/protocol/Feature.h>
@@ -79,5 +80,7 @@ DeleteOracle::doApply()
 
     return tecINTERNAL;  // LCOV_EXCL_LINE
 }
+
+REGISTER_TRANSACTION(ttORACLE_DELETE, OracleDelete)
 
 }  // namespace xrpl

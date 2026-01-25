@@ -1,4 +1,5 @@
 #include <xrpld/app/amm/AMMUtils.h>
+#include <xrpld/app/tx/detail/RegisterTransaction.h>
 #include <xrpld/app/tx/detail/amm/AMMVote.h>
 
 #include <xrpl/ledger/Sandbox.h>
@@ -223,5 +224,7 @@ AMMVote::doApply()
 
     return result.first;
 }
+
+REGISTER_TRANSACTION(ttAMM_VOTE, AMMVote)
 
 }  // namespace xrpl

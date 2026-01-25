@@ -1,4 +1,4 @@
-#include <test/unit_test/SuiteJournal.h>
+#include <test/jtx/SuiteJournal.h>
 
 #include <xrpld/core/Config.h>
 #include <xrpld/peerfinder/PeerfinderManager.h>

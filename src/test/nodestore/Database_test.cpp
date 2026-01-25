@@ -1,8 +1,8 @@
 #include <test/jtx.h>
 #include <test/jtx/CheckMessageLogs.h>
+#include <test/jtx/SuiteJournal.h>
 #include <test/jtx/envconfig.h>
 #include <test/nodestore/TestBase.h>
-#include <test/unit_test/SuiteJournal.h>
 
 #include <xrpld/core/DatabaseCon.h>
 

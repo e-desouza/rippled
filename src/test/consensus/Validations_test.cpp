@@ -1,5 +1,5 @@
 #include <test/csf/Validation.h>
-#include <test/unit_test/SuiteJournal.h>
+#include <test/jtx/SuiteJournal.h>
 
 #include <xrpld/consensus/Validations.h>
 

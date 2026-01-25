@@ -1,4 +1,5 @@
 #include <xrpld/app/tx/detail/DepositPreauth.h>
+#include <xrpld/app/tx/detail/RegisterTransaction.h>
 
 #include <xrpl/basics/Log.h>
 #include <xrpl/ledger/CredentialHelpers.h>
@@ -298,5 +299,7 @@ DepositPreauth::removeFromLedger(
 
     return tesSUCCESS;
 }
+
+REGISTER_TRANSACTION(ttDEPOSIT_PREAUTH, DepositPreauth)
 
 }  // namespace xrpl

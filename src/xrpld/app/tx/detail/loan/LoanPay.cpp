@@ -1,6 +1,7 @@
 #include <xrpld/app/tx/detail/loan/LoanPay.h>
 //
 #include <xrpld/app/amm/LendingHelpers.h>
+#include <xrpld/app/tx/detail/RegisterTransaction.h>
 #include <xrpld/app/tx/detail/loan/LoanManage.h>
 
 #include <xrpl/json/to_string.h>
@@ -645,5 +646,7 @@ LoanPay::doApply()
 }
 
 //------------------------------------------------------------------------------
+
+REGISTER_TRANSACTION(ttLOAN_PAY, LoanPay)
 
 }  // namespace xrpl

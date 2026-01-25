@@ -1,4 +1,5 @@
 #include <xrpld/app/tx/detail/CreateTicket.h>
+#include <xrpld/app/tx/detail/RegisterTransaction.h>
 
 #include <xrpl/basics/Log.h>
 #include <xrpl/protocol/Feature.h>
@@ -124,5 +125,7 @@ CreateTicket::doApply()
 
     return tesSUCCESS;
 }
+
+REGISTER_TRANSACTION(ttTICKET_CREATE, CreateTicket)
 
 }  // namespace xrpl

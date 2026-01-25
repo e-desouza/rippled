@@ -1,5 +1,6 @@
-#include <test/jtx.h>
+#include <test/jtx/Env.h>
 #include <test/jtx/WSClient.h>
+#include <test/jtx/amount.h>
 
 #include <xrpl/beast/unit_test.h>
 

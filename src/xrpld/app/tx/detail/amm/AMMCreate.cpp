@@ -1,6 +1,7 @@
 #include <xrpld/app/amm/AMMHelpers.h>
 #include <xrpld/app/amm/AMMUtils.h>
 #include <xrpld/app/ledger/OrderBookDB.h>
+#include <xrpld/app/tx/detail/RegisterTransaction.h>
 #include <xrpld/app/tx/detail/amm/AMMCreate.h>
 
 #include <xrpl/ledger/Sandbox.h>
@@ -329,5 +330,7 @@ AMMCreate::doApply()
 
     return result.first;
 }
+
+REGISTER_TRANSACTION(ttAMM_CREATE, AMMCreate)
 
 }  // namespace xrpl

@@ -1,3 +1,4 @@
+#include <xrpld/app/tx/detail/RegisterTransaction.h>
 #include <xrpld/app/tx/detail/nft/NFTokenAcceptOffer.h>
 #include <xrpld/app/tx/detail/nft/NFTokenUtils.h>
 
@@ -550,5 +551,7 @@ NFTokenAcceptOffer::doApply()
 
     return tecINTERNAL;  // LCOV_EXCL_LINE
 }
+
+REGISTER_TRANSACTION(ttNFTOKEN_ACCEPT_OFFER, NFTokenAcceptOffer)
 
 }  // namespace xrpl

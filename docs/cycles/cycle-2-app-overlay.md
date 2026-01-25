@@ -109,7 +109,7 @@ namespace ripple { class Application; }  // Forward declaration
 ### Step 3: Move message handlers to app module
 
 The `detail/handlers/` directory contains message handlers that need app access.
-Move them to `app/overlay/handlers/` where they can freely include app headers.
+Move them to `app/overlay/handlers/` where they can freely include app headers, and coordinate this move with Cycle 5 (consensus↔overlay) so validation/broadcasting responsibilities end up in app.
 
 **Move:**
 
@@ -156,3 +156,10 @@ No cycle between app and overlay.
 ## Estimated Effort
 
 **High effort (2-3 weeks)** - This is the largest cycle with 35 dependencies to break.
+
+## Coordination with Cycle 5 (consensus↔overlay)
+
+The handler and broadcaster changes in this cycle overlap with the `xrpld.consensus ↔ xrpld.overlay` cycle documented in `cycle-5-consensus-overlay.md`. Plan and implement the moves of `ValidationMessageHandler.cpp` and `OverlayBroadcasterImpl.cpp` together so that:
+
+- Interfaces (`IOverlayBroadcaster`, validation handling hooks) remain in `xrpld.consensus`/`xrpld.overlay`.
+- Concrete implementations and wiring live under `xrpld.app` (for example `app/overlay/handlers/` and `app/consensus/detail/`).

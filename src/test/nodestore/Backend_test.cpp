@@ -1,5 +1,5 @@
+#include <test/jtx/SuiteJournal.h>
 #include <test/nodestore/TestBase.h>
-#include <test/unit_test/SuiteJournal.h>
 
 #include <xrpl/basics/ByteUtilities.h>
 #include <xrpl/basics/rocksdb.h>

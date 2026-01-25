@@ -1,5 +1,6 @@
 #include <xrpld/app/amm/AMMHelpers.h>
 #include <xrpld/app/amm/AMMUtils.h>
+#include <xrpld/app/tx/detail/RegisterTransaction.h>
 #include <xrpld/app/tx/detail/amm/AMMDeposit.h>
 
 #include <xrpl/ledger/Sandbox.h>
@@ -1007,5 +1008,7 @@ AMMDeposit::equalDepositInEmptyState(
         std::nullopt,
         tfee);
 }
+
+REGISTER_TRANSACTION(ttAMM_DEPOSIT, AMMDeposit)
 
 }  // namespace xrpl

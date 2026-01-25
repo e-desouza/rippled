@@ -1,6 +1,7 @@
 #include <xrpld/app/tx/detail/loan/LoanManage.h>
 //
 #include <xrpld/app/amm/LendingHelpers.h>
+#include <xrpld/app/tx/detail/RegisterTransaction.h>
 
 #include <xrpl/protocol/STTakesAsset.h>
 #include <xrpl/protocol/TxFlags.h>
@@ -436,5 +437,7 @@ LoanManage::doApply()
 }
 
 //------------------------------------------------------------------------------
+
+REGISTER_TRANSACTION(ttLOAN_MANAGE, LoanManage)
 
 }  // namespace xrpl

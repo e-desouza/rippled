@@ -1,5 +1,5 @@
 #include <test/csf.h>
-#include <test/unit_test/SuiteJournal.h>
+#include <test/jtx/SuiteJournal.h>
 
 #include <xrpld/consensus/Consensus.h>
 

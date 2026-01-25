@@ -1,4 +1,5 @@
 #include <xrpld/app/tx/detail/Credentials.h>
+#include <xrpld/app/tx/detail/RegisterTransaction.h>
 
 #include <xrpl/basics/Log.h>
 #include <xrpl/ledger/ApplyView.h>
@@ -352,5 +353,9 @@ CredentialAccept::doApply()
 
     return tesSUCCESS;
 }
+
+REGISTER_TRANSACTION(ttCREDENTIAL_CREATE, CredentialCreate)
+REGISTER_TRANSACTION(ttCREDENTIAL_ACCEPT, CredentialAccept)
+REGISTER_TRANSACTION(ttCREDENTIAL_DELETE, CredentialDelete)
 
 }  // namespace xrpl

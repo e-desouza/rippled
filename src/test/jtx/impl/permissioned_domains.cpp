@@ -1,4 +1,9 @@
-#include <test/jtx.h>
+#include <test/jtx/permissioned_domains.h>
+
+#include <xrpl/basics/StringUtilities.h>
+#include <xrpl/json/to_string.h>
+#include <xrpl/protocol/SField.h>
+#include <xrpl/protocol/jss.h>
 
 namespace xrpl {
 namespace test {

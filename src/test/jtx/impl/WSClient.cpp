@@ -1,5 +1,5 @@
-#include <test/jtx.h>
 #include <test/jtx/WSClient.h>
+#include <test/jtx/envconfig.h>
 
 #include <xrpl/json/json_reader.h>
 #include <xrpl/json/to_string.h>

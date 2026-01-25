@@ -1,3 +1,4 @@
+#include <xrpld/app/tx/detail/RegisterTransaction.h>
 #include <xrpld/app/tx/detail/nft/NFTokenMint.h>
 
 #include <xrpl/basics/Expected.h>
@@ -324,5 +325,7 @@ NFTokenMint::doApply()
     }
     return tesSUCCESS;
 }
+
+REGISTER_TRANSACTION(ttNFTOKEN_MINT, NFTokenMint)
 
 }  // namespace xrpl

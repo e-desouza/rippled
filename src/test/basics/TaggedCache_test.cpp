@@ -1,4 +1,4 @@
-#include <test/unit_test/SuiteJournal.h>
+#include <test/jtx/SuiteJournal.h>
 
 #include <xrpl/basics/TaggedCache.h>
 #include <xrpl/basics/TaggedCache.ipp>

@@ -1,18 +1,5 @@
 #include <xrpld/app/tx/applySteps.h>
-#pragma push_macro("TRANSACTION")
-#undef TRANSACTION
-
-// Do nothing
-#define TRANSACTION(...)
-#define TRANSACTION_INCLUDE 1
-
-#include <xrpl/protocol/detail/transactions.macro>
-
-#undef TRANSACTION
-#pragma pop_macro("TRANSACTION")
-
-// DO NOT INCLUDE TRANSACTOR HEADER FILES HERE.
-// See the instructions at the top of transactions.macro instead.
+#include <xrpld/app/tx/detail/TransactionRegistry.h>
 
 #include <xrpl/protocol/TxFormats.h>
 
@@ -22,196 +9,96 @@ namespace xrpl {
 
 namespace {
 
-struct UnknownTxnType : std::exception
+/**
+ * RAII helper to set up global number/rules state for transaction processing.
+ *
+ * This state management was previously embedded in with_txn_type() and needs
+ * to be preserved for correct transaction processing behavior.
+ */
+struct TransactionRulesScope
 {
-    TxType txnType;
-    UnknownTxnType(TxType t) : txnType{t}
-    {
-    }
-};
-
-// Call a lambda with the concrete transaction type as a template parameter
-// throw an "UnknownTxnType" exception on error
-template <class F>
-auto
-with_txn_type(Rules const& rules, TxType txnType, F&& f)
-{
-    // These global updates really should have been for every Transaction
-    // step: preflight, preclaim, calculateBaseFee, and doApply. Unfortunately,
-    // they were only included in doApply (via Transactor::operator()). That may
-    // have been sufficient when the changes were only related to operations
-    // that mutated data, but some features will now change how they read data,
-    // so these need to be more global.
-    //
-    // To prevent unintentional side effects on existing checks, they will be
-    // set for every operation only once SingleAssetVault (or later
-    // LendingProtocol) are enabled.
-    //
-    // See also Transactor::operator().
-    //
     std::optional<NumberSO> stNumberSO;
     std::optional<CurrentTransactionRulesGuard> rulesGuard;
     std::optional<NumberMantissaScaleGuard> mantissaScaleGuard;
-    if (rules.enabled(featureSingleAssetVault) ||
-        rules.enabled(featureLendingProtocol))
+
+    explicit TransactionRulesScope(Rules const& rules)
     {
-        // raii classes for the current ledger rules.
-        // fixUniversalNumber predates the rulesGuard and should be replaced.
-        stNumberSO.emplace(rules.enabled(fixUniversalNumber));
-        rulesGuard.emplace(rules);
+        // These global updates really should have been for every Transaction
+        // step: preflight, preclaim, calculateBaseFee, and doApply.
+        // Unfortunately, they were only included in doApply (via
+        // Transactor::operator()). That may have been sufficient when the
+        // changes were only related to operations that mutated data, but some
+        // features will now change how they read data, so these need to be
+        // more global.
+        //
+        // To prevent unintentional side effects on existing checks, they will
+        // be set for every operation only once SingleAssetVault (or later
+        // LendingProtocol) are enabled.
+        //
+        // See also Transactor::operator().
+        if (rules.enabled(featureSingleAssetVault) ||
+            rules.enabled(featureLendingProtocol))
+        {
+            // raii classes for the current ledger rules.
+            // fixUniversalNumber predates the rulesGuard and should be
+            // replaced.
+            stNumberSO.emplace(rules.enabled(fixUniversalNumber));
+            rulesGuard.emplace(rules);
+        }
+        else
+        {
+            // Without those features enabled, always use the old number rules.
+            mantissaScaleGuard.emplace(MantissaRange::small);
+        }
     }
-    else
-    {
-        // Without those features enabled, always use the old number rules.
-        mantissaScaleGuard.emplace(MantissaRange::small);
-    }
+};
 
-    switch (txnType)
-    {
-#pragma push_macro("TRANSACTION")
-#undef TRANSACTION
-
-#define TRANSACTION(tag, value, name, ...) \
-    case tag:                              \
-        return f.template operator()<name>();
-
-#include <xrpl/protocol/detail/transactions.macro>
-
-#undef TRANSACTION
-#pragma pop_macro("TRANSACTION")
-        default:
-            throw UnknownTxnType(txnType);
-    }
-}
 }  // namespace
-
-// Templates so preflight does the right thing with T::ConsequencesFactory.
-//
-// This could be done more easily using if constexpr, but Visual Studio
-// 2017 doesn't handle if constexpr correctly.  So once we're no longer
-// building with Visual Studio 2017 we can consider replacing the four
-// templates with a single template function that uses if constexpr.
-//
-// For Transactor::Normal
-//
-
-// clang-format off
-// Current formatter for rippled is based on clang-10, which does not handle `requires` clauses
-template <class T>
-requires(T::ConsequencesFactory == Transactor::Normal)
-TxConsequences
-    consequences_helper(PreflightContext const& ctx)
-{
-    return TxConsequences(ctx.tx);
-};
-
-// For Transactor::Blocker
-template <class T>
-requires(T::ConsequencesFactory == Transactor::Blocker)
-TxConsequences
-    consequences_helper(PreflightContext const& ctx)
-{
-    return TxConsequences(ctx.tx, TxConsequences::blocker);
-};
-
-// For Transactor::Custom
-template <class T>
-requires(T::ConsequencesFactory == Transactor::Custom)
-TxConsequences
-    consequences_helper(PreflightContext const& ctx)
-{
-    return T::makeTxConsequences(ctx);
-};
-// clang-format on
 
 static std::pair<NotTEC, TxConsequences>
 invoke_preflight(PreflightContext const& ctx)
 {
-    try
+    TransactionRulesScope scope(ctx.rules);
+
+    auto const* handler =
+        TransactionRegistry::instance().getHandler(ctx.tx.getTxnType());
+    if (!handler)
     {
-        return with_txn_type(ctx.rules, ctx.tx.getTxnType(), [&]<typename T>() {
-            auto const tec = Transactor::invokePreflight<T>(ctx);
-            return std::make_pair(
-                tec,
-                isTesSuccess(tec) ? consequences_helper<T>(ctx)
-                                  : TxConsequences{tec});
-        });
-    }
-    catch (UnknownTxnType const& e)
-    {
-        // Should never happen
+        // Should never happen - all transaction types should be registered
         // LCOV_EXCL_START
         JLOG(ctx.j.fatal())
-            << "Unknown transaction type in preflight: " << e.txnType;
+            << "Unknown transaction type in preflight: " << ctx.tx.getTxnType();
         UNREACHABLE("xrpl::invoke_preflight : unknown transaction type");
         return {temUNKNOWN, TxConsequences{temUNKNOWN}};
         // LCOV_EXCL_STOP
     }
+
+    auto const tec = handler->preflight(ctx);
+    return std::make_pair(
+        tec,
+        isTesSuccess(tec) ? handler->makeConsequences(ctx)
+                          : TxConsequences{tec});
 }
 
 static TER
 invoke_preclaim(PreclaimContext const& ctx)
 {
-    try
-    {
-        // use name hiding to accomplish compile-time polymorphism of static
-        // class functions for Transactor and derived classes.
-        return with_txn_type(
-            ctx.view.rules(), ctx.tx.getTxnType(), [&]<typename T>() -> TER {
-                // preclaim functionality is divided into two sections:
-                // 1. Up to and including the signature check: returns NotTEC.
-                //    All transaction checks before and including checkSign
-                //    MUST return NotTEC, or something more restrictive.
-                //    Allowing tec results in these steps risks theft or
-                //    destruction of funds, as a fee will be charged before the
-                //    signature is checked.
-                // 2. After the signature check: returns TER.
+    TransactionRulesScope scope(ctx.view.rules());
 
-                // If the transactor requires a valid account and the
-                // transaction doesn't list one, preflight will have already
-                // a flagged a failure.
-                auto const id = ctx.tx.getAccountID(sfAccount);
-
-                if (id != beast::zero)
-                {
-                    if (NotTEC const preSigResult = [&]() -> NotTEC {
-                            if (NotTEC const result =
-                                    T::checkSeqProxy(ctx.view, ctx.tx, ctx.j))
-                                return result;
-
-                            if (NotTEC const result =
-                                    T::checkPriorTxAndLastLedger(ctx))
-                                return result;
-
-                            if (NotTEC const result =
-                                    T::checkPermission(ctx.view, ctx.tx))
-                                return result;
-
-                            if (NotTEC const result = T::checkSign(ctx))
-                                return result;
-
-                            return tesSUCCESS;
-                        }())
-                        return preSigResult;
-
-                    if (TER const result = T::checkFee(
-                            ctx, calculateBaseFee(ctx.view, ctx.tx)))
-                        return result;
-                }
-
-                return T::preclaim(ctx);
-            });
-    }
-    catch (UnknownTxnType const& e)
+    auto const* handler =
+        TransactionRegistry::instance().getHandler(ctx.tx.getTxnType());
+    if (!handler)
     {
         // Should never happen
         // LCOV_EXCL_START
         JLOG(ctx.j.fatal())
-            << "Unknown transaction type in preclaim: " << e.txnType;
+            << "Unknown transaction type in preclaim: " << ctx.tx.getTxnType();
         UNREACHABLE("xrpl::invoke_preclaim : unknown transaction type");
         return temUNKNOWN;
         // LCOV_EXCL_STOP
     }
+
+    return handler->preclaim(ctx, calculateBaseFee(ctx.view, ctx.tx));
 }
 
 /**
@@ -219,33 +106,26 @@ invoke_preclaim(PreclaimContext const& ctx)
  *
  * This function determines the base fee required for the specified transaction
  * by invoking the appropriate fee calculation logic based on the transaction
- * type. It uses a type-dispatch mechanism to select the correct calculation
- * method.
+ * type. It uses the transaction registry for runtime dispatch.
  *
  * @param view The ledger view to use for fee calculation.
  * @param tx The transaction for which the base fee is to be calculated.
  * @return The calculated base fee as an XRPAmount.
- *
- * @throws std::exception If an error occurs during fee calculation, including
- * but not limited to unknown transaction types or internal errors, the function
- * logs an error and returns an XRPAmount of zero.
  */
 static XRPAmount
 invoke_calculateBaseFee(ReadView const& view, STTx const& tx)
 {
-    try
-    {
-        return with_txn_type(view.rules(), tx.getTxnType(), [&]<typename T>() {
-            return T::calculateBaseFee(view, tx);
-        });
-    }
-    catch (UnknownTxnType const& e)
+    auto const* handler =
+        TransactionRegistry::instance().getHandler(tx.getTxnType());
+    if (!handler)
     {
         // LCOV_EXCL_START
         UNREACHABLE("xrpl::invoke_calculateBaseFee : unknown transaction type");
         return XRPAmount{0};
         // LCOV_EXCL_STOP
     }
+
+    return handler->calculateBaseFee(view, tx);
 }
 
 TxConsequences::TxConsequences(NotTEC pfResult)
@@ -292,24 +172,22 @@ TxConsequences::TxConsequences(STTx const& tx, std::uint32_t sequencesConsumed)
 static ApplyResult
 invoke_apply(ApplyContext& ctx)
 {
-    try
-    {
-        return with_txn_type(
-            ctx.view().rules(), ctx.tx.getTxnType(), [&]<typename T>() {
-                T p(ctx);
-                return p();
-            });
-    }
-    catch (UnknownTxnType const& e)
+    TransactionRulesScope scope(ctx.view().rules());
+
+    auto const* handler =
+        TransactionRegistry::instance().getHandler(ctx.tx.getTxnType());
+    if (!handler)
     {
         // Should never happen
         // LCOV_EXCL_START
         JLOG(ctx.journal.fatal())
-            << "Unknown transaction type in apply: " << e.txnType;
+            << "Unknown transaction type in apply: " << ctx.tx.getTxnType();
         UNREACHABLE("xrpl::invoke_apply : unknown transaction type");
         return {temUNKNOWN, false};
         // LCOV_EXCL_STOP
     }
+
+    return handler->doApply(ctx);
 }
 
 PreflightResult

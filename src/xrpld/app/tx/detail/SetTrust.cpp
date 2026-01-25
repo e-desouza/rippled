@@ -1,4 +1,5 @@
 #include <xrpld/app/misc/DelegateUtils.h>
+#include <xrpld/app/tx/detail/RegisterTransaction.h>
 #include <xrpld/app/tx/detail/SetTrust.h>
 
 #include <xrpl/basics/Log.h>
@@ -686,5 +687,7 @@ SetTrust::doApply()
 
     return terResult;
 }
+
+REGISTER_TRANSACTION(ttTRUST_SET, SetTrust)
 
 }  // namespace xrpl

@@ -1,5 +1,6 @@
 #include <xrpld/app/ledger/Ledger.h>
 #include <xrpld/app/tx/detail/CancelCheck.h>
+#include <xrpld/app/tx/detail/RegisterTransaction.h>
 
 #include <xrpl/basics/Log.h>
 #include <xrpl/ledger/ApplyView.h>
@@ -100,5 +101,7 @@ CancelCheck::doApply()
     view().erase(sleCheck);
     return tesSUCCESS;
 }
+
+REGISTER_TRANSACTION(ttCHECK_CANCEL, CancelCheck)
 
 }  // namespace xrpl

@@ -1,7 +1,7 @@
 #include <test/jtx.h>
 #include <test/jtx/CaptureLogs.h>
+#include <test/jtx/SuiteJournal.h>
 #include <test/jtx/envconfig.h>
-#include <test/unit_test/SuiteJournal.h>
 
 #include <xrpld/core/ConfigSections.h>
 

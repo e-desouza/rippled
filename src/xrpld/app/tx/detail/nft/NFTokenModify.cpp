@@ -1,3 +1,4 @@
+#include <xrpld/app/tx/detail/RegisterTransaction.h>
 #include <xrpld/app/tx/detail/nft/NFTokenModify.h>
 #include <xrpld/app/tx/detail/nft/NFTokenUtils.h>
 
@@ -58,5 +59,7 @@ NFTokenModify::doApply()
 
     return nft::changeTokenURI(view(), owner, nftokenID, ctx_.tx[~sfURI]);
 }
+
+REGISTER_TRANSACTION(ttNFTOKEN_MODIFY, NFTokenModify)
 
 }  // namespace xrpl

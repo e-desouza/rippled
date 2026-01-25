@@ -1,3 +1,4 @@
+#include <xrpld/app/tx/detail/RegisterTransaction.h>
 #include <xrpld/app/tx/detail/nft/NFTokenCancelOffer.h>
 #include <xrpld/app/tx/detail/nft/NFTokenUtils.h>
 
@@ -92,5 +93,7 @@ NFTokenCancelOffer::doApply()
 
     return tesSUCCESS;
 }
+
+REGISTER_TRANSACTION(ttNFTOKEN_CANCEL_OFFER, NFTokenCancelOffer)
 
 }  // namespace xrpl

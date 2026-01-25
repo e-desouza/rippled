@@ -1,5 +1,6 @@
 #include <xrpld/app/amm/AMMHelpers.h>
 #include <xrpld/app/amm/AMMUtils.h>
+#include <xrpld/app/tx/detail/RegisterTransaction.h>
 #include <xrpld/app/tx/detail/amm/AMMBid.h>
 
 #include <xrpl/ledger/Sandbox.h>
@@ -361,5 +362,7 @@ AMMBid::doApply()
 
     return result.first;
 }
+
+REGISTER_TRANSACTION(ttAMM_BID, AMMBid)
 
 }  // namespace xrpl

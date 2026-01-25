@@ -1,7 +1,8 @@
 #ifndef XRPL_LEDGER_TESTS_PATHSET_H_INCLUDED
 #define XRPL_LEDGER_TESTS_PATHSET_H_INCLUDED
 
-#include <test/jtx.h>
+#include <test/jtx/Account.h>
+#include <test/jtx/Env.h>
 
 #include <xrpl/basics/Log.h>
 #include <xrpl/protocol/TxFlags.h>

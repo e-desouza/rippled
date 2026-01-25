@@ -1,4 +1,5 @@
 #include <xrpld/app/tx/detail/CancelOffer.h>
+#include <xrpld/app/tx/detail/RegisterTransaction.h>
 
 #include <xrpl/basics/Log.h>
 #include <xrpl/ledger/View.h>
@@ -60,5 +61,7 @@ CancelOffer::doApply()
     JLOG(j_.debug()) << "Offer #" << offerSequence << " can't be found.";
     return tesSUCCESS;
 }
+
+REGISTER_TRANSACTION(ttOFFER_CANCEL, CancelOffer)
 
 }  // namespace xrpl

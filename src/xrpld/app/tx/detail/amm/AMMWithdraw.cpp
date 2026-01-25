@@ -1,5 +1,6 @@
 #include <xrpld/app/amm/AMMHelpers.h>
 #include <xrpld/app/amm/AMMUtils.h>
+#include <xrpld/app/tx/detail/RegisterTransaction.h>
 #include <xrpld/app/tx/detail/amm/AMMWithdraw.h>
 
 #include <xrpl/basics/Number.h>
@@ -1084,4 +1085,6 @@ AMMWithdraw::isWithdrawAll(STTx const& tx)
         return WithdrawAll::Yes;
     return WithdrawAll::No;
 }
+REGISTER_TRANSACTION(ttAMM_WITHDRAW, AMMWithdraw)
+
 }  // namespace xrpl

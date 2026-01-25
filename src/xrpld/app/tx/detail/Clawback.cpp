@@ -1,4 +1,5 @@
 #include <xrpld/app/tx/detail/Clawback.h>
+#include <xrpld/app/tx/detail/RegisterTransaction.h>
 
 #include <xrpl/ledger/View.h>
 #include <xrpl/protocol/Feature.h>
@@ -269,5 +270,7 @@ Clawback::doApply()
         [&]<typename T>(T const&) { return applyHelper<T>(ctx_); },
         ctx_.tx[sfAmount].asset().value());
 }
+
+REGISTER_TRANSACTION(ttCLAWBACK, Clawback)
 
 }  // namespace xrpl

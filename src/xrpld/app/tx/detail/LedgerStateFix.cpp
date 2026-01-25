@@ -1,4 +1,5 @@
 #include <xrpld/app/tx/detail/LedgerStateFix.h>
+#include <xrpld/app/tx/detail/RegisterTransaction.h>
 #include <xrpld/app/tx/detail/nft/NFTokenUtils.h>
 
 #include <xrpl/ledger/View.h>
@@ -66,5 +67,7 @@ LedgerStateFix::doApply()
     // preflight is supposed to verify that only valid FixTypes get to doApply.
     return tecINTERNAL;  // LCOV_EXCL_LINE
 }
+
+REGISTER_TRANSACTION(ttLEDGER_STATE_FIX, LedgerStateFix)
 
 }  // namespace xrpl

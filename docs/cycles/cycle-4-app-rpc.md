@@ -57,32 +57,28 @@ Key dependencies:
 
 The cycle exists because:
 
-1. **InfoSub.h** is in rpc/ but used by app for pub/sub subscriptions
-2. **JSON utility functions** (DeliveredAmount, CTID, MPTokenIssuanceID, BookChanges) are in rpc/ but used by app
+1. **InfoSub.h** is in rpc/, but app directly includes it for pub/sub subscriptions instead of going through app-level interfaces
+2. **JSON utility functions** (DeliveredAmount, CTID, MPTokenIssuanceID, BookChanges) are in rpc/ but used by app and other lower-level code
 3. **Context.h** is in rpc/ but used by app for ledger JSON conversion
 4. **ServerHandler** is in rpc/ but created by Application
 
 ## Removal Strategy
 
-### Step 1: Move InfoSub to app/misc
+### Step 1: Keep InfoSub in rpc and route app through app-level pub/sub interfaces
 
-`InfoSub` is a subscription interface used throughout app. It belongs in app, not rpc.
+`InfoSub` is an RPC-specific subscription implementation. App code should depend only on app-level pub/sub interfaces (for example `IPubSubManager`) rather than on the concrete RPC type.
 
-**Move:** `src/xrpld/rpc/InfoSub.h` → `src/xrpld/app/misc/InfoSub.h`
+**Goal:** Remove direct `#include <xrpld/rpc/InfoSub.h>` from app code by:
 
-**Update all consumers** (grep for `rpc/InfoSub.h`):
+- Defining or extending app-level pub/sub interfaces in `app/misc/` to capture the operations `InfoSub` provides.
+- Updating app sites such as `BookListeners`, `PathRequest`, `IPubSubManager`, and `NetworkOPs` to depend only on those interfaces.
+- Having the RPC layer implement those interfaces using `InfoSub` internally (no file moves required).
 
-- `app/ledger/BookListeners.h`
-- `app/paths/PathRequest.h`
-- `app/misc/IPubSubManager.h`
-- `app/misc/NetworkOPs.h`
-- `rpc/handlers/Subscribe.cpp` (will now include from app)
+### Step 2: Move JSON utility functions to xrpl/json or xrpl/protocol
 
-### Step 2: Move JSON utility functions to xrpl/json or app/misc
+These are pure utility functions that don't depend on RPC and are used by both app and RPC:
 
-These are pure utility functions that don't depend on RPC:
-
-**Move to `src/xrpl/json/` (protocol-level utilities):**
+**Move to `src/xrpl/json/` or `src/xrpl/protocol/` (protocol-level utilities):**
 
 - `rpc/CTID.h` → `xrpl/json/CTID.h`
 - `rpc/DeliveredAmount.h` → `xrpl/json/DeliveredAmount.h`
