@@ -1,5 +1,24 @@
 # Augment Guidelines for rippled Project
 
+## Sub-Agent Rules
+
+### Build Serialization
+
+**CRITICAL: Only run ONE build at a time across all sub-agents.**
+
+- Do NOT run parallel builds from multiple sub-agents simultaneously
+- If delegating work to sub-agents, only ONE sub-agent should build at a time
+- Other sub-agents should wait or do non-build work (analysis, code generation)
+- Builds compete for CPU, memory, and ccache - parallel builds cause:
+  - Resource contention and slower overall build times
+  - ccache lock conflicts
+  - Potential build failures from resource exhaustion
+
+**Correct pattern for parallel sub-agents:**
+1. Sub-agent A: Generate code, then build and verify
+2. Sub-agent B: Generate code, wait for A to finish building, then build
+3. OR: One sub-agent does all building after others complete code generation
+
 ## Build System
 
 ### Local Builds (Default)
@@ -8,15 +27,37 @@ This project uses local compilation with ccache for faster incremental builds.
 
 #### Build Commands
 
-Standard build with logging (recommended):
+**IMPORTANT: Always log to file, never pipe output.**
+
+Standard build (recommended):
 ```bash
-cd .build && ninja -j4 2>&1 | tee build.log
+cd .build && ninja -j4 > build.log 2>&1; tail -50 build.log
 ```
 
-Build with output redirected to file only (quieter):
+After build, analyze the log:
 ```bash
-cd .build && ninja -j4 > build.log 2>&1
+# Check for errors
+grep -i "error:" .build/build.log | head -20
+
+# Check for warnings
+grep -i "warning:" .build/build.log | head -20
+
+# Check build result
+tail -10 .build/build.log
 ```
+
+#### Build Logging Rules
+
+**DO NOT use pipes (`|`) for build output.** Always redirect to file:
+- ✅ `ninja -j4 > build.log 2>&1` - Correct: logs to file
+- ❌ `ninja -j4 2>&1 | tee build.log` - Avoid: piping can cause issues
+- ❌ `ninja -j4 | tail -50` - Wrong: loses output
+
+Rationale:
+- Piping can cause buffering issues and lost output
+- Log files preserve full build history for debugging
+- Can analyze logs after build completes
+- Easier to search for specific errors/warnings
 
 #### Parallelism Settings
 
@@ -24,12 +65,10 @@ cd .build && ninja -j4 > build.log 2>&1
 - Recommended: `ninja -j4` (one job per core)
 - For memory-constrained builds: `ninja -j2`
 
-#### Build Logging
+#### Log File Location
 
-Always capture build output to log files for debugging:
-- `2>&1 | tee build.log` - Shows output and saves to file
-- `> build.log 2>&1` - Redirects all output to file (quieter)
-- Log files are created in the `.build/` directory
+- Build logs are created in the `.build/` directory
+- Primary log: `.build/build.log`
 
 #### Clean Build
 
