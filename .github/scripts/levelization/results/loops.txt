@@ -1,0 +1,12 @@
+Loop: test.jtx test.toplevel
+  test.toplevel > test.jtx
+
+Loop: xrpld.app xrpld.consensus
+  xrpld.consensus > xrpld.app
+
+Loop: xrpld.app xrpld.overlay
+  xrpld.overlay ~= xrpld.app
+
+Loop: xrpld.app xrpld.rpc
+  xrpld.rpc > xrpld.app
+
