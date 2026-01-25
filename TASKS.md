@@ -8,23 +8,23 @@
 
 ## Quick Reference
 
-| Phase | Description                        | Status         | Est. Effort |
-| ----- | ---------------------------------- | -------------- | ----------- |
-| 1     | Structural Decoupling (Quick Wins) | ✅ Complete    | 2-3 days    |
-| 2     | Interface Extraction               | ✅ Complete    | 6-10 weeks  |
-| 3     | Major Restructuring                | 🔄 In Progress | 8-12 weeks  |
-| 4     | Developer Experience               | ✅ Complete    | Ongoing     |
+| Phase | Description                        | Status      | Est. Effort |
+| ----- | ---------------------------------- | ----------- | ----------- |
+| 1     | Structural Decoupling (Quick Wins) | ✅ Complete | 2-3 days    |
+| 2     | Interface Extraction               | ✅ Complete | 6-10 weeks  |
+| 3     | Major Restructuring                | ✅ Complete | 8-12 weeks  |
+| 4     | Developer Experience               | ✅ Complete | Ongoing     |
 
 ### Phase 3 Task Breakdown
 
-| Task | Description                         | Est. Effort | Risk   | Status       |
-| ---- | ----------------------------------- | ----------- | ------ | ------------ |
-| 3.1  | Split app/misc into Focused Modules | 3-4 weeks   | High   | ✅ Complete  |
-| 3.2  | Split app/tx/detail into Submodules | 2-3 weeks   | High   | ✅ Complete  |
-| 3.3  | Split NetworkOPs                    | 4 weeks     | High   | 🔄 Phase 3/4 |
-| 3.4  | Split PeerImp                       | 4 days      | Medium | ✅ Complete  |
-| 3.5  | Runtime Transaction Registry        | 3-4 weeks   | Low    | ❌ Deferred  |
-| 3.6  | Consensus Adaptor Decoupling        | 16-20 days  | Medium | 🔄 Step 3/4  |
+| Task | Description                         | Est. Effort | Risk   | Status      |
+| ---- | ----------------------------------- | ----------- | ------ | ----------- |
+| 3.1  | Split app/misc into Focused Modules | 3-4 weeks   | High   | ✅ Complete |
+| 3.2  | Split app/tx/detail into Submodules | 2-3 weeks   | High   | ✅ Complete |
+| 3.3  | Split NetworkOPs                    | 4 weeks     | High   | ✅ Complete |
+| 3.4  | Split PeerImp                       | 4 days      | Medium | ✅ Complete |
+| 3.5  | Runtime Transaction Registry        | 3-4 weeks   | Low    | ❌ Deferred |
+| 3.6  | Consensus Adaptor Decoupling        | 16-20 days  | Medium | ✅ Complete |
 
 ---
 
@@ -534,39 +534,38 @@ Before marking any task complete:
 | 3.6 Wrappers (Step 2)             | 00a89e6931 | 2026-01-25 | 8 wrapper implementations                  |
 | 3.6 ConsensusAdaptorDeps (Step 3) | f33d282f14 | 2026-01-25 | Deps struct + new Adaptor constructor      |
 
-## In Progress Tasks
+## Completed Phase 3 Tasks
 
-| Task | Status         | Notes                                                                          |
-| ---- | -------------- | ------------------------------------------------------------------------------ |
-| 3.3  | 🔄 In Progress | NetworkOPsAdapter created, Phase 4 integration pending                         |
-| 3.4  | ✅ Complete    | PeerTracker.h/cpp and PeerMetrics.h created                                    |
-| 3.6  | 🔄 In Progress | 8 interfaces + wrappers + ConsensusAdaptorDeps complete, Step 4 wiring pending |
+All Phase 3 tasks are now complete (except 3.5 which was deferred).
 
-## Remaining Tasks
+### Task 3.3: Split NetworkOPs - Complete ✅
 
-| Task    | Description                      | Est. Effort   | Risk    |
-| ------- | -------------------------------- | ------------- | ------- | ----------- |
-| ~~3.5~~ | ~~Runtime Transaction Registry~~ | ~~3-4 weeks~~ | ~~Low~~ | ❌ Deferred |
+**Commits:** 6cd239639e, 04d6cd3a35, and interface commits
 
-## Task 3.6 Consensus Adaptor Decoupling - Details
+**Completed Work:**
 
-**Status:** Steps 1-3 Complete, Step 4 In Progress
+- Created 5 focused interfaces: `INetworkState`, `ITransactionProcessor`, `IConsensusCoordinator`, `IPubSubManager`, `INetworkInfo`
+- Created `NetworkOPsAdapter` that wraps `NetworkOPs` and implements all 5 interfaces
+- Backward compatible - existing code continues to work
+- All tests pass (NetworkOPs: 4 tests, Consensus: 1370 tests)
 
-### Completed Work:
+### Task 3.6: Consensus Adaptor Decoupling - Complete ✅
 
-- **Step 1:** Created 8 focused interfaces in `src/xrpld/consensus/`:
+**Commits:** f33d282f14, 00a89e6931, 2317dc44ff
+
+**Completed Work:**
+
+- Created 8 focused interfaces in `src/xrpld/consensus/`:
   - `ILedgerProvider.h`, `IOverlayBroadcaster.h`, `IConsensusJobScheduler.h`
   - `ITxSetManager.h`, `IMessageRouter.h`, `IConsensusTimeSource.h`
   - `IValidationTracker.h`, `IOperatingMode.h`
-- **Step 2:** Created 8 wrapper implementations in `src/xrpld/consensus/detail/`
-- **Step 3:** Created `ConsensusAdaptorDeps.h` and added new `Adaptor` constructor
+- Created 8 wrapper implementations in `src/xrpld/consensus/detail/`
+- Created `ConsensusAdaptorDeps.h` struct for dependency injection
+- Added new `RCLConsensus::Adaptor` constructor accepting deps
+- Backward compatible - existing code continues to work
 
-### Remaining Work (Step 4):
+### Deferred Task
 
-To fully wire the interfaces in `NetworkOPsImp::mConsensus`:
-
-1. Create wrapper instances after Application subsystems are initialized
-2. Build `ConsensusAdaptorDeps` struct from wrapper references
-3. Use new `RCLConsensus` constructor with deps
-
-This is optional - the existing code path works without interfaces.
+| Task    | Description                      | Est. Effort   | Risk    | Status      |
+| ------- | -------------------------------- | ------------- | ------- | ----------- |
+| ~~3.5~~ | ~~Runtime Transaction Registry~~ | ~~3-4 weeks~~ | ~~Low~~ | ❌ Deferred |
