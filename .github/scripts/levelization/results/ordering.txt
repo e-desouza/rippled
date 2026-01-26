@@ -173,6 +173,7 @@ xrpld.app > test.unit_test
 xrpld.app > xrpl.basics
 xrpld.app > xrpl.core
 xrpld.app > xrpld.conditions
+xrpld.app > xrpld.consensus
 xrpld.app > xrpld.core
 xrpld.app > xrpld.peerfinder
 xrpld.app > xrpl.json

@@ -3,6 +3,7 @@
 
 #include <xrpld/app/consensus/RCLCxPeerPos.h>
 #include <xrpld/app/ledger/Ledger.h>
+#include <xrpld/core/OperatingMode.h>
 #include <xrpld/rpc/InfoSub.h>
 
 #include <xrpl/core/JobQueue.h>
@@ -36,23 +37,6 @@ class CanonicalTXSet;
 // code assumes this node is synced (and will continue to do so until
 // there's a functional network.
 //
-
-/** Specifies the mode under which the server believes it's operating.
-
-    This has implications about how the server processes transactions and
-    how it responds to requests (e.g. account balance request).
-
-    @note Other code relies on the numerical values of these constants; do
-          not change them without verifying each use and ensuring that it is
-          not a breaking change.
-*/
-enum class OperatingMode {
-    DISCONNECTED = 0,  //!< not ready to process requests
-    CONNECTED = 1,     //!< convinced we are talking to the network
-    SYNCING = 2,       //!< fallen slightly behind
-    TRACKING = 3,      //!< convinced we agree with the network
-    FULL = 4           //!< we have the ledger and can even validate
-};
 
 /** Provides server functionality for clients.
 

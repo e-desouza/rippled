@@ -20,7 +20,7 @@
 #ifndef XRPL_CONSENSUS_IVALIDATIONTRACKER_H_INCLUDED
 #define XRPL_CONSENSUS_IVALIDATIONTRACKER_H_INCLUDED
 
-#include <xrpld/app/consensus/RCLValidations.h>
+#include <xrpld/consensus/RCLValidationsFwd.h>
 
 #include <xrpl/basics/UnorderedContainers.h>
 #include <xrpl/basics/base_uint.h>

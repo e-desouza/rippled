@@ -1,6 +1,3 @@
-Loop: xrpld.app xrpld.consensus
-  xrpld.consensus > xrpld.app
-
 Loop: xrpld.app xrpld.overlay
   xrpld.overlay ~= xrpld.app
 

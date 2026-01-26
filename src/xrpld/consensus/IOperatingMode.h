@@ -20,7 +20,7 @@
 #ifndef XRPL_CONSENSUS_IOPERATINGMODE_H_INCLUDED
 #define XRPL_CONSENSUS_IOPERATINGMODE_H_INCLUDED
 
-#include <xrpld/app/misc/NetworkOPs.h>  // For OperatingMode enum
+#include <xrpld/core/OperatingMode.h>
 
 #include <xrpl/protocol/STValidation.h>
 
