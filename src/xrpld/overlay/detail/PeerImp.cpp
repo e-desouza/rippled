@@ -3,6 +3,7 @@
 #include <xrpld/app/ledger/InboundTransactions.h>
 #include <xrpld/app/ledger/LedgerMaster.h>
 #include <xrpld/app/ledger/TransactionMaster.h>
+#include <xrpld/app/ledger/detail/LedgerReplayMsgHandler.h>
 #include <xrpld/app/misc/LoadFeeTrack.h>
 #include <xrpld/app/misc/NetworkOPs.h>
 #include <xrpld/app/misc/Transaction.h>
@@ -109,7 +110,8 @@ PeerImp::PeerImp(
           headers_,
           FEATURE_LEDGER_REPLAY,
           app_.config().LEDGER_REPLAY))
-    , ledgerReplayMsgHandler_(app, app.getLedgerReplayer())
+    , ledgerReplayMsgHandler_(
+          std::make_unique<LedgerReplayMsgHandler>(app, app.getLedgerReplayer()))
 {
     JLOG(journal_.info())
         << "compression enabled " << (compressionEnabled_ == Compressed::On)
@@ -1582,7 +1584,7 @@ PeerImp::onMessage(std::shared_ptr<protocol::TMProofPathRequest> const& m)
         if (auto peer = weak.lock())
         {
             auto reply =
-                peer->ledgerReplayMsgHandler_.processProofPathRequest(m);
+                peer->ledgerReplayMsgHandler_->processProofPathRequest(m);
             if (reply.has_error())
             {
                 if (reply.error() == protocol::TMReplyError::reBAD_REQUEST)
@@ -1611,7 +1613,7 @@ PeerImp::onMessage(std::shared_ptr<protocol::TMProofPathResponse> const& m)
         return;
     }
 
-    if (!ledgerReplayMsgHandler_.processProofPathResponse(m))
+    if (!ledgerReplayMsgHandler_->processProofPathResponse(m))
     {
         fee_.update(Resource::feeInvalidData, "proof_path_response");
     }
@@ -1634,7 +1636,7 @@ PeerImp::onMessage(std::shared_ptr<protocol::TMReplayDeltaRequest> const& m)
         if (auto peer = weak.lock())
         {
             auto reply =
-                peer->ledgerReplayMsgHandler_.processReplayDeltaRequest(m);
+                peer->ledgerReplayMsgHandler_->processReplayDeltaRequest(m);
             if (reply.has_error())
             {
                 if (reply.error() == protocol::TMReplyError::reBAD_REQUEST)
@@ -1663,7 +1665,7 @@ PeerImp::onMessage(std::shared_ptr<protocol::TMReplayDeltaResponse> const& m)
         return;
     }
 
-    if (!ledgerReplayMsgHandler_.processReplayDeltaResponse(m))
+    if (!ledgerReplayMsgHandler_->processReplayDeltaResponse(m))
     {
         fee_.update(Resource::feeInvalidData, "replay_delta_response");
     }
@@ -3649,5 +3651,100 @@ PeerImp::Metrics::total_bytes() const
     std::shared_lock lock{mutex_};
     return totalBytes_;
 }
+
+//------------------------------------------------------------------------------
+// Template constructor implementation for outgoing peers.
+// This is defined in the .cpp file with explicit instantiation to avoid
+// requiring LedgerReplayMsgHandler definition in the header.
+//------------------------------------------------------------------------------
+
+template <class Buffers>
+PeerImp::PeerImp(
+    Application& app,
+    std::unique_ptr<stream_type>&& stream_ptr,
+    Buffers const& buffers,
+    std::shared_ptr<PeerFinder::Slot>&& slot,
+    http_response_type&& response,
+    Resource::Consumer usage,
+    PublicKey const& publicKey,
+    ProtocolVersion protocol,
+    id_t id,
+    OverlayImpl& overlay)
+    : Child(overlay)
+    , app_(app)
+    , id_(id)
+    , fingerprint_(
+          getFingerprint(slot->remote_endpoint(), publicKey, to_string(id_)))
+    , prefix_(makePrefix(fingerprint_))
+    , sink_(app_.journal("Peer"), prefix_)
+    , p_sink_(app_.journal("Protocol"), prefix_)
+    , journal_(sink_)
+    , p_journal_(p_sink_)
+    , stream_ptr_(std::move(stream_ptr))
+    , socket_(stream_ptr_->next_layer().socket())
+    , stream_(*stream_ptr_)
+    , strand_(boost::asio::make_strand(socket_.get_executor()))
+    , timer_(waitable_timer{socket_.get_executor()})
+    , remote_address_(slot->remote_endpoint())
+    , overlay_(overlay)
+    , inbound_(false)
+    , protocol_(protocol)
+    , tracking_(Tracking::unknown)
+    , trackingTime_(clock_type::now())
+    , publicKey_(publicKey)
+    , lastPingTime_(clock_type::now())
+    , creationTime_(clock_type::now())
+    , squelch_(app_.journal("Squelch"))
+    , usage_(usage)
+    , fee_{Resource::feeTrivialPeer}
+    , slot_(std::move(slot))
+    , response_(std::move(response))
+    , headers_(response_)
+    , compressionEnabled_(
+          peerFeatureEnabled(
+              headers_,
+              FEATURE_COMPR,
+              "lz4",
+              app_.config().COMPRESSION)
+              ? Compressed::On
+              : Compressed::Off)
+    , txReduceRelayEnabled_(peerFeatureEnabled(
+          headers_,
+          FEATURE_TXRR,
+          app_.config().TX_REDUCE_RELAY_ENABLE))
+    , ledgerReplayEnabled_(peerFeatureEnabled(
+          headers_,
+          FEATURE_LEDGER_REPLAY,
+          app_.config().LEDGER_REPLAY))
+    , ledgerReplayMsgHandler_(
+          std::make_unique<LedgerReplayMsgHandler>(app, app.getLedgerReplayer()))
+{
+    read_buffer_.commit(boost::asio::buffer_copy(
+        read_buffer_.prepare(boost::asio::buffer_size(buffers)), buffers));
+    JLOG(journal_.info())
+        << "compression enabled " << (compressionEnabled_ == Compressed::On)
+        << " vp reduce-relay base squelch enabled "
+        << peerFeatureEnabled(
+               headers_,
+               FEATURE_VPRR,
+               app_.config().VP_REDUCE_RELAY_BASE_SQUELCH_ENABLE)
+        << " tx reduce-relay enabled " << txReduceRelayEnabled_ << " on "
+        << remote_address_ << " " << id_;
+}
+
+// Explicit template instantiation for the type used by ConnectAttempt.cpp
+// read_buf_.data() returns subrange<true> from boost::beast::multi_buffer
+template PeerImp::PeerImp(
+    Application&,
+    std::unique_ptr<stream_type>&&,
+    boost::beast::basic_multi_buffer<std::allocator<char>>::subrange<true>
+        const&,
+    std::shared_ptr<PeerFinder::Slot>&&,
+    http_response_type&&,
+    Resource::Consumer,
+    PublicKey const&,
+    ProtocolVersion,
+    id_t,
+    OverlayImpl&);
 
 }  // namespace xrpl
