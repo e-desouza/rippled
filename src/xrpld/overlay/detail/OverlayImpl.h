@@ -5,10 +5,12 @@ namespace xrpl {
 class Application;
 class IFeeTrackOps;
 class IHashRouterOps;
+class ILedgerReplayMsgHandler;
 class IOverlayOps;
 class IValidatorOps;
 }  // namespace xrpl
 
+#include <xrpld/overlay/ILedgerReplayMsgHandler.h>
 #include <xrpld/overlay/Message.h>
 #include <xrpld/overlay/Overlay.h>
 #include <xrpld/overlay/Slot.h>
@@ -143,6 +145,9 @@ private:
     // Reference to ledger data operations interface (owned by caller)
     ILedgerDataOps& ledgerDataOps_;
 
+    // Factory for creating LedgerReplayMsgHandler instances (one per PeerImp)
+    LedgerReplayMsgHandlerFactory ledgerReplayMsgHandlerFactory_;
+
     //--------------------------------------------------------------------------
 
 public:
@@ -159,7 +164,8 @@ public:
         IOverlayOps& overlayOps,
         IHashRouterOps& hashRouterOps,
         IValidatorOps& validatorOps,
-        ILedgerDataOps& ledgerDataOps);
+        ILedgerDataOps& ledgerDataOps,
+        LedgerReplayMsgHandlerFactory ledgerReplayMsgHandlerFactory);
 
     OverlayImpl(OverlayImpl const&) = delete;
     OverlayImpl&
@@ -215,6 +221,15 @@ public:
     ledgerDataOps()
     {
         return ledgerDataOps_;
+    }
+
+    /** Create a new LedgerReplayMsgHandler instance.
+        Each PeerImp needs its own handler instance.
+    */
+    std::unique_ptr<ILedgerReplayMsgHandler>
+    createLedgerReplayMsgHandler()
+    {
+        return ledgerReplayMsgHandlerFactory_();
     }
 
     Handoff

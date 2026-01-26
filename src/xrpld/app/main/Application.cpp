@@ -37,6 +37,7 @@
 #include <xrpld/overlay/PeerSet.h>
 #include <xrpld/overlay/detail/handlers/HashRouterOpsHandler.h>
 #include <xrpld/overlay/detail/handlers/LedgerDataOpsHandler.h>
+#include <xrpld/overlay/detail/handlers/LedgerReplayMsgHandlerAdapter.h>
 #include <xrpld/overlay/detail/handlers/OverlayOpsHandler.h>
 #include <xrpld/overlay/detail/handlers/ValidatorOpsHandler.h>
 #include <xrpld/overlay/make_Overlay.h>
@@ -1424,7 +1425,8 @@ ApplicationImp::setup(boost::program_options::variables_map const& cmdline)
         *overlayOpsHandler_,
         *hashRouterOpsHandler_,
         *validatorOpsHandler_,
-        *ledgerDataOpsHandler_);
+        *ledgerDataOpsHandler_,
+        make_LedgerReplayMsgHandlerFactory(*this));
     add(*overlay_);  // add to PropertyStream
 
     // Initialize LedgerReplayer now that overlay is available

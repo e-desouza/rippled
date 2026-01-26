@@ -1,6 +1,7 @@
 #ifndef XRPL_OVERLAY_MAKE_OVERLAY_H_INCLUDED
 #define XRPL_OVERLAY_MAKE_OVERLAY_H_INCLUDED
 
+#include <xrpld/overlay/ILedgerReplayMsgHandler.h>
 #include <xrpld/overlay/Overlay.h>
 
 #include <xrpl/basics/Resolver.h>
@@ -34,7 +35,8 @@ make_Overlay(
     IOverlayOps& overlayOps,
     IHashRouterOps& hashRouterOps,
     IValidatorOps& validatorOps,
-    ILedgerDataOps& ledgerDataOps);
+    ILedgerDataOps& ledgerDataOps,
+    LedgerReplayMsgHandlerFactory ledgerReplayMsgHandlerFactory);
 
 }  // namespace xrpl
 

@@ -115,7 +115,8 @@ OverlayImpl::OverlayImpl(
     IOverlayOps& overlayOps,
     IHashRouterOps& hashRouterOps,
     IValidatorOps& validatorOps,
-    ILedgerDataOps& ledgerDataOps)
+    ILedgerDataOps& ledgerDataOps,
+    LedgerReplayMsgHandlerFactory ledgerReplayMsgHandlerFactory)
     : app_(app)
     , io_context_(io_context)
     , work_(std::in_place, boost::asio::make_work_guard(io_context_))
@@ -139,6 +140,7 @@ OverlayImpl::OverlayImpl(
     , hashRouterOps_(hashRouterOps)
     , validatorOps_(validatorOps)
     , ledgerDataOps_(ledgerDataOps)
+    , ledgerReplayMsgHandlerFactory_(std::move(ledgerReplayMsgHandlerFactory))
     , m_stats(
           std::bind(&OverlayImpl::collect_metrics, this),
           collector,
@@ -1630,7 +1632,8 @@ make_Overlay(
     IOverlayOps& overlayOps,
     IHashRouterOps& hashRouterOps,
     IValidatorOps& validatorOps,
-    ILedgerDataOps& ledgerDataOps)
+    ILedgerDataOps& ledgerDataOps,
+    LedgerReplayMsgHandlerFactory ledgerReplayMsgHandlerFactory)
 {
     return std::make_unique<OverlayImpl>(
         app,
@@ -1645,7 +1648,8 @@ make_Overlay(
         overlayOps,
         hashRouterOps,
         validatorOps,
-        ledgerDataOps);
+        ledgerDataOps,
+        std::move(ledgerReplayMsgHandlerFactory));
 }
 
 }  // namespace xrpl

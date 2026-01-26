@@ -2,10 +2,10 @@
 #define XRPL_OVERLAY_PEERIMP_H_INCLUDED
 
 #include <xrpld/app/main/Application.h>
-
-#include <xrpl/basics/HashRouterFlags.h>
 #include <xrpld/overlay/Squelch.h>
 #include <xrpld/overlay/detail/OverlayImpl.h>
+
+#include <xrpl/basics/HashRouterFlags.h>
 // NOTE: PeerMetrics and PeerTracker are available for future refactoring.
 // They encapsulate metrics and ledger tracking functionality that currently
 // exists inline in PeerImp. A future iteration can migrate PeerImp to use
@@ -37,7 +37,7 @@ namespace xrpl {
 
 struct ValidatorBlobInfo;
 class SHAMap;
-class LedgerReplayMsgHandler;
+class ILedgerReplayMsgHandler;
 class TransactionMessageHandler;
 class ValidationMessageHandler;
 
@@ -261,7 +261,7 @@ private:
     bool txReduceRelayEnabled_ = false;
 
     bool ledgerReplayEnabled_ = false;
-    std::unique_ptr<LedgerReplayMsgHandler> ledgerReplayMsgHandler_;
+    std::unique_ptr<ILedgerReplayMsgHandler> ledgerReplayMsgHandler_;
 
     friend class OverlayImpl;
     friend class ProposalMessageHandler;
@@ -768,7 +768,8 @@ private:
 //------------------------------------------------------------------------------
 
 // Note: Template constructor implementation for Buffers is in PeerImp.cpp
-// with explicit instantiation for boost::beast::multi_buffer::const_buffers_type
+// with explicit instantiation for
+// boost::beast::multi_buffer::const_buffers_type
 
 template <class FwdIt, class>
 void

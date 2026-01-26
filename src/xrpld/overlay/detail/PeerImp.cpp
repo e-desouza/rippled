@@ -1,8 +1,8 @@
 #include <xrpld/app/ledger/LedgerMaster.h>
-#include <xrpld/app/ledger/detail/LedgerReplayMsgHandler.h>
 #include <xrpld/overlay/Cluster.h>
 #include <xrpld/overlay/IFeeTrackOps.h>
 #include <xrpld/overlay/ILedgerDataOps.h>
+#include <xrpld/overlay/ILedgerReplayMsgHandler.h>
 #include <xrpld/overlay/detail/PeerImp.h>
 #include <xrpld/overlay/detail/Tuning.h>
 #include <xrpld/overlay/detail/handlers/ProposalMessageHandler.h>
@@ -107,9 +107,7 @@ PeerImp::PeerImp(
           headers_,
           FEATURE_LEDGER_REPLAY,
           app_.config().LEDGER_REPLAY))
-    , ledgerReplayMsgHandler_(std::make_unique<LedgerReplayMsgHandler>(
-          app,
-          app.getLedgerReplayer()))
+    , ledgerReplayMsgHandler_(overlay.createLedgerReplayMsgHandler())
 {
     JLOG(journal_.info())
         << "compression enabled " << (compressionEnabled_ == Compressed::On)
@@ -2598,7 +2596,7 @@ PeerImp::Metrics::total_bytes() const
 //------------------------------------------------------------------------------
 // Template constructor implementation for outgoing peers.
 // This is defined in the .cpp file with explicit instantiation to avoid
-// requiring LedgerReplayMsgHandler definition in the header.
+// requiring template-specific types in the header.
 //------------------------------------------------------------------------------
 
 template <class Buffers>
@@ -2659,9 +2657,7 @@ PeerImp::PeerImp(
           headers_,
           FEATURE_LEDGER_REPLAY,
           app_.config().LEDGER_REPLAY))
-    , ledgerReplayMsgHandler_(std::make_unique<LedgerReplayMsgHandler>(
-          app,
-          app.getLedgerReplayer()))
+    , ledgerReplayMsgHandler_(overlay.createLedgerReplayMsgHandler())
 {
     read_buffer_.commit(boost::asio::buffer_copy(
         read_buffer_.prepare(boost::asio::buffer_size(buffers)), buffers));
