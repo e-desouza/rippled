@@ -2,13 +2,13 @@
 
 **Created:** 2026-01-26
 **Last Updated:** 2026-01-26 (continued session)
-**Status:** In Progress - Cycle 4 at 80%, Cycle 2 at 7%
+**Status:** In Progress - Cycle 4 at 80%, Cycle 2 at 14%
 
 ## Overview
 
 This document tracks the execution of the refined implementation plans for removing the remaining dependency cycles:
 - **Cycle 4: app↔rpc** — Started at 15 deps, **now at 3 deps** (80% reduction)
-- **Cycle 2: app↔overlay** — Started at 29 deps, **now at 27 deps** (7% reduction)
+- **Cycle 2: app↔overlay** — Started at 29 deps, **now at 25 deps** (14% reduction)
 
 ---
 
@@ -184,7 +184,7 @@ This document tracks the execution of the refined implementation plans for remov
 - [ ] Build and verify
 - [ ] Commit
 
-**Status:** 🔄 IN PROGRESS (29→27 deps, 7% reduction)
+**Status:** ✅ COMPLETE (29→27 deps in Step 2.2, further reduced to 26 in Step 2.3)
 **Notes:**
 - Committed `6a77611371`: HashRouterFlags extraction, dependency 29→28
 - Committed `62d7deb388`: PeerSet.h forward declaration, dependency 28→27
@@ -231,33 +231,29 @@ The low-hanging fruit has been picked (29→27 deps). Further reduction requires
 - [ ] Run levelization check
 - [ ] Commit
 
-**Status:** In Progress
+**Status:** ✅ COMPLETE (27→25 deps)
+**Commits:** `1531f3ad96`, `b9e14bca93`
 **Notes:**
 
-**Key Finding: Handler Pattern Already Exists**
+**Completed: Wired up ValidationMessageHandler delegation**
+- Replaced ~160 lines of duplicate validation handling code in PeerImp.cpp
+- Removed `PeerImp::onValidatorListMessage()` helper method entirely
+- PeerImp now delegates to ValidationMessageHandler for all validation messages
+- Removed `RCLValidations.h` include from PeerImp.cpp (no longer needed)
+- **Dependencies reduced: 27→26**
 
-The `ValidationMessageHandler` pattern is already implemented:
-- Header: `src/xrpld/overlay/detail/handlers/ValidationMessageHandler.h` (uses forward declarations)
-- Implementation: `src/xrpld/app/overlay/handlers/ValidationMessageHandler.cpp` (has app dependencies)
+**Completed: Created TransactionMessageHandler**
+- Created `TransactionMessageHandler.h` in `overlay/detail/handlers/`
+- Created `TransactionMessageHandler.cpp` in `app/overlay/handlers/`
+- Extracted `handleTransaction` and `checkTransaction` methods (~290 lines)
+- PeerImp now delegates TMTransaction and TMTransactions to handler
+- Removed `apply.h` include from PeerImp.cpp (no longer needed)
+- **Dependencies reduced: 26→25**
 
-The handler has complete implementations for:
-- `onMessage(TMValidation)` - validation message handling
-- `onMessage(TMValidatorList)` - validator list v1 handling
-- `onMessage(TMValidatorListCollection)` - validator list v2 handling
-- `processValidatorListMessage()` - shared validator list logic
-
-**Problem:** The handlers are NOT wired up. PeerImp.cpp still has duplicate implementations:
-- `PeerImp::onMessage(TMValidation)` at line 2406
-- `PeerImp::onMessage(TMValidatorList)` at line 2338
-- `PeerImp::onMessage(TMValidatorListCollection)` at line 2365
-- `PeerImp::onValidatorListMessage()` at line 2129
-
-**Limitation:** Simply wiring up the handlers won't reduce levelization count because:
-1. `ValidatorList.h` is also used at line 913 for sending validator lists on connect
-2. `validators()` is called in multiple other places (lines 906, 1796, 2160)
-3. Other app includes are used for ledger/transaction handling
-
-**Next Action:** Wire up the delegation anyway to consolidate the code, then assess if further refactoring can remove includes.
+**Remaining includes in PeerImp.cpp that could potentially be removed:**
+- `Transaction.h` - still used by `getMasterTransaction().fetch_from_cache()` return type
+- `TransactionMaster.h` - still used by `handleHaveTransactions` and `doTransactions`
+- These would require additional handler extraction
 
 ### Step 2.4: Introduce OverlayDeps and Refactor Constructors
 - [ ] Update PeerImp constructor
