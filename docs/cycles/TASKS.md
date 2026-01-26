@@ -222,16 +222,42 @@ The remaining header-level dependencies in `PeerImp.h` cannot be easily removed:
 The low-hanging fruit has been picked (29→27 deps). Further reduction requires the interface extraction approach in Steps 2.3-2.5, which is a larger architectural change.
 
 ### Step 2.3: Move Message Handlers to App
-- [ ] Create `app/overlay/handlers/` directory
-- [ ] Extract validation message handling
-- [ ] Extract transaction message handling
+- [x] Investigate existing ValidationMessageHandler pattern
+- [ ] Wire up ValidationMessageHandler delegation
+- [ ] Remove duplicate validation code from PeerImp.cpp
+- [ ] Extract transaction message handling similarly
 - [ ] Update PeerImp.cpp to use interfaces
 - [ ] Build and verify
 - [ ] Run levelization check
 - [ ] Commit
 
-**Status:** Not Started  
+**Status:** In Progress
 **Notes:**
+
+**Key Finding: Handler Pattern Already Exists**
+
+The `ValidationMessageHandler` pattern is already implemented:
+- Header: `src/xrpld/overlay/detail/handlers/ValidationMessageHandler.h` (uses forward declarations)
+- Implementation: `src/xrpld/app/overlay/handlers/ValidationMessageHandler.cpp` (has app dependencies)
+
+The handler has complete implementations for:
+- `onMessage(TMValidation)` - validation message handling
+- `onMessage(TMValidatorList)` - validator list v1 handling
+- `onMessage(TMValidatorListCollection)` - validator list v2 handling
+- `processValidatorListMessage()` - shared validator list logic
+
+**Problem:** The handlers are NOT wired up. PeerImp.cpp still has duplicate implementations:
+- `PeerImp::onMessage(TMValidation)` at line 2406
+- `PeerImp::onMessage(TMValidatorList)` at line 2338
+- `PeerImp::onMessage(TMValidatorListCollection)` at line 2365
+- `PeerImp::onValidatorListMessage()` at line 2129
+
+**Limitation:** Simply wiring up the handlers won't reduce levelization count because:
+1. `ValidatorList.h` is also used at line 913 for sending validator lists on connect
+2. `validators()` is called in multiple other places (lines 906, 1796, 2160)
+3. Other app includes are used for ledger/transaction handling
+
+**Next Action:** Wire up the delegation anyway to consolidate the code, then assess if further refactoring can remove includes.
 
 ### Step 2.4: Introduce OverlayDeps and Refactor Constructors
 - [ ] Update PeerImp constructor

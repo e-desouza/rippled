@@ -773,13 +773,6 @@ private:
     void
     doFetchPack(std::shared_ptr<protocol::TMGetObjectByHash> const& packet);
 
-    void
-    onValidatorListMessage(
-        std::string const& messageType,
-        std::string const& manifest,
-        std::uint32_t version,
-        std::vector<ValidatorBlobInfo> const& blobs);
-
     /** Process peer's request to send missing transactions. The request is
         sent in response to TMHaveTransactions.
         @param packet protocol message containing missing transactions' hashes.
