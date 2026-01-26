@@ -20,7 +20,7 @@
 #ifndef XRPL_APP_MISC_IPUBSUBMANAGER_H_INCLUDED
 #define XRPL_APP_MISC_IPUBSUBMANAGER_H_INCLUDED
 
-#include <xrpld/rpc/InfoSub.h>
+#include <xrpld/app/misc/InfoSub.h>
 
 #include <xrpl/json/json_value.h>
 #include <xrpl/ledger/ReadView.h>

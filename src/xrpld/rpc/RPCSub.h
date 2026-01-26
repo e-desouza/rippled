@@ -1,7 +1,7 @@
 #ifndef XRPL_NET_RPCSUB_H_INCLUDED
 #define XRPL_NET_RPCSUB_H_INCLUDED
 
-#include <xrpld/rpc/InfoSub.h>
+#include <xrpld/app/misc/InfoSub.h>
 
 #include <xrpl/core/JobQueue.h>
 

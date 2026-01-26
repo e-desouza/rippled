@@ -5,7 +5,7 @@
 #include <xrpld/app/misc/NetworkOPs.h>
 #include <xrpld/core/Config.h>
 #include <xrpld/rpc/Context.h>
-#include <xrpld/rpc/InfoSub.h>
+#include <xrpld/app/misc/InfoSub.h>
 #include <xrpld/rpc/RPCHandler.h>
 #include <xrpld/rpc/Role.h>
 #include <xrpld/rpc/detail/Handler.h>

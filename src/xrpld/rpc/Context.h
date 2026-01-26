@@ -1,7 +1,7 @@
 #ifndef XRPL_RPC_CONTEXT_H_INCLUDED
 #define XRPL_RPC_CONTEXT_H_INCLUDED
 
-#include <xrpld/rpc/InfoSub.h>
+#include <xrpld/app/misc/InfoSub.h>
 #include <xrpld/app/ledger/LedgerDataProvider.h>
 #include <xrpld/rpc/Role.h>
 
