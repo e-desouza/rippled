@@ -286,14 +286,27 @@ The low-hanging fruit has been picked (29→27 deps). Further reduction requires
 - **Dependencies reduced: 21→20**
 - **Commit:** `6946f36d87`
 
-**Remaining includes in PeerImp.cpp (6 app deps):**
-- `InboundLedgers.h` - ledger fetching
-- `InboundTransactions.h` - transaction fetching
-- `LedgerMaster.h` - ledger state access (used extensively)
-- `LedgerReplayMsgHandler.h` - ledger replay handling
-- `LoadFeeTrack.h` - fee tracking
-- `HashRouter.h` - message routing
-- These are deeply integrated and would require major architectural changes to remove
+**Completed: Removed unused includes**
+- Removed unused `HashRouter.h` from PeerImp.cpp (20→19) - `0a7d5b55a5`
+- Removed unused `RelationalDatabase.h` from OverlayImpl.cpp (19→18) - `16fb83dcab`
+- Removed unused `RelationalDatabase.h` from PeerReservationTable.cpp (18→17) - `4705d78880`
+
+**Remaining overlay→app dependencies: 17 (41% reduction from 29)**
+
+**Breakdown by file:**
+- `OverlayImpl.cpp` (7): Application.h, NetworkOPs.h, ServerCounts.h, Wallet.h, HashRouter.h, ValidatorList.h, ValidatorSite.h
+- `PeerImp.cpp` (5): InboundLedgers.h, InboundTransactions.h, LedgerMaster.h, LedgerReplayMsgHandler.h, LoadFeeTrack.h
+- `Handshake.cpp` (2): LedgerMaster.h, Application.h
+- `PeerReservationTable.cpp` (1): Wallet.h
+- `PeerImp.h` (1): Application.h
+- `PeerSet.cpp` (1): Application.h
+
+**Analysis: Remaining dependencies are deeply integrated:**
+- LedgerMaster.h used 14 times in PeerImp.cpp for ledger state access
+- InboundLedgers/InboundTransactions for active fetching
+- HashRouter for relay logic in OverlayImpl.cpp (shouldRelay calls)
+- ValidatorList/ValidatorSite for validator UNL queries
+- These would require interface-based dependency inversion to remove
 
 ### Step 2.4: Introduce OverlayDeps and Refactor Constructors
 - [ ] Update PeerImp constructor
@@ -370,4 +383,7 @@ The low-hanging fruit has been picked (29→27 deps). Further reduction requires
 | `3aa7e5ebb0` | [Levelization] Remove RCLCxPeerPos.h from PeerImp.h (23→22 deps) | 2026-01-26 |
 | `0b8794e537` | [Levelization] Create ValidatorListPropagationHandler (22→21 deps) | 2026-01-26 |
 | `6946f36d87` | [Levelization] Create StatusChangeMessageHandler (21→20 deps) | 2026-01-26 |
+| `0a7d5b55a5` | [Levelization] Remove unused HashRouter.h from PeerImp.cpp (20→19 deps) | 2026-01-26 |
+| `16fb83dcab` | [Levelization] Remove unused RelationalDatabase.h from OverlayImpl.cpp (19→18 deps) | 2026-01-26 |
+| `4705d78880` | [Levelization] Remove unused RelationalDatabase.h from PeerReservationTable.cpp (18→17 deps) | 2026-01-26 |
 
