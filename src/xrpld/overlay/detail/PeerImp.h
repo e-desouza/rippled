@@ -267,6 +267,7 @@ private:
     friend class ProposalMessageHandler;
     friend class TransactionMessageHandler;
     friend class ValidationMessageHandler;
+    friend class ValidatorListPropagationHandler;
 
     class Metrics
     {

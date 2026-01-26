@@ -5,13 +5,13 @@
 #include <xrpld/app/misc/LoadFeeTrack.h>
 #include <xrpld/app/misc/NetworkOPs.h>
 #include <xrpld/app/txqueue/HashRouter.h>
-#include <xrpld/app/validators/ValidatorList.h>
 #include <xrpld/overlay/Cluster.h>
 #include <xrpld/overlay/detail/PeerImp.h>
 #include <xrpld/overlay/detail/Tuning.h>
 #include <xrpld/overlay/detail/handlers/ProposalMessageHandler.h>
 #include <xrpld/overlay/detail/handlers/TransactionMessageHandler.h>
 #include <xrpld/overlay/detail/handlers/ValidationMessageHandler.h>
+#include <xrpld/overlay/detail/handlers/ValidatorListPropagationHandler.h>
 
 #include <xrpl/basics/UptimeClock.h>
 #include <xrpl/basics/base64.h>
@@ -901,27 +901,9 @@ PeerImp::doProtocolStart()
     // Send all the validator lists that have been loaded
     if (inbound_ && supportsFeature(ProtocolFeature::ValidatorListPropagation))
     {
-        app_.validators().for_each_available(
-            [&](std::string const& manifest,
-                std::uint32_t version,
-                std::map<std::size_t, ValidatorBlobInfo> const& blobInfos,
-                PublicKey const& pubKey,
-                std::size_t maxSequence,
-                uint256 const& hash) {
-                ValidatorList::sendValidatorList(
-                    *this,
-                    0,
-                    pubKey,
-                    maxSequence,
-                    version,
-                    manifest,
-                    blobInfos,
-                    app_.getHashRouter(),
-                    p_journal_);
-
-                // Don't send it next time.
-                app_.getHashRouter().addSuppressionPeer(hash, id_);
-            });
+        // Delegate to ValidatorListPropagationHandler which has access to
+        // ValidatorList in the app module to avoid cycle dependencies
+        ValidatorListPropagationHandler::sendValidatorLists(*this);
     }
 
     if (auto m = overlay_.getManifestsMessage())
