@@ -9,7 +9,7 @@
 #include <xrpld/app/ledger/LedgerReplay.h>
 #include <xrpld/app/main/Application.h>
 #include <xrpld/app/txqueue/CanonicalTXSet.h>
-#include <xrpld/rpc/LedgerDataProvider.h>
+#include <xrpld/app/ledger/LedgerDataProvider.h>
 
 #include <xrpl/basics/RangeSet.h>
 #include <xrpl/basics/UptimeClock.h>

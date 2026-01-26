@@ -1,5 +1,5 @@
-#ifndef XRPL_RPC_CTID_H_INCLUDED
-#define XRPL_RPC_CTID_H_INCLUDED
+#ifndef XRPL_PROTOCOL_CTID_H_INCLUDED
+#define XRPL_PROTOCOL_CTID_H_INCLUDED
 
 #include <boost/regex.hpp>
 
@@ -8,8 +8,6 @@
 #include <sstream>
 
 namespace xrpl {
-
-namespace RPC {
 
 // CTID stands for Concise Transaction ID.
 //
@@ -112,7 +110,6 @@ decodeCTID(T const ctid) noexcept
     return std::make_tuple(ledgerSeq, txnIndex, networkID);
 }
 
-}  // namespace RPC
 }  // namespace xrpl
 
 #endif

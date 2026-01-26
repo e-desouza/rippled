@@ -3,7 +3,7 @@
 #include <xrpld/app/misc/NetworkOPs.h>
 #include <xrpld/core/ConfigSections.h>
 #include <xrpld/overlay/Overlay.h>
-#include <xrpld/rpc/LedgerDataProvider.h>
+#include <xrpld/app/ledger/LedgerDataProvider.h>
 #include <xrpld/rpc/RPCHandler.h>
 #include <xrpld/rpc/Role.h>
 #include <xrpld/rpc/ServerHandler.h>

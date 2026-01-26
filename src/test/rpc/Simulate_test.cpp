@@ -3,7 +3,7 @@
 #include <test/jtx/envconfig.h>
 
 #include <xrpld/app/rdb/backend/SQLiteDatabase.h>
-#include <xrpld/rpc/CTID.h>
+#include <xrpl/protocol/CTID.h>
 
 #include <xrpl/protocol/ErrorCodes.h>
 #include <xrpl/protocol/STBase.h>

@@ -1,7 +1,10 @@
 #ifndef XRPL_OVERLAY_OVERLAYIMPL_H_INCLUDED
 #define XRPL_OVERLAY_OVERLAYIMPL_H_INCLUDED
 
-#include <xrpld/app/main/Application.h>
+namespace xrpl {
+class Application;
+}
+
 #include <xrpld/overlay/Message.h>
 #include <xrpld/overlay/Overlay.h>
 #include <xrpld/overlay/Slot.h>

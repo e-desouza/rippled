@@ -5,7 +5,7 @@
 #include <test/jtx/permissioned_dex.h>
 
 #include <xrpld/app/ledger/LedgerMaster.h>
-#include <xrpld/rpc/LedgerDataProvider.h>
+#include <xrpld/app/ledger/LedgerDataProvider.h>
 #include <xrpld/rpc/RPCHandler.h>
 #include <xrpld/rpc/detail/Tuning.h>
 

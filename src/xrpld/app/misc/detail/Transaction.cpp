@@ -4,7 +4,7 @@
 #include <xrpld/app/rdb/backend/SQLiteDatabase.h>
 #include <xrpld/app/tx/apply.h>
 #include <xrpld/app/txqueue/HashRouter.h>
-#include <xrpld/rpc/CTID.h>
+#include <xrpl/protocol/CTID.h>
 
 #include <xrpl/basics/safe_cast.h>
 #include <xrpl/protocol/ErrorCodes.h>
@@ -174,7 +174,7 @@ Transaction::getJson(JsonOptions options, bool binary) const
         if (mTxnSeq && netID)
         {
             std::optional<std::string> const ctid =
-                RPC::encodeCTID(mLedgerIndex, *mTxnSeq, *netID);
+                encodeCTID(mLedgerIndex, *mTxnSeq, *netID);
             if (ctid)
                 ret[jss::ctid] = *ctid;
         }

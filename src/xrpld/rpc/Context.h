@@ -2,7 +2,7 @@
 #define XRPL_RPC_CONTEXT_H_INCLUDED
 
 #include <xrpld/rpc/InfoSub.h>
-#include <xrpld/rpc/LedgerDataProvider.h>
+#include <xrpld/app/ledger/LedgerDataProvider.h>
 #include <xrpld/rpc/Role.h>
 
 #include <xrpl/beast/utility/Journal.h>

@@ -1,11 +1,17 @@
 #ifndef XRPL_OVERLAY_HANDSHAKE_H_INCLUDED
 #define XRPL_OVERLAY_HANDSHAKE_H_INCLUDED
 
-#include <xrpld/app/main/Application.h>
+namespace xrpl {
+class Application;
+}
+
 #include <xrpld/overlay/detail/ProtocolVersion.h>
 
+#include <xrpl/basics/base_uint.h>
+#include <xrpl/beast/net/IPAddress.h>
 #include <xrpl/beast/utility/Journal.h>
 #include <xrpl/protocol/BuildInfo.h>
+#include <xrpl/protocol/PublicKey.h>
 
 #include <boost/asio/ssl.hpp>
 #include <boost/beast/core/tcp_stream.hpp>

@@ -4,7 +4,7 @@
 #include <xrpld/app/misc/NetworkOPs.h>
 #include <xrpld/app/misc/Transaction.h>
 #include <xrpld/app/rdb/RelationalDatabase.h>
-#include <xrpld/rpc/CTID.h>
+#include <xrpl/protocol/CTID.h>
 #include <xrpld/rpc/Context.h>
 #include <xrpld/rpc/DeliveredAmount.h>
 #include <xrpld/rpc/GRPCHandlers.h>
@@ -163,7 +163,7 @@ doTxHelp(RPC::Context& context, TxArgs args)
 
             if (txnIdx <= 0xFFFFU && netID < 0xFFFFU && lgrSeq < 0x0FFF'FFFFUL)
                 result.ctid =
-                    RPC::encodeCTID(lgrSeq, (uint32_t)txnIdx, (uint32_t)netID);
+                    encodeCTID(lgrSeq, (uint32_t)txnIdx, (uint32_t)netID);
         }
     }
 
@@ -291,7 +291,7 @@ doTxJson(RPC::JsonContext& context)
     }
     else if (context.params.isMember(jss::ctid))
     {
-        auto ctid = RPC::decodeCTID(context.params[jss::ctid].asString());
+        auto ctid = decodeCTID(context.params[jss::ctid].asString());
         if (!ctid)
             return rpcError(rpcINVALID_PARAMS);
 

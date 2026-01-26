@@ -33,7 +33,7 @@
 #include <xrpld/overlay/Overlay.h>
 #include <xrpld/overlay/predicates.h>
 #include <xrpld/rpc/BookChanges.h>
-#include <xrpld/rpc/CTID.h>
+#include <xrpl/protocol/CTID.h>
 #include <xrpld/rpc/DeliveredAmount.h>
 #include <xrpld/rpc/MPTokenIssuanceID.h>
 #include <xrpld/rpc/ServerHandler.h>
@@ -3279,7 +3279,7 @@ NetworkOPsImp::transJson(
             netID = transaction->getFieldU32(sfNetworkID);
 
         if (std::optional<std::string> ctid =
-                RPC::encodeCTID(ledger->header().seq, txnSeq, netID);
+                encodeCTID(ledger->header().seq, txnSeq, netID);
             ctid)
             jvObj[jss::ctid] = *ctid;
     }

@@ -1,3 +1,4 @@
+#include <xrpld/app/main/Application.h>
 #include <xrpld/app/misc/NetworkOPs.h>
 #include <xrpld/app/misc/ServerCounts.h>
 #include <xrpld/app/rdb/RelationalDatabase.h>
