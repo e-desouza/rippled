@@ -3,6 +3,7 @@
 
 #include <xrpld/app/misc/NetworkOPs.h>
 #include <xrpld/app/txqueue/TxQ.h>
+#include <xrpld/core/LedgerShortcut.h>
 #include <xrpld/rpc/Context.h>
 #include <xrpld/rpc/Status.h>
 #include <xrpld/rpc/detail/Tuning.h>
@@ -20,7 +21,8 @@ namespace RPC {
 
 struct JsonContext;
 
-enum class LedgerShortcut { Current, Closed, Validated };
+// Re-export LedgerShortcut for backward compatibility
+using LedgerShortcut = xrpl::LedgerShortcut;
 
 /**
  * @brief Retrieves a ledger by its hash.

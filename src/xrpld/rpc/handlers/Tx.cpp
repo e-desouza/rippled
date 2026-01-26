@@ -9,6 +9,7 @@
 #include <xrpld/rpc/DeliveredAmount.h>
 #include <xrpld/rpc/GRPCHandlers.h>
 #include <xrpld/rpc/MPTokenIssuanceID.h>
+#include <xrpld/rpc/Status.h>
 
 #include <xrpl/basics/ToString.h>
 #include <xrpl/protocol/ErrorCodes.h>

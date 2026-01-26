@@ -6,7 +6,7 @@
 #include <xrpld/app/misc/Transaction.h>
 #include <xrpld/core/Config.h>
 #include <xrpld/core/DatabaseCon.h>
-#include <xrpld/rpc/detail/RPCLedgerHelpers.h>
+#include <xrpld/core/LedgerShortcut.h>
 
 #include <xrpl/beast/utility/instrumentation.h>
 
@@ -71,7 +71,7 @@ public:
 
     using LedgerSequence = uint32_t;
     using LedgerHash = uint256;
-    using LedgerShortcut = RPC::LedgerShortcut;
+    using LedgerShortcut = xrpl::LedgerShortcut;
     using LedgerSpecifier =
         std::variant<LedgerRange, LedgerShortcut, LedgerSequence, LedgerHash>;
 
