@@ -1,14 +1,14 @@
 # Levelization Tasks - Cycle Removal Execution Plan
 
 **Created:** 2026-01-26
-**Last Updated:** 2026-01-26
-**Status:** In Progress - Cycle 4 nearly complete
+**Last Updated:** 2026-01-26 (continued session)
+**Status:** In Progress - Cycle 4 at 80%, Cycle 2 at 7%
 
 ## Overview
 
 This document tracks the execution of the refined implementation plans for removing the remaining dependency cycles:
 - **Cycle 4: app↔rpc** — Started at 15 deps, **now at 3 deps** (80% reduction)
-- **Cycle 2: app↔overlay** (29 deps remaining)
+- **Cycle 2: app↔overlay** — Started at 29 deps, **now at 27 deps** (7% reduction)
 
 ---
 
@@ -188,24 +188,22 @@ This document tracks the execution of the refined implementation plans for remov
 **Notes:**
 - Committed `6a77611371`: HashRouterFlags extraction, dependency 29→28
 - Committed `62d7deb388`: PeerSet.h forward declaration, dependency 28→27
+- Committed `f8a0878fc9`: LedgerReplayMsgHandler forward declaration in PeerImp.h
 - Key challenges identified:
   1. `Ledger` type returned by LedgerMaster methods (would need `ReadView const*`)
   2. `makeFetchPack(weak_ptr<Peer>)` creates reverse dependency app→overlay
-  3. `LedgerReplayMsgHandler` is a value member in PeerImp.h (requires full type)
-  4. `RCLCxPeerPos` passed by value (requires full type)
-- Header-level deps remaining in PeerImp.h: RCLCxPeerPos.h, LedgerReplayMsgHandler.h, Application.h
+  3. `RCLCxPeerPos` passed by value (requires full type)
+- Header-level deps remaining in PeerImp.h: RCLCxPeerPos.h, Application.h
 - Alternative approach: focus on moving more includes from headers to .cpp files
 
-**Attempt Log:**
-- **FAILED: unique_ptr for LedgerReplayMsgHandler** - Attempted to change
-  `LedgerReplayMsgHandler ledgerReplayMsgHandler_` to `std::unique_ptr<LedgerReplayMsgHandler>`
-  to allow forward declaration. This failed because:
-  - The inline template constructor in `PeerImp.h` uses `std::make_unique<LedgerReplayMsgHandler>(...)`
-  - `std::make_unique` requires the complete type at the point of instantiation
-  - The template constructor is instantiated from `ConnectAttempt.cpp` which doesn't include `LedgerReplayMsgHandler.h`
-  - Error: "allocation of incomplete type 'xrpl::LedgerReplayMsgHandler'"
-  - **Solution would require:** Moving the template constructor implementation to a .cpp file,
-    which is a more invasive change affecting the compile-time instantiation pattern
+**Completed Refactorings:**
+- **SUCCESS: unique_ptr for LedgerReplayMsgHandler** - Refactored to use forward declaration:
+  - Changed `LedgerReplayMsgHandler ledgerReplayMsgHandler_` to `std::unique_ptr<LedgerReplayMsgHandler>`
+  - Moved template constructor implementation from header to `PeerImp.cpp`
+  - Added explicit template instantiation for `boost::beast::basic_multi_buffer<std::allocator<char>>::subrange<true>`
+  - Removed `LedgerReplayMsgHandler.h` include from `PeerImp.h`
+  - **Important:** This reduces header coupling but does NOT reduce levelization count
+    because `PeerImp.cpp` still needs the complete type (include moved from .h to .cpp)
 
 ### Step 2.3: Move Message Handlers to App
 - [ ] Create `app/overlay/handlers/` directory
