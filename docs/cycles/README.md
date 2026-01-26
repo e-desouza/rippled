@@ -1,63 +1,84 @@
 # Cycle Removal Documentation
 
-This directory contains detailed plans for removing the 7 remaining dependency cycles in the rippled codebase.
+This directory contains detailed plans for removing the 7 dependency cycles in the rippled codebase.
+
+## Implementation Status
+
+| Cycle | Description | Original Deps | Current Deps | Status |
+|-------|-------------|---------------|--------------|--------|
+| **Cycle 7** | test.jtx↔test.unit_test | 2 | 0 | ✅ **REMOVED** |
+| **Cycle 6** | test.jtx↔test.toplevel | 10 | 0 | ✅ **REMOVED** |
+| **Cycle 5** | consensus↔overlay | 3 | 0 | ✅ **REMOVED** |
+| **Cycle 3** | app↔peerfinder | 1 | 0 | ✅ **REMOVED** |
+| **Cycle 1** | app↔consensus | 15 | 0 | ✅ **REMOVED** |
+| **Cycle 4** | app↔rpc | 24 | 15 | ⚠️ **PARTIAL** (37.5% reduced) |
+| **Cycle 2** | app↔overlay | 35 | 29 | ⚠️ **PARTIAL** (17% reduced) |
+
+**Last Updated:** 2026-01-26
 
 ## Recommended Execution Order
 
 Based on risk/effort analysis, here is the recommended order for removing cycles:
 
-| Priority | Cycle                             | Risk     | Effort    | Why First?                    |
-| -------- | --------------------------------- | -------- | --------- | ----------------------------- |
-| 1        | Cycle 7: test.jtx↔test.unit_test | Very Low | Very Low  | Quick win, builds confidence  |
-| 2        | Cycle 6: test.jtx↔test.toplevel  | Very Low | Low       | Quick win, test-only          |
-| 3        | Cycle 3: app↔peerfinder          | Low      | Low       | Only 1 dependency to break    |
-| 4        | Cycle 5: consensus↔overlay       | Medium   | Medium    | Unblocks Cycle 1 and 2        |
-| 5        | Cycle 4: app↔rpc                 | Medium   | Medium    | Important for modularity      |
-| 6        | Cycle 1: app↔consensus           | Medium   | High      | Core architecture improvement |
-| 7        | Cycle 2: app↔overlay             | High     | Very High | Largest, do last              |
+| Priority | Cycle                             | Risk     | Effort    | Status |
+| -------- | --------------------------------- | -------- | --------- | ------ |
+| 1        | Cycle 7: test.jtx↔test.unit_test | Very Low | Very Low  | ✅ Done |
+| 2        | Cycle 6: test.jtx↔test.toplevel  | Very Low | Low       | ✅ Done |
+| 3        | Cycle 3: app↔peerfinder          | Low      | Low       | ✅ Done |
+| 4        | Cycle 5: consensus↔overlay       | Medium   | Medium    | ✅ Done |
+| 5        | Cycle 4: app↔rpc                 | Medium   | Medium    | ⚠️ Partial |
+| 6        | Cycle 1: app↔consensus           | Medium   | High      | ✅ Done |
+| 7        | Cycle 2: app↔overlay             | High     | Very High | ⚠️ Partial |
 
 ## Quick Summary
 
-### Cycle 1: app↔consensus (15 deps to break)
+### Cycle 1: app↔consensus ✅ REMOVED
 
-- **Root Cause:** Interface headers include app types (OperatingMode enum, RCLValidations)
-- **Solution:** Move OperatingMode to `xrpld.core` (shared core header) and move consensus impl files to app
+- **Status:** Fully removed in commit `dfb17af6ae`
+- **Changes Made:**
+  - Created `src/xrpld/core/OperatingMode.h` with OperatingMode enum
+  - Created `src/xrpld/consensus/RCLValidationsFwd.h` for forward declarations
+  - Moved 7 *Impl.cpp files from `consensus/detail/` to `app/consensus/detail/`
 - **Doc:** [cycle-1-app-consensus.md](cycle-1-app-consensus.md)
 
-### Cycle 2: app↔overlay (35 deps to break)
+### Cycle 2: app↔overlay ⚠️ PARTIAL (29 deps remaining)
 
-- **Root Cause:** Overlay deeply integrated with app for message handling
-- **Solution:** Create overlay dependency interfaces, move handlers to app
+- **Status:** Reduced from 35 to 29 dependencies (17% improvement)
+- **Changes Made:**
+  - Forward declared Application in `OverlayImpl.h` and `Handshake.h`
+  - Added missing includes for header self-containment
+- **Remaining Work:** 29 deps in .cpp files (PeerImp.cpp, OverlayImpl.cpp) accessing app subsystems. Requires creating overlay dependency interfaces and moving message handlers to app module.
 - **Doc:** [cycle-2-app-overlay.md](cycle-2-app-overlay.md)
 
-### Cycle 3: app↔peerfinder (1 dep to break)
+### Cycle 3: app↔peerfinder ✅ REMOVED
 
-- **Root Cause:** StoreSqdb.h includes app/rdb/PeerFinder.h
-- **Solution:** Move database functions to peerfinder module
+- **Status:** Fully removed (previously completed)
 - **Doc:** [cycle-3-app-peerfinder.md](cycle-3-app-peerfinder.md)
 
-### Cycle 4: app↔rpc (24 deps to break)
+### Cycle 4: app↔rpc ⚠️ PARTIAL (15 deps remaining)
 
-- **Root Cause:** App directly includes RPC types (InfoSub, Context, JSON helpers) and JSON utilities live under rpc but are used by app and lower-level code
-- **Solution:** Keep InfoSub in rpc and route app through app-level pub/sub interfaces; move JSON utilities to xrpl/json or xrpl/protocol
+- **Status:** Reduced from 24 to 15 dependencies (37.5% improvement)
+- **Changes Made:**
+  - Moved `CTID.h` to `include/xrpl/protocol/CTID.h`
+  - Moved `LedgerDataProvider.h` to `app/ledger/`
+  - Moved `InfoSub.h` and `InfoSub.cpp` to `app/misc/`
+  - Extracted `LedgerShortcut` enum to `core/LedgerShortcut.h`
+- **Remaining Work:** 15 deps are deeply coupled (DeliveredAmount uses RPC::Context, GRPCServer needs 4 RPC headers). Requires major refactoring.
 - **Doc:** [cycle-4-app-rpc.md](cycle-4-app-rpc.md)
 
-### Cycle 5: consensus↔overlay (3 deps to break)
+### Cycle 5: consensus↔overlay ✅ REMOVED
 
-- **Root Cause:** IOverlayBroadcaster includes Peer.h
-- **Solution:** Use forward declarations, define PeerId type alias
+- **Status:** Fully removed (previously completed)
 - **Doc:** [cycle-5-consensus-overlay.md](cycle-5-consensus-overlay.md)
 
-### Cycle 6: test.jtx↔test.toplevel (10 deps to break)
+### Cycle 6: test.jtx↔test.toplevel ✅ REMOVED
 
-- **Root Cause:** Files in test/jtx include test/jtx.h convenience header
-- **Solution:** Replace convenience includes with specific includes
+- **Status:** Fully removed (previously completed)
 - **Doc:** [cycle-6-test-jtx-toplevel.md](cycle-6-test-jtx-toplevel.md)
 
-### Cycle 7: test.jtx↔test.unit_test (2 deps to break)
+### Cycle 7: test.jtx↔test.unit_test ✅ REMOVED
 
-- **Root Cause:** Env.h includes SuiteJournal.h from unit_test
-- **Solution:** Move SuiteJournal.h to jtx
+- **Status:** Fully removed (previously completed)
 - **Doc:** [cycle-7-test-jtx-unit_test.md](cycle-7-test-jtx-unit_test.md)
 
 ## Verification

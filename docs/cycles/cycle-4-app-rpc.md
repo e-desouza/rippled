@@ -1,10 +1,54 @@
 # Cycle 4: xrpld.app ↔ xrpld.rpc
 
-## Current State
+## ⚠️ IMPLEMENTATION STATUS: PARTIAL
+
+**Progress:** app→rpc dependencies reduced from 24 to 15 (37.5% improvement)
+
+### Changes Made:
+
+1. **Commit `97ce488155`:** Move CTID.h and LedgerDataProvider.h
+   - Moved `src/xrpld/rpc/CTID.h` → `include/xrpl/protocol/CTID.h`
+   - Removed `RPC::` namespace wrapper, functions now in `xrpl::`
+   - Moved `src/xrpld/rpc/LedgerDataProvider.h` → `src/xrpld/app/ledger/LedgerDataProvider.h`
+
+2. **Commit `f595490a3c`:** Move InfoSub.h to app/misc
+   - Moved `src/xrpld/rpc/InfoSub.h` → `src/xrpld/app/misc/InfoSub.h`
+   - Moved `src/xrpld/rpc/detail/InfoSub.cpp` → `src/xrpld/app/misc/detail/InfoSub.cpp`
+   - Updated all 10 files that include InfoSub.h
+
+3. **Commit `d3f6303865`:** Extract LedgerShortcut enum
+   - Created `src/xrpld/core/LedgerShortcut.h` with the enum definition
+   - Updated `RelationalDatabase.h` to use core/LedgerShortcut.h
+
+### Remaining Dependencies (15):
+
+| File | Includes | Why Difficult |
+|------|----------|---------------|
+| `NetworkOPs.cpp` | `rpc/BookChanges.h` | Template uses ledger types |
+| `NetworkOPs.cpp` | `rpc/DeliveredAmount.h` | Uses RPC::Context |
+| `NetworkOPs.cpp` | `rpc/MPTokenIssuanceID.h` | Uses RPC::Context |
+| `NetworkOPs.cpp` | `rpc/ServerHandler.h` | Creates HTTP server |
+| `LedgerToJson.h` | `rpc/Context.h` | Core dependency |
+| `LedgerToJson.cpp` | `rpc/Context.h`, `rpc/DeliveredAmount.h`, `rpc/MPTokenIssuanceID.h` | Uses RPC context |
+| `PathRequest.cpp` | `rpc/detail/Tuning.h` | Path tuning constants |
+| `GRPCServer.h` | 4 RPC headers | gRPC server implementation |
+| `Application.cpp` | `rpc/ServerHandler.h` | Creates HTTP server |
+| `Main.cpp` | `rpc/RPCCall.h` | RPC client calls |
+
+### Remaining Work Required:
+
+1. **Move LedgerToJson to rpc module** - It's RPC-specific but heavily used by app
+2. **Create interfaces for Context usage** - Abstract RPC::Context dependencies
+3. **Refactor GRPCServer** - Move to rpc or use forward declarations
+4. **Extract path tuning constants** - Move to app/paths/
+
+---
+
+## Original State (Before Fixes)
 
 **Loop detected:** `xrpld.rpc > xrpld.app`
 
-The rpc module has 133 includes from app, and app has 24 includes from rpc.
+The rpc module had 133 includes from app, and app had 24 includes from rpc.
 
 ## Dependency Analysis
 

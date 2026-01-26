@@ -1,10 +1,30 @@
 # Cycle 1: xrpld.app ↔ xrpld.consensus
 
-## Current State
+## ✅ IMPLEMENTATION STATUS: COMPLETE
+
+**Removed in commit:** `dfb17af6ae`
+
+### Changes Made:
+1. Created `src/xrpld/core/OperatingMode.h` with OperatingMode enum moved from NetworkOPs.h
+2. Created `src/xrpld/consensus/RCLValidationsFwd.h` with forward declarations for RCLValidations types
+3. Updated interface headers to use new includes
+4. Moved 7 *Impl.cpp files from `consensus/detail/` to `app/consensus/detail/`:
+   - ConsensusJobSchedulerImpl.cpp
+   - ConsensusTimeSourceImpl.cpp
+   - LedgerProviderImpl.cpp
+   - MessageRouterImpl.cpp
+   - OperatingModeImpl.cpp
+   - OverlayBroadcasterImpl.cpp
+   - TxSetManagerImpl.cpp
+   - ValidationTrackerImpl.cpp
+
+---
+
+## Original State (Before Fix)
 
 **Loop detected:** `xrpld.consensus > xrpld.app`
 
-The consensus module depends on app (15 includes), and app depends on consensus (8 includes).
+The consensus module depended on app (15 includes), and app depended on consensus (8 includes).
 
 ## Dependency Analysis
 

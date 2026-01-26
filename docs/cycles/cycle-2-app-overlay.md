@@ -1,10 +1,53 @@
 # Cycle 2: xrpld.app ↔ xrpld.overlay
 
-## Current State
+## ⚠️ IMPLEMENTATION STATUS: PARTIAL
+
+**Progress:** overlay→app dependencies reduced from 35 to 29 (17% improvement)
+
+### Changes Made:
+
+1. **Commit `97ce488155`:** Forward declare Application in overlay headers
+   - Replaced `#include <xrpld/app/main/Application.h>` with forward declaration in `OverlayImpl.h`
+   - Replaced `#include <xrpld/app/main/Application.h>` with forward declaration in `Handshake.h`
+   - Added missing includes to `Handshake.h` for header self-containment (`base_uint.h`, `IPAddress.h`, `PublicKey.h`)
+   - Kept Application.h include in `PeerImp.h` (required for inline template constructor)
+
+### Remaining Dependencies (29):
+
+The remaining dependencies are in `.cpp` implementation files, not headers:
+
+| File | Includes | Why Difficult |
+|------|----------|---------------|
+| `PeerSet.h` | `app/main/Application.h` | Needed for `app_` member |
+| `PeerImp.h` | 4 app headers | Inline template requires Application definition |
+| `Handshake.cpp` | `app/ledger/LedgerMaster.h`, `app/main/Application.h` | Implementation needs ledger access |
+| `PeerReservationTable.cpp` | `app/rdb/RelationalDatabase.h`, `app/rdb/Wallet.h` | Database access |
+| `PeerSet.cpp` | `app/main/Application.h` | Implementation |
+| `PeerImp.cpp` | 11 app headers | Message handling, validations, ledger sync |
+| `OverlayImpl.cpp` | 9 app headers | Network ops, validators, database |
+
+### Remaining Work Required:
+
+1. **Create overlay dependency interfaces:**
+   - `IOverlayLedgerProvider` - Interface for ledger access
+   - `IOverlayTxRouter` - Interface for transaction routing
+   - `IOverlayValidationHandler` - Interface for validation handling
+
+2. **Move message handlers to app module:**
+   - Move validation handling from PeerImp.cpp to app/overlay/
+   - Move transaction handling to app module
+
+3. **Inject dependencies via constructor:**
+   - Pass interfaces to Overlay/PeerImp instead of Application reference
+   - This allows overlay to depend on interfaces, not app types
+
+---
+
+## Original State (Before Fixes)
 
 **Loop detected:** `xrpld.overlay > xrpld.app`
 
-The overlay module has 35 includes from app, and app has 23 includes from overlay.
+The overlay module had 35 includes from app, and app had 23 includes from overlay.
 
 ## Dependency Analysis
 
