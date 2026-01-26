@@ -1,18 +1,44 @@
 # Levelization Tasks - Cycle Removal Execution Plan
 
 **Created:** 2026-01-26
-**Last Updated:** 2026-01-26 (final session update)
-**Status:** SIGNIFICANT PROGRESS - Cycle 4 at 80%, Cycle 2 at 41%
+**Last Updated:** 2026-01-26 (Tier 1 complete, Tier 2 revised)
+**Status:** SIGNIFICANT PROGRESS - Cycle 4 at 87%, Cycle 2 at 59%
 
 ## Overview
 
 This document tracks the execution of the refined implementation plans for reducing the dependency cycles:
-- **Cycle 4: app↔rpc** — Started at 15 app→rpc deps, **now at 3 deps** (80% reduction)
-- **Cycle 2: app↔overlay** — Started at 29 overlay→app deps, **now at 17 deps** (41% reduction)
+- **Cycle 4: app↔rpc** — Started at 15 app→rpc deps, **now at 2 deps** (87% reduction)
+- **Cycle 2: app↔overlay** — Started at 29 overlay→app deps, **now at 12 deps** (59% reduction)
 
 **Note:** Both cycles still exist in the levelization tool output because complete removal requires:
-- Cycle 4: Moving remaining 3 deps (ServerHandler.h, GRPCServer.h) or making them interfaces
-- Cycle 2: Interface-based dependency inversion for 17 deeply integrated app components
+- Cycle 4: Moving remaining 2 deps (ServerHandler.h, GRPCServer.h) or making them interfaces
+- Cycle 2: Interface-based dependency inversion for 12 remaining app components
+
+## Current State (After Tier 1)
+
+### Remaining 12 overlay→app Dependencies
+
+| File | Include | Usage |
+|------|---------|-------|
+| OverlayImpl.cpp | Application.h | config, journal, validators, manifests |
+| OverlayImpl.cpp | ServerCounts.h | `getCountsJson()` for crawl |
+| OverlayImpl.cpp | Wallet.h | `addValidatorManifest()` |
+| OverlayImpl.cpp | HashRouter.h | `shouldRelay()`, `addSuppression()` |
+| OverlayImpl.cpp | ValidatorList.h | `listed()`, `getJson()`, `getAvailable()` |
+| OverlayImpl.cpp | ValidatorSite.h | `getJson()` |
+| PeerImp.cpp | LedgerReplayMsgHandler.h | `processXxx()` methods |
+| PeerImp.cpp | InboundLedgers.h | `gotLedgerData()` |
+| PeerImp.cpp | InboundTransactions.h | `gotData()`, `getSet()` |
+| PeerImp.cpp | LedgerMaster.h | 15 calls, 7 distinct methods |
+| PeerImp.h | Application.h | `Application& app_` member |
+| PeerSet.cpp | Application.h | `overlay()`, `journal()` |
+
+### Remaining 2 app→rpc Dependencies
+
+| File | Include | Usage |
+|------|---------|-------|
+| Application.cpp | GRPCServer.h | Creates GRPCServer |
+| Application.cpp | ServerHandler.h | Creates ServerHandler |
 
 ---
 
@@ -326,150 +352,182 @@ After 5 comprehensive re-analysis passes, the following refined plan addresses t
 4. **Handler pattern works** - Moving message handlers to app module successfully reduced deps (29→17).
 5. **Some proposed solutions were flawed** - Moving peer reservation DB to overlay would create new cycles.
 
-### Prioritized Implementation (Tier 1: Low Risk, High Impact)
+### Prioritized Implementation (Tier 1: Low Risk, High Impact) ✅ COMPLETE
 
-#### Step 2.4.1: Wire up IFeeTrackOps (removes 1 dep)
-- [ ] Create `LoadFeeTrackAdapter` in `app/overlay/adapters/`
-- [ ] Inject `IFeeTrackOps*` into PeerImp via OverlayImpl
-- [ ] Update `PeerImp::doFetchPack()` to use interface
-- [ ] Remove `LoadFeeTrack.h` include from PeerImp.cpp
-- [ ] Build and verify
-- [ ] Commit
+#### Step 2.4.1: Wire up IFeeTrackOps ✅
+- [x] Extended `IFeeTrackOps` with `setClusterFee()` method
+- [x] Created `LoadFeeTrackAdapter` in `app/overlay/adapters/`
+- [x] Injected into OverlayImpl via constructor
+- [x] PeerImp uses `overlay_.feeTrackOps()`
+- [x] Removed `LoadFeeTrack.h` include from PeerImp.cpp
 
-**Estimated:** 2 hours | **Risk:** LOW | **Impact:** 1 dep removed
+**Commit:** `bbd065c7e7` | **Impact:** 17→16 deps
 
-#### Step 2.4.2: Create HandshakeParams struct (removes 2 deps)
-- [ ] Create `HandshakeParams` struct in `overlay/detail/HandshakeParams.h`
-- [ ] Refactor `buildHandshake()`, `verifyHandshake()`, `makeResponse()` to take struct
-- [ ] Update callers: ConnectAttempt, OverlayImpl, PeerImp
-- [ ] Remove `Application.h` and `LedgerMaster.h` includes from Handshake.cpp
-- [ ] Build and verify
-- [ ] Commit
+#### Step 2.4.2: Create IHandshakeParams interface ✅
+- [x] Created `IHandshakeParams` interface in `overlay/`
+- [x] Created `HandshakeParamsAdapter` in `app/overlay/adapters/`
+- [x] Refactored Handshake.h/cpp to use interface
+- [x] Updated callers: OverlayImpl, PeerImp, ConnectAttempt
+- [x] Updated test files: compression_test, LedgerReplay_test, reduce_relay_test
 
-**Estimated:** 3 hours | **Risk:** LOW | **Impact:** 2 deps removed
+**Commit:** `f2e798ee40` | **Impact:** 16→14 deps
 
-#### Step 2.4.3: Inject IPeerReservationStorage (removes 1 dep)
-- [ ] Create `IPeerReservationStorage` interface in `overlay/`
-- [ ] Create `PeerReservationStorageImpl` in `app/overlay/adapters/`
-- [ ] Inject into PeerReservationTable via constructor
-- [ ] Remove `Wallet.h` include from PeerReservationTable.cpp
-- [ ] Build and verify
-- [ ] Commit
+#### Step 2.4.3: Inject IPeerReservationStorage ✅
+- [x] Created `IPeerReservationStorage` interface in `overlay/`
+- [x] Created `PeerReservationStorageAdapter` in `app/overlay/adapters/`
+- [x] Updated PeerReservationTable to use interface
+- [x] Removed `Wallet.h` include from PeerReservationTable.cpp
 
-**Estimated:** 2 hours | **Risk:** LOW | **Impact:** 1 dep removed
+**Commit:** `246b19a463` | **Impact:** 14→13 deps
 
-#### Step 2.4.4: Add getServerPorts() to Application (removes 1 app→rpc dep)
-- [ ] Add `virtual std::vector<Port> const& getServerPorts() const = 0` to Application.h
-- [ ] Implement in ApplicationImp
-- [ ] Update NetworkOPs.cpp to use `app_.getServerPorts()`
-- [ ] Remove `ServerHandler.h` include from NetworkOPs.cpp
-- [ ] Build and verify
-- [ ] Commit
+#### Step 2.4.4: Add getServerPorts() to Application ✅
+- [x] Added `getServerPorts()` to Application interface
+- [x] Implemented in ApplicationImpl
+- [x] Updated NetworkOPs.cpp to use `app_.getServerPorts()`
+- [x] Removed `ServerHandler.h` include from NetworkOPs.cpp
 
-**Estimated:** 1 hour | **Risk:** LOW | **Impact:** 1 app→rpc dep removed
+**Commit:** `1a8e49ca30` | **Impact:** app→rpc 3→2 deps
 
-#### Step 2.4.5: Create IManifestPublisher callback (removes 1 dep)
-- [ ] Create `IManifestPublisher` interface in `overlay/`
-- [ ] Create adapter in `app/overlay/adapters/`
-- [ ] Inject into OverlayImpl
-- [ ] Update `OverlayImpl::onManifests()` to use callback
-- [ ] Remove `NetworkOPs.h` include from OverlayImpl.cpp (if only used for pubManifest)
-- [ ] Build and verify
-- [ ] Commit
+#### Step 2.4.5: Create IOverlayOps interface ✅
+- [x] Created `IOverlayOps` interface with `pubManifest()` and `getServerInfo()`
+- [x] Created `OverlayOpsHandler` (header in overlay, impl in app)
+- [x] Injected into OverlayImpl via constructor
+- [x] Removed `NetworkOPs.h` include from OverlayImpl.cpp
+- [x] Added `jss.h` include for JSON constants
 
-**Estimated:** 2 hours | **Risk:** LOW | **Impact:** 1 dep removed
+**Commit:** `a28f6142c7` | **Impact:** 13→12 deps
 
-**Tier 1 Total:** ~10 hours, removes 6 dependencies (17→11 overlay→app, 3→2 app→rpc)
+**Tier 1 Total:** ✅ COMPLETE - Removed 5 dependencies (17→12 overlay→app, 3→2 app→rpc)
 
 ---
 
-### Prioritized Implementation (Tier 2: Medium Risk, Good Impact)
+### Prioritized Implementation (Tier 2: Medium Risk) - REVISED
 
-#### Step 2.5.1: Move LedgerDataMessageHandler to app (removes 2 deps)
-- [ ] Create `LedgerDataMessageHandler.h` in `overlay/detail/handlers/`
-- [ ] Create `LedgerDataMessageHandler.cpp` in `app/overlay/handlers/`
-- [ ] Extract `onMessage(TMLedgerData)` logic from PeerImp.cpp
-- [ ] Remove `InboundLedgers.h` and `InboundTransactions.h` includes
+Based on re-analysis of remaining 12 dependencies, Tier 2 is reorganized by risk/complexity.
+
+#### Step 2.5.1: Extend IOverlayOps (removes ServerCounts.h, Wallet.h) ⭐ EASIEST
+- [ ] Add `getServerCounts(int minObjectCount)` to IOverlayOps interface
+- [ ] Add `saveValidatorManifest(std::string const& serialized)` to IOverlayOps
+- [ ] Update OverlayOpsHandler implementation
+- [ ] Update OverlayImpl.cpp to use new methods
+- [ ] Remove `ServerCounts.h` and `Wallet.h` includes
+- [ ] Build and verify
+- [ ] Commit
+
+**Estimated:** 2 hours | **Risk:** LOW | **Impact:** 2 deps removed
+
+#### Step 2.5.2: Create IHashRouterOps interface (removes HashRouter.h)
+- [ ] Create `IHashRouterOps` interface in `overlay/` with:
+  - `shouldRelay(uint256) -> std::optional<std::set<Peer::id_t>>`
+  - `addSuppression(uint256)`
+- [ ] Create `HashRouterAdapter` in `app/overlay/adapters/`
+- [ ] Add to OverlayImpl constructor injection
+- [ ] Update relay methods in OverlayImpl.cpp
+- [ ] Remove `HashRouter.h` include
+- [ ] Build and verify
+- [ ] Commit
+
+**Estimated:** 3 hours | **Risk:** LOW-MEDIUM | **Impact:** 1 dep removed
+
+#### Step 2.5.3: Create IValidatorOps interface (removes ValidatorList.h, ValidatorSite.h)
+- [ ] Create `IValidatorOps` interface in `overlay/` with:
+  - `isValidatorListed(PublicKey) -> bool`
+  - `getValidatorsJson() -> Json::Value`
+  - `getValidatorSitesJson() -> Json::Value`
+  - `getValidatorListAvailable(key, version) -> std::optional<...>`
+- [ ] Create `ValidatorOpsAdapter` in `app/overlay/adapters/`
+- [ ] Add to OverlayImpl constructor injection
+- [ ] Update `getUnlInfo()`, `processValidatorList()`, `onManifests()`
+- [ ] Remove `ValidatorList.h` and `ValidatorSite.h` includes
 - [ ] Build and verify
 - [ ] Commit
 
 **Estimated:** 4 hours | **Risk:** MEDIUM | **Impact:** 2 deps removed
 
-#### Step 2.5.2: Move GetLedgerMessageHandler to app (removes 1 dep)
-- [ ] Create `GetLedgerMessageHandler.h` in `overlay/detail/handlers/`
-- [ ] Create `GetLedgerMessageHandler.cpp` in `app/overlay/handlers/`
-- [ ] Extract `processLedgerRequest()` logic from PeerImp.cpp
-- [ ] Reduce `LedgerMaster.h` usage (may not fully remove)
+#### Step 2.5.4: Forward declare Application in PeerImp.h (removes Application.h from header)
+- [ ] Replace `#include <xrpld/app/main/Application.h>` with forward declaration
+- [ ] Move include to PeerImp.cpp
+- [ ] Verify no inline methods use Application methods
 - [ ] Build and verify
 - [ ] Commit
 
-**Estimated:** 5 hours | **Risk:** MEDIUM | **Impact:** 1+ deps removed
+**Estimated:** 1 hour | **Risk:** LOW | **Impact:** 1 dep removed (header→cpp)
 
-#### Step 2.5.3: Create IRelaySuppressionService (removes 1 dep)
-- [ ] Extend existing `IHashRouterOps` with `shouldRelay()`, `addSuppression()`
-- [ ] Create adapter in `app/overlay/adapters/`
-- [ ] Inject into OverlayImpl
-- [ ] Update relay methods to use interface
-- [ ] Remove `HashRouter.h` include from OverlayImpl.cpp
+#### Step 2.5.5: Inject Overlay& into PeerSet (removes Application.h from PeerSet.cpp)
+- [ ] Change PeerSet constructor to take `Overlay&` and `beast::Journal` instead of `Application&`
+- [ ] Update `make_PeerSetBuilder()` signature
+- [ ] Update callers to pass `app.overlay()` and `app.journal("PeerSet")`
+- [ ] Remove `Application.h` include from PeerSet.cpp
 - [ ] Build and verify
 - [ ] Commit
 
-**Estimated:** 3 hours | **Risk:** MEDIUM | **Impact:** 1 dep removed
+**Estimated:** 2 hours | **Risk:** LOW | **Impact:** 1 dep removed
 
-#### Step 2.5.4: Create IValidatorInfo interface (removes 2 deps)
-- [ ] Create `IValidatorInfo` interface in `overlay/`
-- [ ] Create adapter wrapping ValidatorList + ValidatorSite
-- [ ] Inject into OverlayImpl
-- [ ] Update `getUnlInfo()`, `processValidatorList()` to use interface
-- [ ] Remove `ValidatorList.h` and `ValidatorSite.h` includes
+#### Step 2.5.6: Create LedgerDataMessageHandler (removes InboundLedgers.h, InboundTransactions.h)
+- [ ] Create `LedgerDataMessageHandler.h` in `overlay/detail/handlers/`
+- [ ] Create `LedgerDataMessageHandler.cpp` in `app/overlay/handlers/`
+- [ ] Extract `onMessage(TMLedgerData)` logic from PeerImp.cpp
+- [ ] Handle both ledger data and TX set data paths
+- [ ] Remove `InboundLedgers.h` and `InboundTransactions.h` includes
 - [ ] Build and verify
 - [ ] Commit
 
-**Estimated:** 4 hours | **Risk:** MEDIUM-HIGH | **Impact:** 2 deps removed
+**Note:** `getSet()` usage in `getTxSet()` may need separate interface (ITxSetProvider)
 
-**Tier 2 Total:** ~16 hours, removes 6 dependencies (11→5 overlay→app)
+**Estimated:** 5 hours | **Risk:** MEDIUM | **Impact:** 2 deps removed
+
+**Tier 2 Total:** ~17 hours, removes 9 dependencies (12→3 overlay→app)
 
 ---
 
 ### Prioritized Implementation (Tier 3: Higher Complexity)
 
-#### Step 2.6.1: Create ILedgerReplayOps interface (removes 1 dep)
-- [ ] Create `ILedgerReplayOps` interface in `overlay/`
-- [ ] Create adapter wrapping LedgerReplayMsgHandler
-- [ ] Inject into PeerImp
+After Tier 2, remaining 3 dependencies:
+- `LedgerMaster.h` in PeerImp.cpp (15 calls, 7 methods)
+- `LedgerReplayMsgHandler.h` in PeerImp.cpp
+- `Application.h` in OverlayImpl.cpp (after all other deps removed)
+
+#### Step 2.6.1: Create ILedgerReplayHandler interface (removes LedgerReplayMsgHandler.h)
+- [ ] Create `ILedgerReplayHandler` interface in `overlay/`
+- [ ] Create factory function in app module
+- [ ] Inject into PeerImp via OverlayImpl
 - [ ] Remove `LedgerReplayMsgHandler.h` include from PeerImp.cpp
 - [ ] Build and verify
 - [ ] Commit
 
 **Estimated:** 3 hours | **Risk:** MEDIUM | **Impact:** 1 dep removed
 
-#### Step 2.6.2: Extend LedgerDataProvider for remaining LedgerMaster usage
-- [ ] Add missing methods to LedgerDataProvider interface
-- [ ] Inject LedgerDataProvider into overlay components
-- [ ] Remove remaining `LedgerMaster.h` includes
+#### Step 2.6.2: Create ILedgerDataOps interface (removes LedgerMaster.h)
+- [ ] Create `ILedgerDataOps` interface in `overlay/` with:
+  - Validation state: `getValidatedLedgerAge()`, `getValidLedgerIndex()`, `getEarliestFetch()`
+  - Lookups: `getLedgerByHash()`, `getLedgerBySeq()`, `getClosedLedger()`, `haveLedger()`
+  - Fetch pack: `addFetchPack()`, `gotFetchPack()`, `makeFetchPack()`
+- [ ] Create `LedgerDataOpsAdapter` in `app/overlay/adapters/`
+- [ ] Inject into PeerImp via OverlayImpl
+- [ ] Update all 15 LedgerMaster usages in PeerImp.cpp
+- [ ] Remove `LedgerMaster.h` include
 - [ ] Build and verify
 - [ ] Commit
 
-**Estimated:** 4 hours | **Risk:** MEDIUM | **Impact:** 1-2 deps removed
+**Estimated:** 6 hours | **Risk:** HIGH | **Impact:** 1 dep removed
 
-#### Step 2.6.3: Address remaining Application.h dependencies
-- [ ] Analyze remaining uses of Application& in overlay
-- [ ] Create minimal `IOverlayAppContext` interface
-- [ ] Inject into PeerImp.h, PeerSet.cpp, OverlayImpl.cpp
-- [ ] Remove `Application.h` includes where possible
+#### Step 2.6.3: Remove final Application.h from OverlayImpl.cpp
+- [ ] After all other deps removed, analyze remaining Application usage
+- [ ] Create minimal `IOverlayContext` if needed for config/journal/timeKeeper
+- [ ] Or pass these directly via constructor
+- [ ] Remove `Application.h` include
 - [ ] Build and verify
 - [ ] Commit
 
-**Estimated:** 6 hours | **Risk:** HIGH | **Impact:** 3 deps removed
+**Estimated:** 4 hours | **Risk:** MEDIUM | **Impact:** 1 dep removed
 
-**Tier 3 Total:** ~13 hours, removes 5 dependencies (5→0 overlay→app)
+**Tier 3 Total:** ~13 hours, removes 3 dependencies (3→0 overlay→app)
 
 ---
 
-### Cycle 4 Completion (app→rpc: 3→0)
+### Cycle 4 Completion (app→rpc: 2→0) - OPTIONAL
 
 #### Step 1.6: Remove remaining app→rpc dependencies
-- [ ] Add `getServerPorts()` to Application (done in Step 2.4.4)
 - [ ] Create `IRPCServerFactory` interface for ServerHandler/GRPCServer creation
 - [ ] Move factory to rpc module, inject into Application
 - [ ] Remove `ServerHandler.h` and `GRPCServer.h` includes from Application.cpp
@@ -482,40 +540,42 @@ After 5 comprehensive re-analysis passes, the following refined plan addresses t
 
 ---
 
-### Summary: Expected Final State
+### Summary: Expected Final State (REVISED)
 
-| Cycle | Current | After Tier 1 | After Tier 2 | After Tier 3 |
-|-------|---------|--------------|--------------|--------------|
-| overlay→app | 17 | 11 | 5 | 0 |
-| app→rpc | 3 | 2 | 2 | 0 (optional) |
+| Cycle | Start | After Tier 1 | After Tier 2 | After Tier 3 |
+|-------|-------|--------------|--------------|--------------|
+| overlay→app | 29 | 12 ✅ | 3 | 0 |
+| app→rpc | 15 | 2 ✅ | 2 | 0 (optional) |
 
-**Total Estimated Time:** ~45 hours for complete cycle removal
+**Total Estimated Time:** ~36 hours for complete cycle removal (Tier 2 + Tier 3)
 
 ---
 
-### Step 2.4: Tier 1 Implementation (Low Risk)
-- [ ] Step 2.4.1: Wire up IFeeTrackOps
-- [ ] Step 2.4.2: Create HandshakeParams struct
-- [ ] Step 2.4.3: Inject IPeerReservationStorage
-- [ ] Step 2.4.4: Add getServerPorts() to Application
-- [ ] Step 2.4.5: Create IManifestPublisher callback
+### Step 2.4: Tier 1 Implementation (Low Risk) ✅ COMPLETE
+- [x] Step 2.4.1: Wire up IFeeTrackOps - `bbd065c7e7`
+- [x] Step 2.4.2: Create IHandshakeParams interface - `f2e798ee40`
+- [x] Step 2.4.3: Inject IPeerReservationStorage - `246b19a463`
+- [x] Step 2.4.4: Add getServerPorts() to Application - `1a8e49ca30`
+- [x] Step 2.4.5: Create IOverlayOps interface - `a28f6142c7`
 
-**Status:** Not Started
-**Notes:** Tier 1 focuses on low-risk, high-impact changes using existing patterns.
+**Status:** ✅ COMPLETE
+**Notes:** Removed 5 dependencies (17→12 overlay→app, 3→2 app→rpc). See lessons learned in `TIER1_LESSONS_LEARNED.md`.
 
 ### Step 2.5: Tier 2 Implementation (Medium Risk)
-- [ ] Step 2.5.1: Move LedgerDataMessageHandler to app
-- [ ] Step 2.5.2: Move GetLedgerMessageHandler to app
-- [ ] Step 2.5.3: Create IRelaySuppressionService
-- [ ] Step 2.5.4: Create IValidatorInfo interface
+- [ ] Step 2.5.1: Extend IOverlayOps (ServerCounts.h, Wallet.h)
+- [ ] Step 2.5.2: Create IHashRouterOps (HashRouter.h)
+- [ ] Step 2.5.3: Create IValidatorOps (ValidatorList.h, ValidatorSite.h)
+- [ ] Step 2.5.4: Forward declare Application in PeerImp.h
+- [ ] Step 2.5.5: Inject Overlay& into PeerSet
+- [ ] Step 2.5.6: Create LedgerDataMessageHandler (InboundLedgers.h, InboundTransactions.h)
 
 **Status:** Not Started
-**Notes:** Tier 2 follows established handler pattern and creates new interfaces.
+**Notes:** See detailed implementation plan in "Prioritized Implementation (Tier 2)" section above.
 
 ### Step 2.6: Tier 3 Implementation (Higher Complexity)
-- [ ] Step 2.6.1: Create ILedgerReplayOps interface
-- [ ] Step 2.6.2: Extend LedgerDataProvider
-- [ ] Step 2.6.3: Address remaining Application.h dependencies
+- [ ] Step 2.6.1: Create ILedgerReplayHandler (LedgerReplayMsgHandler.h)
+- [ ] Step 2.6.2: Create ILedgerDataOps (LedgerMaster.h)
+- [ ] Step 2.6.3: Remove final Application.h from OverlayImpl.cpp
 
 **Status:** Not Started
 **Notes:**
@@ -623,4 +683,9 @@ struct OverlayDeps
 | `0a7d5b55a5` | [Levelization] Remove unused HashRouter.h from PeerImp.cpp (20→19 deps) | 2026-01-26 |
 | `16fb83dcab` | [Levelization] Remove unused RelationalDatabase.h from OverlayImpl.cpp (19→18 deps) | 2026-01-26 |
 | `4705d78880` | [Levelization] Remove unused RelationalDatabase.h from PeerReservationTable.cpp (18→17 deps) | 2026-01-26 |
+| `bbd065c7e7` | [Levelization] Step 2.4.1: Wire up IFeeTrackOps (17→16 deps) | 2026-01-26 |
+| `f2e798ee40` | [Levelization] Step 2.4.2: Create IHandshakeParams interface (16→14 deps) | 2026-01-26 |
+| `246b19a463` | [Levelization] Step 2.4.3: Inject IPeerReservationStorage (14→13 deps) | 2026-01-26 |
+| `1a8e49ca30` | [Levelization] Step 2.4.4: Add getServerPorts() to Application (app→rpc 3→2) | 2026-01-26 |
+| `a28f6142c7` | [Levelization] Step 2.4.5: Create IOverlayOps interface (13→12 deps) | 2026-01-26 |
 
