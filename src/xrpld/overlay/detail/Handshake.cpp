@@ -1,10 +1,12 @@
-#include <xrpld/app/ledger/LedgerMaster.h>
-#include <xrpld/app/main/Application.h>
 #include <xrpld/overlay/detail/Handshake.h>
+#include <xrpld/overlay/IHandshakeParams.h>
+#include <xrpld/core/TimeKeeper.h>
 
+#include <xrpl/basics/Log.h>
 #include <xrpl/basics/base64.h>
 #include <xrpl/beast/core/LexicalCast.h>
 #include <xrpl/beast/rfc2616.h>
+#include <xrpl/beast/utility/Journal.h>
 #include <xrpl/protocol/digest.h>
 
 #include <boost/regex.hpp>
@@ -162,7 +164,7 @@ buildHandshake(
     std::optional<std::uint32_t> networkID,
     beast::IP::Address public_ip,
     beast::IP::Address remote_ip,
-    Application& app)
+    IHandshakeParams const& params)
 {
     if (networkID)
     {
@@ -172,24 +174,24 @@ buildHandshake(
         h.insert("Network-ID", std::to_string(*networkID));
     }
 
-    h.insert(
-        "Network-Time",
-        std::to_string(app.timeKeeper().now().time_since_epoch().count()));
+    h.insert("Network-Time", std::to_string(params.networkTime().count()));
 
     h.insert(
         "Public-Key",
-        toBase58(TokenType::NodePublic, app.nodeIdentity().first));
+        toBase58(TokenType::NodePublic, params.nodeIdentity().first));
 
     {
         auto const sig = signDigest(
-            app.nodeIdentity().first, app.nodeIdentity().second, sharedValue);
+            params.nodeIdentity().first,
+            params.nodeIdentity().second,
+            sharedValue);
         h.insert("Session-Signature", base64_encode(sig.data(), sig.size()));
     }
 
-    h.insert("Instance-Cookie", std::to_string(app.instanceID()));
+    h.insert("Instance-Cookie", std::to_string(params.instanceID()));
 
-    if (!app.config().SERVER_DOMAIN.empty())
-        h.insert("Server-Domain", app.config().SERVER_DOMAIN);
+    if (!params.serverDomain().empty())
+        h.insert("Server-Domain", params.serverDomain());
 
     if (beast::IP::is_public(remote_ip))
         h.insert("Remote-IP", remote_ip.to_string());
@@ -197,10 +199,11 @@ buildHandshake(
     if (!public_ip.is_unspecified())
         h.insert("Local-IP", public_ip.to_string());
 
-    if (auto const cl = app.getLedgerMaster().getClosedLedger())
+    if (auto const closedHash = params.closedLedgerHash())
     {
-        h.insert("Closed-Ledger", strHex(cl->header().hash));
-        h.insert("Previous-Ledger", strHex(cl->header().parentHash));
+        h.insert("Closed-Ledger", strHex(*closedHash));
+        if (auto const prevHash = params.previousLedgerHash())
+            h.insert("Previous-Ledger", strHex(*prevHash));
     }
 }
 
@@ -211,7 +214,7 @@ verifyHandshake(
     std::optional<std::uint32_t> networkID,
     beast::IP::Address public_ip,
     beast::IP::Address remote,
-    Application& app)
+    IHandshakeParams const& params)
 {
     if (auto const iter = headers.find("Server-Domain"); iter != headers.end())
     {
@@ -245,7 +248,9 @@ verifyHandshake(
 
         using namespace std::chrono;
 
-        auto const ourTime = app.timeKeeper().now();
+        // Convert our params time back to TimeKeeper::time_point for comparison
+        auto const ourTime =
+            TimeKeeper::time_point{TimeKeeper::duration{params.networkTime()}};
         auto const tolerance = 20s;
 
         // We can't blindly "return a-b;" because TimeKeeper::time_point
@@ -300,7 +305,7 @@ verifyHandshake(
             throw std::runtime_error("Failed to verify session");
     }
 
-    if (publicKey == app.nodeIdentity().first)
+    if (publicKey == params.nodeIdentity().first)
         throw std::runtime_error("Self connection");
 
     if (auto const iter = headers.find("Local-IP"); iter != headers.end())
@@ -378,7 +383,7 @@ makeResponse(
     uint256 const& sharedValue,
     std::optional<std::uint32_t> networkID,
     ProtocolVersion protocol,
-    Application& app)
+    IHandshakeParams const& params)
 {
     http_response_type resp;
     resp.result(boost::beast::http::status::switching_protocols);
@@ -392,12 +397,12 @@ makeResponse(
         "X-Protocol-Ctl",
         makeFeaturesResponseHeader(
             req,
-            app.config().COMPRESSION,
-            app.config().LEDGER_REPLAY,
-            app.config().TX_REDUCE_RELAY_ENABLE,
-            app.config().VP_REDUCE_RELAY_BASE_SQUELCH_ENABLE));
+            params.compressionEnabled(),
+            params.ledgerReplayEnabled(),
+            params.txReduceRelayEnabled(),
+            params.vpReduceRelayEnabled()));
 
-    buildHandshake(resp, sharedValue, networkID, public_ip, remote_ip, app);
+    buildHandshake(resp, sharedValue, networkID, public_ip, remote_ip, params);
 
     return resp;
 }

@@ -42,6 +42,7 @@ namespace xrpl {
 
 class PeerImp;
 class BasicConfig;
+class IHandshakeParams;
 
 class OverlayImpl : public Overlay, public reduce_relay::SquelchHandler
 {
@@ -123,6 +124,9 @@ private:
     // Reference to fee track operations interface (owned by caller)
     IFeeTrackOps& feeTrackOps_;
 
+    // Reference to handshake parameters interface (owned by caller)
+    IHandshakeParams& handshakeParams_;
+
     //--------------------------------------------------------------------------
 
 public:
@@ -134,7 +138,8 @@ public:
         boost::asio::io_context& io_context,
         BasicConfig const& config,
         beast::insight::Collector::ptr const& collector,
-        IFeeTrackOps& feeTrackOps);
+        IFeeTrackOps& feeTrackOps,
+        IHandshakeParams& handshakeParams);
 
     OverlayImpl(OverlayImpl const&) = delete;
     OverlayImpl&
@@ -171,6 +176,15 @@ public:
     feeTrackOps()
     {
         return feeTrackOps_;
+    }
+
+    /** Get the handshake parameters interface.
+        Used for peer handshaking without depending on Application/LedgerMaster.
+    */
+    IHandshakeParams const&
+    handshakeParams() const
+    {
+        return handshakeParams_;
     }
 
     Handoff

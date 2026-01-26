@@ -849,7 +849,7 @@ PeerImp::doAccept()
         *sharedValue,
         overlay_.setup().networkID,
         protocol_,
-        app_);
+        overlay_.handshakeParams());
 
     // Write the whole buffer and only start protocol when that's done.
     boost::asio::async_write(

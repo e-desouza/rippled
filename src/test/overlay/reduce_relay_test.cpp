@@ -1,6 +1,7 @@
 #include <test/jtx.h>
 #include <test/jtx/Env.h>
 
+#include <xrpld/app/overlay/adapters/HandshakeParamsAdapter.h>
 #include <xrpld/overlay/Message.h>
 #include <xrpld/overlay/Peer.h>
 #include <xrpld/overlay/Slot.h>
@@ -1665,6 +1666,7 @@ vp_base_squelch_max_selected_peers=2
                 BEAST_EXPECT(!(peerEnabled ^ inboundEnabled));
 
                 setEnv(inboundEnable);
+                HandshakeParamsAdapter handshakeParams(env_.app());
                 auto http_resp = xrpl::makeResponse(
                     true,
                     http_request,
@@ -1673,7 +1675,7 @@ vp_base_squelch_max_selected_peers=2
                     uint256{1},
                     1,
                     {1, 0},
-                    env_.app());
+                    handshakeParams);
                 // outbound is enabled if the response's header has the feature
                 // enabled and the peer's configuration is enabled
                 auto const outboundEnabled =

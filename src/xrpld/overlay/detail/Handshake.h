@@ -1,11 +1,8 @@
 #ifndef XRPL_OVERLAY_HANDSHAKE_H_INCLUDED
 #define XRPL_OVERLAY_HANDSHAKE_H_INCLUDED
 
-namespace xrpl {
-class Application;
-}
-
 #include <xrpld/overlay/detail/ProtocolVersion.h>
+#include <xrpld/overlay/IHandshakeParams.h>
 
 #include <xrpl/basics/base_uint.h>
 #include <xrpl/beast/net/IPAddress.h>
@@ -55,7 +52,7 @@ buildHandshake(
     std::optional<std::uint32_t> networkID,
     beast::IP::Address public_ip,
     beast::IP::Address remote_ip,
-    Application& app);
+    IHandshakeParams const& params);
 
 /** Validate header fields necessary for upgrading the link to the peer
    protocol.
@@ -75,7 +72,7 @@ verifyHandshake(
     std::optional<std::uint32_t> networkID,
     beast::IP::Address public_ip,
     beast::IP::Address remote,
-    Application& app);
+    IHandshakeParams const& params);
 
 /** Make outbound http request
 
@@ -105,7 +102,7 @@ makeRequest(
    @param sharedValue shared value based on the SSL connection state
    @param networkID specifies what network we intend to connect to
    @param version supported protocol version
-   @param app Application's reference to access some common properties
+   @param params Handshake parameters interface to access common properties
    @return http response
  */
 http_response_type
@@ -117,7 +114,7 @@ makeResponse(
     uint256 const& sharedValue,
     std::optional<std::uint32_t> networkID,
     ProtocolVersion version,
-    Application& app);
+    IHandshakeParams const& params);
 
 // Protocol features negotiated via HTTP handshake.
 // The format is:

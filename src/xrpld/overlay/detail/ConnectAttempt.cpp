@@ -384,12 +384,13 @@ ConnectAttempt::onHandshake(error_code ec)
     if (!sharedValue)
         return shutdown();  // makeSharedValue logs
 
+    auto const& params = overlay_.handshakeParams();
     req_ = makeRequest(
         !overlay_.peerFinder().config().peerPrivate,
-        app_.config().COMPRESSION,
-        app_.config().LEDGER_REPLAY,
-        app_.config().TX_REDUCE_RELAY_ENABLE,
-        app_.config().VP_REDUCE_RELAY_BASE_SQUELCH_ENABLE);
+        params.compressionEnabled(),
+        params.ledgerReplayEnabled(),
+        params.txReduceRelayEnabled(),
+        params.vpReduceRelayEnabled());
 
     buildHandshake(
         req_,
@@ -397,7 +398,7 @@ ConnectAttempt::onHandshake(error_code ec)
         overlay_.setup().networkID,
         overlay_.setup().public_ip,
         remote_endpoint_.address(),
-        app_);
+        params);
 
     if (shutdown_)
         return tryAsyncShutdown();
@@ -571,7 +572,7 @@ ConnectAttempt::processResponse()
             overlay_.setup().networkID,
             overlay_.setup().public_ip,
             remote_endpoint_.address(),
-            app_);
+            overlay_.handshakeParams());
 
         usage_.setPublicKey(publicKey);
 

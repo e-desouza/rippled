@@ -7,6 +7,7 @@
 #include <xrpld/app/validators/ValidatorSite.h>
 #include <xrpld/overlay/Cluster.h>
 #include <xrpld/overlay/IFeeTrackOps.h>
+#include <xrpld/overlay/IHandshakeParams.h>
 #include <xrpld/overlay/detail/ConnectAttempt.h>
 #include <xrpld/overlay/detail/PeerImp.h>
 #include <xrpld/overlay/detail/TrafficCount.h>
@@ -109,7 +110,8 @@ OverlayImpl::OverlayImpl(
     boost::asio::io_context& io_context,
     BasicConfig const& config,
     beast::insight::Collector::ptr const& collector,
-    IFeeTrackOps& feeTrackOps)
+    IFeeTrackOps& feeTrackOps,
+    IHandshakeParams& handshakeParams)
     : app_(app)
     , io_context_(io_context)
     , work_(std::in_place, boost::asio::make_work_guard(io_context_))
@@ -128,6 +130,7 @@ OverlayImpl::OverlayImpl(
     , timer_count_(0)
     , slots_(app.logs(), *this, app.config())
     , feeTrackOps_(feeTrackOps)
+    , handshakeParams_(handshakeParams)
     , m_stats(
           std::bind(&OverlayImpl::collect_metrics, this),
           collector,
@@ -243,7 +246,7 @@ OverlayImpl::onHandoff(
             setup_.networkID,
             setup_.public_ip,
             remote_endpoint.address(),
-            app_);
+            handshakeParams_);
 
         consumer.setPublicKey(publicKey);
 
@@ -1608,7 +1611,8 @@ make_Overlay(
     boost::asio::io_context& io_context,
     BasicConfig const& config,
     beast::insight::Collector::ptr const& collector,
-    IFeeTrackOps& feeTrackOps)
+    IFeeTrackOps& feeTrackOps,
+    IHandshakeParams& handshakeParams)
 {
     return std::make_unique<OverlayImpl>(
         app,
@@ -1618,7 +1622,8 @@ make_Overlay(
         io_context,
         config,
         collector,
-        feeTrackOps);
+        feeTrackOps,
+        handshakeParams);
 }
 
 }  // namespace xrpl

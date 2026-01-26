@@ -10,6 +10,7 @@
 namespace xrpl {
 
 class IFeeTrackOps;
+class IHandshakeParams;
 
 Overlay::Setup
 setup_Overlay(BasicConfig const& config);
@@ -24,7 +25,8 @@ make_Overlay(
     boost::asio::io_context& io_context,
     BasicConfig const& config,
     beast::insight::Collector::ptr const& collector,
-    IFeeTrackOps& feeTrackOps);
+    IFeeTrackOps& feeTrackOps,
+    IHandshakeParams& handshakeParams);
 
 }  // namespace xrpl
 

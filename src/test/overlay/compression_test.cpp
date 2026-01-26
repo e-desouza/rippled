@@ -6,6 +6,7 @@
 
 #include <xrpld/app/ledger/Ledger.h>
 #include <xrpld/app/ledger/LedgerMaster.h>
+#include <xrpld/app/overlay/adapters/HandshakeParamsAdapter.h>
 #include <xrpld/overlay/Compression.h>
 #include <xrpld/overlay/Message.h>
 #include <xrpld/overlay/detail/Handshake.h>
@@ -489,6 +490,7 @@ public:
 
             env.reset();
             env = getEnv(inboundEnable);
+            HandshakeParamsAdapter handshakeParams(env->app());
             auto http_resp = xrpl::makeResponse(
                 true,
                 http_request,
@@ -497,7 +499,7 @@ public:
                 uint256{1},
                 1,
                 {1, 0},
-                env->app());
+                handshakeParams);
             // outbound is enabled if the response's header has the feature
             // enabled and the peer's configuration is enabled
             auto const outboundEnabled = peerFeatureEnabled(

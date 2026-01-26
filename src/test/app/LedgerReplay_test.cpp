@@ -4,6 +4,7 @@
 #include <xrpld/app/ledger/BuildLedger.h>
 #include <xrpld/app/ledger/LedgerMaster.h>
 #include <xrpld/app/ledger/LedgerReplay.h>
+#include <xrpld/app/overlay/adapters/HandshakeParamsAdapter.h>
 #include <xrpld/app/ledger/LedgerReplayTask.h>
 #include <xrpld/app/ledger/LedgerReplayer.h>
 #include <xrpld/app/ledger/detail/LedgerDeltaAcquire.h>
@@ -1097,6 +1098,7 @@ struct LedgerReplayer_test : public beast::unit_test::suite
                 boost::asio::ip::make_address("172.1.1.100");
             jtx::Env serverEnv(*this);
             serverEnv.app().config().LEDGER_REPLAY = server;
+            HandshakeParamsAdapter handshakeParams(serverEnv.app());
             auto http_resp = xrpl::makeResponse(
                 true,
                 http_request,
@@ -1105,7 +1107,7 @@ struct LedgerReplayer_test : public beast::unit_test::suite
                 uint256{1},
                 1,
                 {1, 0},
-                serverEnv.app());
+                handshakeParams);
             auto const clientResult =
                 peerFeatureEnabled(http_resp, FEATURE_LEDGER_REPLAY, client);
             if (clientResult != expecting)
