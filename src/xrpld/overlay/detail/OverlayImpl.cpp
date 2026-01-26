@@ -5,6 +5,7 @@
 #include <xrpld/overlay/IHandshakeParams.h>
 #include <xrpld/overlay/IHashRouterOps.h>
 #include <xrpld/overlay/ILedgerDataOps.h>
+#include <xrpld/overlay/ILedgerMasterOps.h>
 #include <xrpld/overlay/IOverlayOps.h>
 #include <xrpld/overlay/IValidatorOps.h>
 #include <xrpld/overlay/detail/ConnectAttempt.h>
@@ -116,6 +117,7 @@ OverlayImpl::OverlayImpl(
     IHashRouterOps& hashRouterOps,
     IValidatorOps& validatorOps,
     ILedgerDataOps& ledgerDataOps,
+    ILedgerMasterOps& ledgerMasterOps,
     LedgerReplayMsgHandlerFactory ledgerReplayMsgHandlerFactory)
     : app_(app)
     , io_context_(io_context)
@@ -140,6 +142,7 @@ OverlayImpl::OverlayImpl(
     , hashRouterOps_(hashRouterOps)
     , validatorOps_(validatorOps)
     , ledgerDataOps_(ledgerDataOps)
+    , ledgerMasterOps_(ledgerMasterOps)
     , ledgerReplayMsgHandlerFactory_(std::move(ledgerReplayMsgHandlerFactory))
     , m_stats(
           std::bind(&OverlayImpl::collect_metrics, this),
@@ -1633,6 +1636,7 @@ make_Overlay(
     IHashRouterOps& hashRouterOps,
     IValidatorOps& validatorOps,
     ILedgerDataOps& ledgerDataOps,
+    ILedgerMasterOps& ledgerMasterOps,
     LedgerReplayMsgHandlerFactory ledgerReplayMsgHandlerFactory)
 {
     return std::make_unique<OverlayImpl>(
@@ -1649,6 +1653,7 @@ make_Overlay(
         hashRouterOps,
         validatorOps,
         ledgerDataOps,
+        ledgerMasterOps,
         std::move(ledgerReplayMsgHandlerFactory));
 }
 

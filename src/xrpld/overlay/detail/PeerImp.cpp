@@ -1,9 +1,11 @@
-#include <xrpld/app/ledger/LedgerMaster.h>
+#include <xrpld/app/ledger/Ledger.h>
 #include <xrpld/overlay/Cluster.h>
 #include <xrpld/overlay/IFeeTrackOps.h>
 #include <xrpld/overlay/ILedgerDataOps.h>
+#include <xrpld/overlay/ILedgerMasterOps.h>
 #include <xrpld/overlay/ILedgerReplayMsgHandler.h>
 #include <xrpld/overlay/detail/PeerImp.h>
+#include <xrpld/overlay/detail/ProtocolMessage.h>
 #include <xrpld/overlay/detail/Tuning.h>
 #include <xrpld/overlay/detail/handlers/ProposalMessageHandler.h>
 #include <xrpld/overlay/detail/handlers/StatusChangeMessageHandler.h>
@@ -20,6 +22,7 @@
 #include <xrpl/json/to_string.h>
 #include <xrpl/protocol/TxFlags.h>
 #include <xrpl/protocol/digest.h>
+#include <xrpl/protocol/jss.h>
 
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/beast/core/ostream.hpp>
@@ -1366,8 +1369,8 @@ PeerImp::onMessage(std::shared_ptr<protocol::TMGetLedger> const& m)
 
         // Check if within a reasonable range
         using namespace std::chrono_literals;
-        if (app_.getLedgerMaster().getValidatedLedgerAge() <= 10s &&
-            ledgerSeq > app_.getLedgerMaster().getValidLedgerIndex() + 10)
+        if (overlay_.ledgerMasterOps().getValidatedLedgerAge() <= 10s &&
+            ledgerSeq > overlay_.ledgerMasterOps().getValidLedgerIndex() + 10)
         {
             return badData(
                 "Invalid ledger sequence " + std::to_string(ledgerSeq));
@@ -1541,8 +1544,9 @@ PeerImp::onMessage(std::shared_ptr<protocol::TMLedgerData> const& m)
         {
             // Check if within a reasonable range
             using namespace std::chrono_literals;
-            if (app_.getLedgerMaster().getValidatedLedgerAge() <= 10s &&
-                ledgerSeq > app_.getLedgerMaster().getValidLedgerIndex() + 10)
+            if (overlay_.ledgerMasterOps().getValidatedLedgerAge() <= 10s &&
+                ledgerSeq >
+                    overlay_.ledgerMasterOps().getValidLedgerIndex() + 10)
             {
                 return badData(
                     "Invalid ledger sequence " + std::to_string(ledgerSeq));
@@ -1708,10 +1712,10 @@ PeerImp::onMessage(std::shared_ptr<protocol::TMStatusChange> const& m)
     }
 
     if (m->has_ledgerseq() &&
-        app_.getLedgerMaster().getValidatedLedgerAge() < 2min)
+        overlay_.ledgerMasterOps().getValidatedLedgerAge() < 2min)
     {
         checkTracking(
-            m->ledgerseq(), app_.getLedgerMaster().getValidLedgerIndex());
+            m->ledgerseq(), overlay_.ledgerMasterOps().getValidLedgerIndex());
     }
 
     // Get the closed ledger hash while holding the lock
@@ -1948,7 +1952,7 @@ PeerImp::onMessage(std::shared_ptr<protocol::TMGetObjectByHash> const& m)
                                 << "GetObj: Full fetch pack for " << pLSeq;
                         }
                         pLSeq = obj.ledgerseq();
-                        pLDo = !app_.getLedgerMaster().haveLedger(pLSeq);
+                        pLDo = !overlay_.ledgerMasterOps().haveLedger(pLSeq);
 
                         if (!pLDo)
                         {
@@ -1964,7 +1968,7 @@ PeerImp::onMessage(std::shared_ptr<protocol::TMGetObjectByHash> const& m)
                 {
                     uint256 const hash{obj.hash()};
 
-                    app_.getLedgerMaster().addFetchPack(
+                    overlay_.ledgerMasterOps().addFetchPack(
                         hash,
                         std::make_shared<Blob>(
                             obj.data().begin(), obj.data().end()));
@@ -1978,7 +1982,7 @@ PeerImp::onMessage(std::shared_ptr<protocol::TMGetObjectByHash> const& m)
                 << "GetObj: Partial fetch pack for " << pLSeq;
         }
         if (packet.type() == protocol::TMGetObjectByHash::otFETCH_PACK)
-            app_.getLedgerMaster().gotFetchPack(progress, pLSeq);
+            overlay_.ledgerMasterOps().gotFetchPack(progress, pLSeq);
     }
 }
 
@@ -2077,7 +2081,7 @@ PeerImp::doFetchPack(std::shared_ptr<protocol::TMGetObjectByHash> const& packet)
     // object. Don't queue fetch pack jobs if we're under load or we already
     // have some queued.
     if (overlay_.feeTrackOps().isLoadedLocal() ||
-        (app_.getLedgerMaster().getValidatedLedgerAge() > 40s) ||
+        (overlay_.ledgerMasterOps().getValidatedLedgerAge() > 40s) ||
         (app_.getJobQueue().getJobCount(jtPACK) > 10))
     {
         JLOG(p_journal_.info()) << "Too busy to make fetch pack";
@@ -2097,10 +2101,12 @@ PeerImp::doFetchPack(std::shared_ptr<protocol::TMGetObjectByHash> const& packet)
 
     std::weak_ptr<PeerImp> weak = shared_from_this();
     auto elapsed = UptimeClock::now();
-    auto const pap = &app_;
+    auto& ledgerMasterOps = overlay_.ledgerMasterOps();
     app_.getJobQueue().addJob(
-        jtPACK, "MakeFetchPack", [pap, weak, packet, hash, elapsed]() {
-            pap->getLedgerMaster().makeFetchPack(weak, packet, hash, elapsed);
+        jtPACK,
+        "MakeFetchPack",
+        [&ledgerMasterOps, weak, packet, hash, elapsed]() {
+            ledgerMasterOps.makeFetchPack(weak, packet, hash, elapsed);
         });
 }
 
@@ -2207,7 +2213,7 @@ PeerImp::getLedger(std::shared_ptr<protocol::TMGetLedger> const& m)
     {
         // Attempt to find ledger by hash
         uint256 const ledgerHash{m->ledgerhash()};
-        ledger = app_.getLedgerMaster().getLedgerByHash(ledgerHash);
+        ledger = overlay_.ledgerMasterOps().getLedgerByHash(ledgerHash);
         if (!ledger)
         {
             JLOG(p_journal_.trace())
@@ -2238,14 +2244,14 @@ PeerImp::getLedger(std::shared_ptr<protocol::TMGetLedger> const& m)
     else if (m->has_ledgerseq())
     {
         // Attempt to find ledger by sequence
-        if (m->ledgerseq() < app_.getLedgerMaster().getEarliestFetch())
+        if (m->ledgerseq() < overlay_.ledgerMasterOps().getEarliestFetch())
         {
             JLOG(p_journal_.debug())
                 << "getLedger: Early ledger sequence request";
         }
         else
         {
-            ledger = app_.getLedgerMaster().getLedgerBySeq(m->ledgerseq());
+            ledger = overlay_.ledgerMasterOps().getLedgerBySeq(m->ledgerseq());
             if (!ledger)
             {
                 JLOG(p_journal_.debug())
@@ -2256,7 +2262,7 @@ PeerImp::getLedger(std::shared_ptr<protocol::TMGetLedger> const& m)
     }
     else if (m->has_ltype() && m->ltype() == protocol::ltCLOSED)
     {
-        ledger = app_.getLedgerMaster().getClosedLedger();
+        ledger = overlay_.ledgerMasterOps().getClosedLedger();
     }
 
     if (ledger)
@@ -2277,7 +2283,7 @@ PeerImp::getLedger(std::shared_ptr<protocol::TMGetLedger> const& m)
                     << "getLedger: Invalid ledger sequence " << ledgerSeq;
             }
         }
-        else if (ledgerSeq < app_.getLedgerMaster().getEarliestFetch())
+        else if (ledgerSeq < overlay_.ledgerMasterOps().getEarliestFetch())
         {
             ledger.reset();
             JLOG(p_journal_.debug())

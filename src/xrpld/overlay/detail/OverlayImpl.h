@@ -49,6 +49,7 @@ class PeerImp;
 class BasicConfig;
 class IHandshakeParams;
 class ILedgerDataOps;
+class ILedgerMasterOps;
 
 class OverlayImpl : public Overlay, public reduce_relay::SquelchHandler
 {
@@ -145,6 +146,9 @@ private:
     // Reference to ledger data operations interface (owned by caller)
     ILedgerDataOps& ledgerDataOps_;
 
+    // Reference to ledger master operations interface (owned by caller)
+    ILedgerMasterOps& ledgerMasterOps_;
+
     // Factory for creating LedgerReplayMsgHandler instances (one per PeerImp)
     LedgerReplayMsgHandlerFactory ledgerReplayMsgHandlerFactory_;
 
@@ -165,6 +169,7 @@ public:
         IHashRouterOps& hashRouterOps,
         IValidatorOps& validatorOps,
         ILedgerDataOps& ledgerDataOps,
+        ILedgerMasterOps& ledgerMasterOps,
         LedgerReplayMsgHandlerFactory ledgerReplayMsgHandlerFactory);
 
     OverlayImpl(OverlayImpl const&) = delete;
@@ -221,6 +226,16 @@ public:
     ledgerDataOps()
     {
         return ledgerDataOps_;
+    }
+
+    /** Get the ledger master operations interface.
+        Used by PeerImp to access ledger data without depending on
+        LedgerMaster.h.
+    */
+    ILedgerMasterOps&
+    ledgerMasterOps()
+    {
+        return ledgerMasterOps_;
     }
 
     /** Create a new LedgerReplayMsgHandler instance.

@@ -1,8 +1,8 @@
 # Cycle 2: xrpld.app ↔ xrpld.overlay
 
-## ⚠️ IMPLEMENTATION STATUS: TIER 2 COMPLETE
+## ⚠️ IMPLEMENTATION STATUS: TIER 3 IN PROGRESS
 
-**Progress:** overlay→app dependencies reduced from 29 to 5 (83% improvement)
+**Progress:** overlay→app dependencies reduced from 29 to 4 (86% improvement)
 **Cycle 4 (app→rpc):** Reduced from 15 to 2 (87% improvement)
 
 ### Implementation Phases Summary
@@ -13,7 +13,7 @@
 | Handler extraction | Message handlers moved to app module | 29 → 17 |
 | Tier 1 (COMPLETE) | Interface-based dependency inversion | 17 → 12 |
 | Tier 2 (COMPLETE) | Medium risk interfaces | 12 → 5 |
-| Tier 3 (PLANNED) | Higher complexity | 5 → 0 |
+| Tier 3 (IN PROGRESS) | Higher complexity | 5 → 4 (1 complete) |
 
 ### Tier 1 Commits (Interface-Based Dependency Inversion)
 
@@ -35,15 +35,16 @@
 | `3f98db1be8` | IOverlayProvider for lazy overlay access | 8→7 |
 | `d0e93c16a9` | ILedgerDataOps for InboundLedgers/InboundTransactions | 7→5 |
 
-### Remaining 5 Dependencies (After Tier 2 Complete)
+### Remaining 4 Dependencies (After Tier 3 Step 2.6.2)
 
 | File | Include | Usage | Tier 3 Step |
 |------|---------|-------|-------------|
 | OverlayImpl.cpp | Application.h | config, journal, validators, manifests | 2.6.3 |
 | OverlayImpl.cpp | ValidatorList.h | `listed()`, `getJson()`, `getAvailable()` | 2.6.4 |
-| PeerImp.cpp | LedgerReplayMsgHandler.h | `processXxx()` methods | 2.6.1 |
-| PeerImp.cpp | LedgerMaster.h | 15 calls, 7 distinct methods | 2.6.2 |
+| PeerImp.cpp | Ledger.h | Ledger type (for txMap/stateMap access) | See note |
 | PeerImp.h | Application.h | `Application& app_` member | 2.6.5 |
+
+**Note on PeerImp.cpp:** Step 2.6.2 replaced LedgerMaster.h with Ledger.h. While the dependency count remains the same, LedgerMaster.h was a much heavier dependency (it includes many transitive headers). The ILedgerMasterOps interface now decouples the behavior while Ledger.h provides just the minimal type needed for ledger operations.
 
 ### Tier 2 Cancelled Steps
 
@@ -51,17 +52,25 @@
 |------|--------|
 | 2.5.4 | Forward declaring Application in PeerImp.h caused ConnectAttempt.cpp to need it directly, net increasing deps |
 
+### Tier 3 Commits (Higher Complexity)
+
+| Commit | Description | Impact |
+|--------|-------------|--------|
+| `2a08b18549` | ILedgerReplayMsgHandler + Factory | 5→4 |
+| `e0f96d5c60` | ILedgerMasterOps + Handler (LedgerMaster decoupling) | LedgerMaster.h→Ledger.h |
+
 ### Tier 3 Plan (Higher Complexity)
 
-| Order | Step | Interface/Change | Impact |
-|-------|------|-----------------|--------|
-| 1 | 2.6.1 | Create ILedgerReplayHandler | 1 dep |
-| 2 | 2.6.2 | Create ILedgerMasterOps (LedgerMaster methods) | 1 dep |
-| 3 | 2.6.3 | Remove final Application.h (OverlayImpl.cpp) | 1 dep |
-| 4 | 2.6.4 | Remove ValidatorList.h (complex - many usages) | 1 dep |
-| 5 | 2.6.5 | Forward declare Application in PeerImp.h | 1 dep |
+| Order | Step | Interface/Change | Status | Impact |
+|-------|------|-----------------|--------|--------|
+| 1 | 2.6.1 | Create ILedgerReplayMsgHandler | ✅ DONE | 5→4 |
+| 2 | 2.6.2 | Create ILedgerMasterOps (LedgerMaster methods) | ✅ DONE | Replaced LedgerMaster.h with Ledger.h |
+| 3 | 2.6.3 | Remove final Application.h (OverlayImpl.cpp) | PENDING | 1 dep |
+| 4 | 2.6.4 | Remove ValidatorList.h (complex - many usages) | PENDING | 1 dep |
+| 5 | 2.6.5 | Forward declare Application in PeerImp.h | PENDING | 1 dep |
+| 6 | 2.6.6 | Abstract Ledger type from PeerImp.cpp | PENDING | 1 dep |
 
-**Expected result after Tier 3:** 5 → 0 dependencies (cycle fully broken)
+**Expected result after Tier 3:** 4 → 0 dependencies (cycle fully broken)
 
 ### Lessons Learned from Tier 1
 

@@ -14,6 +14,7 @@ class IFeeTrackOps;
 class IHandshakeParams;
 class IHashRouterOps;
 class ILedgerDataOps;
+class ILedgerMasterOps;
 class IOverlayOps;
 class IValidatorOps;
 
@@ -36,6 +37,7 @@ make_Overlay(
     IHashRouterOps& hashRouterOps,
     IValidatorOps& validatorOps,
     ILedgerDataOps& ledgerDataOps,
+    ILedgerMasterOps& ledgerMasterOps,
     LedgerReplayMsgHandlerFactory ledgerReplayMsgHandlerFactory);
 
 }  // namespace xrpl
