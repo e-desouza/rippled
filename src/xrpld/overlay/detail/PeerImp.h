@@ -265,6 +265,7 @@ private:
     std::unique_ptr<LedgerReplayMsgHandler> ledgerReplayMsgHandler_;
 
     friend class OverlayImpl;
+    friend class ProposalMessageHandler;
     friend class TransactionMessageHandler;
     friend class ValidationMessageHandler;
 
@@ -747,12 +748,6 @@ private:
 
     void
     doFetchPack(std::shared_ptr<protocol::TMGetObjectByHash> const& packet);
-
-    void
-    checkPropose(
-        bool isTrusted,
-        std::shared_ptr<protocol::TMProposeSet> const& packet,
-        RCLCxPeerPos peerPos);
 
     void
     sendLedgerBase(

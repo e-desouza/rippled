@@ -9,6 +9,7 @@
 #include <xrpld/overlay/Cluster.h>
 #include <xrpld/overlay/detail/PeerImp.h>
 #include <xrpld/overlay/detail/Tuning.h>
+#include <xrpld/overlay/detail/handlers/ProposalMessageHandler.h>
 #include <xrpld/overlay/detail/handlers/TransactionMessageHandler.h>
 #include <xrpld/overlay/detail/handlers/ValidationMessageHandler.h>
 
@@ -1627,122 +1628,9 @@ PeerImp::onMessage(std::shared_ptr<protocol::TMLedgerData> const& m)
 void
 PeerImp::onMessage(std::shared_ptr<protocol::TMProposeSet> const& m)
 {
-    protocol::TMProposeSet& set = *m;
-
-    auto const sig = makeSlice(set.signature());
-
-    // Preliminary check for the validity of the signature: A DER encoded
-    // signature can't be longer than 72 bytes.
-    if ((std::clamp<std::size_t>(sig.size(), 64, 72) != sig.size()) ||
-        (publicKeyType(makeSlice(set.nodepubkey())) != KeyType::secp256k1))
-    {
-        JLOG(p_journal_.warn()) << "Proposal: malformed";
-        fee_.update(
-            Resource::feeInvalidSignature,
-            " signature can't be longer than 72 bytes");
-        return;
-    }
-
-    if (!stringIsUint256Sized(set.currenttxhash()) ||
-        !stringIsUint256Sized(set.previousledger()))
-    {
-        JLOG(p_journal_.warn()) << "Proposal: malformed";
-        fee_.update(Resource::feeMalformedRequest, "bad hashes");
-        return;
-    }
-
-    // RH TODO: when isTrusted = false we should probably also cache a key
-    // suppression for 30 seconds to avoid doing a relatively expensive lookup
-    // every time a spam packet is received
-    PublicKey const publicKey{makeSlice(set.nodepubkey())};
-    auto const isTrusted = app_.validators().trusted(publicKey);
-
-    // If the operator has specified that untrusted proposals be dropped then
-    // this happens here I.e. before further wasting CPU verifying the signature
-    // of an untrusted key
-    if (!isTrusted)
-    {
-        // report untrusted proposal messages
-        overlay_.reportInboundTraffic(
-            TrafficCount::category::proposal_untrusted,
-            Message::messageSize(*m));
-
-        if (app_.config().RELAY_UNTRUSTED_PROPOSALS == -1)
-            return;
-    }
-
-    uint256 const proposeHash{set.currenttxhash()};
-    uint256 const prevLedger{set.previousledger()};
-
-    NetClock::time_point const closeTime{NetClock::duration{set.closetime()}};
-
-    uint256 const suppression = proposalUniqueId(
-        proposeHash,
-        prevLedger,
-        set.proposeseq(),
-        closeTime,
-        publicKey.slice(),
-        sig);
-
-    if (auto [added, relayed] =
-            app_.getHashRouter().addSuppressionPeerWithStatus(suppression, id_);
-        !added)
-    {
-        // Count unique messages (Slots has it's own 'HashRouter'), which a peer
-        // receives within IDLED seconds since the message has been relayed.
-        if (relayed && (stopwatch().now() - *relayed) < reduce_relay::IDLED)
-            overlay_.updateSlotAndSquelch(
-                suppression, publicKey, id_, protocol::mtPROPOSE_LEDGER);
-
-        // report duplicate proposal messages
-        overlay_.reportInboundTraffic(
-            TrafficCount::category::proposal_duplicate,
-            Message::messageSize(*m));
-
-        JLOG(p_journal_.trace()) << "Proposal: duplicate";
-
-        return;
-    }
-
-    if (!isTrusted)
-    {
-        if (tracking_.load() == Tracking::diverged)
-        {
-            JLOG(p_journal_.debug())
-                << "Proposal: Dropping untrusted (peer divergence)";
-            return;
-        }
-
-        if (!cluster() && app_.getFeeTrack().isLoadedLocal())
-        {
-            JLOG(p_journal_.debug()) << "Proposal: Dropping untrusted (load)";
-            return;
-        }
-    }
-
-    JLOG(p_journal_.trace())
-        << "Proposal: " << (isTrusted ? "trusted" : "untrusted");
-
-    auto proposal = RCLCxPeerPos(
-        publicKey,
-        sig,
-        suppression,
-        RCLCxPeerPos::Proposal{
-            prevLedger,
-            set.proposeseq(),
-            proposeHash,
-            closeTime,
-            app_.timeKeeper().closeTime(),
-            calcNodeID(app_.validatorManifests().getMasterKey(publicKey))});
-
-    std::weak_ptr<PeerImp> weak = shared_from_this();
-    app_.getJobQueue().addJob(
-        isTrusted ? jtPROPOSAL_t : jtPROPOSAL_ut,
-        "checkPropose",
-        [weak, isTrusted, m, proposal]() {
-            if (auto peer = weak.lock())
-                peer->checkPropose(isTrusted, m, proposal);
-        });
+    // Delegate to the ProposalMessageHandler which has the implementation
+    // in the app module to avoid cycle dependencies
+    ProposalMessageHandler::onMessage(m, *this);
 }
 
 void
@@ -2297,50 +2185,6 @@ PeerImp::doFetchPack(std::shared_ptr<protocol::TMGetObjectByHash> const& packet)
         jtPACK, "MakeFetchPack", [pap, weak, packet, hash, elapsed]() {
             pap->getLedgerMaster().makeFetchPack(weak, packet, hash, elapsed);
         });
-}
-
-// Called from our JobQueue
-void
-PeerImp::checkPropose(
-    bool isTrusted,
-    std::shared_ptr<protocol::TMProposeSet> const& packet,
-    RCLCxPeerPos peerPos)
-{
-    JLOG(p_journal_.trace())
-        << "Checking " << (isTrusted ? "trusted" : "UNTRUSTED") << " proposal";
-
-    XRPL_ASSERT(packet, "xrpl::PeerImp::checkPropose : non-null packet");
-
-    if (!cluster() && !peerPos.checkSign())
-    {
-        std::string desc{"Proposal fails sig check"};
-        JLOG(p_journal_.warn()) << desc;
-        charge(Resource::feeInvalidSignature, desc);
-        return;
-    }
-
-    bool relay;
-
-    if (isTrusted)
-        relay = app_.getOPs().processTrustedProposal(peerPos);
-    else
-        relay = app_.config().RELAY_UNTRUSTED_PROPOSALS == 1 || cluster();
-
-    if (relay)
-    {
-        // haveMessage contains peers, which are suppressed; i.e. the peers
-        // are the source of the message, consequently the message should
-        // not be relayed to these peers. But the message must be counted
-        // as part of the squelch logic.
-        auto haveMessage = app_.overlay().relay(
-            *packet, peerPos.suppressionID(), peerPos.publicKey());
-        if (!haveMessage.empty())
-            overlay_.updateSlotAndSquelch(
-                peerPos.suppressionID(),
-                peerPos.publicKey(),
-                std::move(haveMessage),
-                protocol::mtPROPOSE_LEDGER);
-    }
 }
 
 // Returns the set of peers that can help us get
