@@ -1,14 +1,14 @@
 # Levelization Tasks - Cycle Removal Execution Plan
 
 **Created:** 2026-01-26
-**Last Updated:** 2026-01-26 (continued session)
+**Last Updated:** 2026-01-26 (continued session - ProposalMessageHandler)
 **Status:** In Progress - Cycle 4 at 80%, Cycle 2 at 21%
 
 ## Overview
 
 This document tracks the execution of the refined implementation plans for removing the remaining dependency cycles:
 - **Cycle 4: app↔rpc** — Started at 15 deps, **now at 3 deps** (80% reduction)
-- **Cycle 2: app↔overlay** — Started at 29 deps, **now at 23 deps** (21% reduction)
+- **Cycle 2: app↔overlay** — Started at 29 deps, **now at 22 deps** (24% reduction)
 
 ---
 
@@ -231,8 +231,8 @@ The low-hanging fruit has been picked (29→27 deps). Further reduction requires
 - [ ] Run levelization check
 - [ ] Commit
 
-**Status:** ✅ COMPLETE (27→23 deps)
-**Commits:** `1531f3ad96`, `b9e14bca93`, `242bacd321`
+**Status:** ✅ COMPLETE (27→22 deps)
+**Commits:** `1531f3ad96`, `b9e14bca93`, `242bacd321`, `339111374b`, `3aa7e5ebb0`
 **Notes:**
 
 **Completed: Wired up ValidationMessageHandler delegation**
@@ -255,6 +255,19 @@ The low-hanging fruit has been picked (29→27 deps). Further reduction requires
 - Moved these methods from PeerImp.cpp to TransactionMessageHandler.cpp
 - Removed `Transaction.h` and `TransactionMaster.h` includes from PeerImp.cpp
 - **Dependencies reduced: 25→23**
+
+**Completed: Created ProposalMessageHandler**
+- Extracted proposal message handling from PeerImp to ProposalMessageHandler
+- Created `ProposalMessageHandler.h` in `overlay/detail/handlers/`
+- Created `ProposalMessageHandler.cpp` in `app/overlay/handlers/`
+- Moved `onMessage(TMProposeSet)` and `checkPropose` methods
+- **Note:** `ValidatorList.h` still needed in PeerImp.cpp for validator list propagation (separate from proposals)
+- Code organization improvement, enabled RCLCxPeerPos.h removal from header
+
+**Completed: Remove RCLCxPeerPos.h from PeerImp.h**
+- After moving `checkPropose` to handler, `RCLCxPeerPos` type no longer needed in header
+- Removed include from `PeerImp.h`
+- **Dependencies reduced: 23→22**
 
 **Remaining includes in PeerImp.cpp:**
 - `InboundLedgers.h`, `InboundTransactions.h`, `LedgerMaster.h` - core ledger operations
