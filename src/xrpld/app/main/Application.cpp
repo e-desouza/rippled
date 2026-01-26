@@ -20,6 +20,7 @@
 #include <xrpld/app/misc/NetworkOPs.h>
 #include <xrpld/app/overlay/adapters/HandshakeParamsAdapter.h>
 #include <xrpld/app/overlay/adapters/LoadFeeTrackAdapter.h>
+#include <xrpld/app/overlay/adapters/PeerReservationStorageAdapter.h>
 #include <xrpld/app/misc/SHAMapStore.h>
 #include <xrpld/app/paths/PathRequests.h>
 #include <xrpld/app/rdb/RelationalDatabase.h>
@@ -193,6 +194,7 @@ public:
     std::unique_ptr<LoadFeeTrack> mFeeTrack;
     std::unique_ptr<LoadFeeTrackAdapter> feeTrackAdapter_;
     std::unique_ptr<HandshakeParamsAdapter> handshakeParamsAdapter_;
+    std::unique_ptr<PeerReservationStorageAdapter> peerReservationStorageAdapter_;
     std::unique_ptr<HashRouter> hashRouter_;
     RCLValidations mValidations;
     std::unique_ptr<LoadManager> m_loadManager;
@@ -1214,7 +1216,9 @@ ApplicationImp::setup(boost::program_options::variables_map const& cmdline)
     if (!initRelationalDatabase() || !initNodeStore())
         return false;
 
-    if (!peerReservations_->load(getWalletDB()))
+    peerReservationStorageAdapter_ =
+        std::make_unique<PeerReservationStorageAdapter>(getWalletDB());
+    if (!peerReservations_->load(*peerReservationStorageAdapter_))
     {
         JLOG(m_journal.fatal()) << "Cannot find peer reservations!";
         return false;

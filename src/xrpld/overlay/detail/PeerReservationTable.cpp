@@ -1,4 +1,4 @@
-#include <xrpld/app/rdb/Wallet.h>
+#include <xrpld/overlay/IPeerReservationStorage.h>
 #include <xrpld/overlay/PeerReservationTable.h>
 
 #include <xrpl/json/json_value.h>
@@ -45,13 +45,12 @@ PeerReservationTable::list() const -> std::vector<PeerReservation>
 // of other functions called from `ApplicationImp::setup`, but we always
 // return "no error" (`true`) because we can always return an empty table.
 bool
-PeerReservationTable::load(DatabaseCon& connection)
+PeerReservationTable::load(IPeerReservationStorage& storage)
 {
     std::lock_guard lock(mutex_);
 
-    connection_ = &connection;
-    auto db = connection.checkoutDb();
-    auto table = getPeerReservationTable(*db, journal_);
+    storage_ = &storage;
+    auto table = storage.loadReservations(journal_);
     table_.insert(table.begin(), table.end());
 
     return true;
@@ -85,8 +84,7 @@ PeerReservationTable::insert_or_assign(PeerReservation const& reservation)
     }
     table_.insert(hint, reservation);
 
-    auto db = connection_->checkoutDb();
-    insertPeerReservation(*db, reservation.nodeId, reservation.description);
+    storage_->insertReservation(reservation.nodeId, reservation.description);
 
     return previous;
 }
@@ -103,8 +101,7 @@ PeerReservationTable::erase(PublicKey const& nodeId)
     {
         previous = *it;
         table_.erase(it);
-        auto db = connection_->checkoutDb();
-        deletePeerReservation(*db, nodeId);
+        storage_->deleteReservation(nodeId);
     }
 
     return previous;

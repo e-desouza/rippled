@@ -14,7 +14,7 @@
 
 namespace xrpl {
 
-class DatabaseCon;
+class IPeerReservationStorage;
 
 // Value type for reservations.
 struct PeerReservation final
@@ -75,7 +75,7 @@ public:
     // Because `ApplicationImp` has two-phase initialization, so must we.
     // Our dependencies are not prepared until the second phase.
     bool
-    load(DatabaseCon& connection);
+    load(IPeerReservationStorage& storage);
 
     /**
      * @return the replaced reservation if it existed
@@ -93,7 +93,7 @@ public:
 private:
     beast::Journal mutable journal_;
     std::mutex mutable mutex_;
-    DatabaseCon* connection_;
+    IPeerReservationStorage* storage_;
     std::unordered_set<PeerReservation, beast::uhash<>, KeyEqual> table_;
 };
 
