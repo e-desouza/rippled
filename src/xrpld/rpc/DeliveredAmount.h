@@ -1,6 +1,9 @@
+// This header provides both ledger-level and RPC-level DeliveredAmount functions.
+// For just the ledger-level function, include <xrpl/ledger/DeliveredAmount.h>
 #ifndef XRPL_RPC_DELIVEREDAMOUNT_H_INCLUDED
 #define XRPL_RPC_DELIVEREDAMOUNT_H_INCLUDED
 
+#include <xrpl/ledger/DeliveredAmount.h>
 #include <xrpl/protocol/Protocol.h>
 #include <xrpl/protocol/STAmount.h>
 
@@ -13,7 +16,6 @@ class Value;
 
 namespace xrpl {
 
-class ReadView;
 class Transaction;
 class TxMeta;
 class STTx;
@@ -21,31 +23,24 @@ class STTx;
 namespace RPC {
 
 struct JsonContext;
-
 struct Context;
+
+// Re-export the protocol-level function in RPC namespace for backward compatibility
+using xrpl::insertDeliveredAmount;
 
 /**
    Add a `delivered_amount` field to the `meta` input/output parameter.
-   The field is only added to successful payment and check cash transactions.
-   If a delivered amount field is available in the TxMeta parameter, that value
-   is used. Otherwise, the transaction's `Amount` field is used. If neither is
-   available, then the delivered amount is set to "unavailable".
+   These overloads use RPC context to look up ledger information.
 
    @{
  */
 void
 insertDeliveredAmount(
     Json::Value& meta,
-    ReadView const&,
-    std::shared_ptr<STTx const> const& serializedTx,
-    TxMeta const&);
-
-void
-insertDeliveredAmount(
-    Json::Value& meta,
     RPC::JsonContext const&,
     std::shared_ptr<Transaction> const&,
     TxMeta const&);
+
 void
 insertDeliveredAmount(
     Json::Value& meta,

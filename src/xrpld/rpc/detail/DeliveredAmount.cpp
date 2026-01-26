@@ -1,28 +1,31 @@
-#include <xrpld/app/ledger/OpenLedger.h>
+// This file contains RPC-specific DeliveredAmount functions.
+// The protocol-level insertDeliveredAmount(Json::Value&, ReadView const&, ...)
+// is now implemented in src/libxrpl/protocol/DeliveredAmount.cpp
+
+#include <xrpld/app/ledger/LedgerDataProvider.h>
 #include <xrpld/app/misc/Transaction.h>
 #include <xrpld/rpc/Context.h>
 #include <xrpld/rpc/DeliveredAmount.h>
-#include <xrpld/app/ledger/LedgerDataProvider.h>
 
 #include <xrpl/protocol/Feature.h>
 #include <xrpl/protocol/RPCErr.h>
+#include <xrpl/protocol/SField.h>
+#include <xrpl/protocol/TxFormats.h>
+
+#include <chrono>
 
 namespace xrpl {
 namespace RPC {
 
+namespace {
+
 /*
   GetLedgerIndex and GetCloseTime are lambdas that allow the close time and
-  ledger index to be lazily calculated. Without these lambdas, these values
-  would be calculated even when not needed, and in some circumstances they are
-  not trivial to compute.
-
-  GetLedgerIndex is a callable that returns a LedgerIndex
-  GetCloseTime is a callable that returns a
-               std::optional<NetClock::time_point>
+  ledger index to be lazily calculated.
  */
 template <class GetLedgerIndex, class GetCloseTime>
 std::optional<STAmount>
-getDeliveredAmount(
+getDeliveredAmountImpl(
     GetLedgerIndex const& getLedgerIndex,
     GetCloseTime const& getCloseTime,
     std::shared_ptr<STTx const> const& serializedTx,
@@ -41,14 +44,6 @@ getDeliveredAmount(
     {
         using namespace std::chrono_literals;
 
-        // Ledger 4594095 is the first ledger in which the DeliveredAmount field
-        // was present when a partial payment was made and its absence indicates
-        // that the amount delivered is listed in the Amount field.
-        //
-        // If the ledger closed long after the DeliveredAmount code was deployed
-        // then its absence indicates that the amount delivered is listed in the
-        // Amount field. DeliveredAmount went live January 24, 2014.
-        // 446000000 is in Feb 2014, well after DeliveredAmount went live
         if (getLedgerIndex() >= 4594095 ||
             getCloseTime() > NetClock::time_point{446000000s})
         {
@@ -59,8 +54,7 @@ getDeliveredAmount(
     return {};
 }
 
-// Returns true if transaction meta could contain a delivered amount field,
-// based on transaction type and transaction result
+// Returns true if transaction meta could contain a delivered amount field
 bool
 canHaveDeliveredAmount(
     std::shared_ptr<STTx const> const& serializedTx,
@@ -70,8 +64,6 @@ canHaveDeliveredAmount(
         return false;
 
     TxType const tt{serializedTx->getTxnType()};
-    // Transaction type should be ttPAYMENT, ttACCOUNT_DELETE or ttCHECK_CASH
-    // and if the transaction failed nothing could have been delivered.
     if ((tt == ttPAYMENT || tt == ttCHECK_CASH || tt == ttACCOUNT_DELETE) &&
         transactionMeta.getResultTER() == tesSUCCESS)
     {
@@ -81,39 +73,9 @@ canHaveDeliveredAmount(
     return false;
 }
 
-void
-insertDeliveredAmount(
-    Json::Value& meta,
-    ReadView const& ledger,
-    std::shared_ptr<STTx const> const& serializedTx,
-    TxMeta const& transactionMeta)
-{
-    auto const info = ledger.header();
-
-    if (canHaveDeliveredAmount(serializedTx, transactionMeta))
-    {
-        auto const getLedgerIndex = [&info] { return info.seq; };
-        auto const getCloseTime = [&info] { return info.closeTime; };
-
-        auto amt = getDeliveredAmount(
-            getLedgerIndex, getCloseTime, serializedTx, transactionMeta);
-        if (amt)
-        {
-            meta[jss::delivered_amount] =
-                amt->getJson(JsonOptions::include_date);
-        }
-        else
-        {
-            // report "unavailable" which cannot be parsed into a sensible
-            // amount.
-            meta[jss::delivered_amount] = Json::Value("unavailable");
-        }
-    }
-}
-
 template <class GetLedgerIndex>
-static std::optional<STAmount>
-getDeliveredAmount(
+std::optional<STAmount>
+getDeliveredAmountWithContext(
     RPC::Context const& context,
     std::shared_ptr<STTx const> const& serializedTx,
     TxMeta const& transactionMeta,
@@ -127,12 +89,14 @@ getDeliveredAmount(
             return context.ledgerDataProvider.getCloseTimeBySeq(
                 getLedgerIndex());
         };
-        return getDeliveredAmount(
+        return getDeliveredAmountImpl(
             getLedgerIndex, getCloseTime, serializedTx, transactionMeta);
     }
 
     return {};
 }
+
+}  // namespace
 
 std::optional<STAmount>
 getDeliveredAmount(
@@ -141,7 +105,7 @@ getDeliveredAmount(
     TxMeta const& transactionMeta,
     LedgerIndex const& ledgerIndex)
 {
-    return getDeliveredAmount(
+    return getDeliveredAmountWithContext(
         context, serializedTx, transactionMeta, [&ledgerIndex]() {
             return ledgerIndex;
         });
@@ -167,7 +131,7 @@ insertDeliveredAmount(
 {
     if (canHaveDeliveredAmount(transaction, transactionMeta))
     {
-        auto amt = getDeliveredAmount(
+        auto amt = getDeliveredAmountWithContext(
             context, transaction, transactionMeta, [&transactionMeta]() {
                 return transactionMeta.getLgrSeq();
             });

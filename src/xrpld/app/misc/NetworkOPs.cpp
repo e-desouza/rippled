@@ -32,10 +32,10 @@
 #include <xrpld/overlay/Cluster.h>
 #include <xrpld/overlay/Overlay.h>
 #include <xrpld/overlay/predicates.h>
-#include <xrpld/rpc/BookChanges.h>
+#include <xrpl/ledger/DeliveredAmount.h>
+#include <xrpl/protocol/BookChanges.h>
 #include <xrpl/protocol/CTID.h>
-#include <xrpld/rpc/DeliveredAmount.h>
-#include <xrpld/rpc/MPTokenIssuanceID.h>
+#include <xrpl/protocol/MPTokenIssuanceID.h>
 #include <xrpld/rpc/ServerHandler.h>
 
 #include <xrpl/basics/UptimeClock.h>
@@ -3154,7 +3154,7 @@ NetworkOPsImp::pubLedger(std::shared_ptr<ReadView const> const& lpAccepted)
 
         if (!mStreamMaps[sBookChanges].empty())
         {
-            Json::Value jvObj = xrpl::RPC::computeBookChanges(lpAccepted);
+            Json::Value jvObj = computeBookChanges(lpAccepted);
 
             auto it = mStreamMaps[sBookChanges].begin();
             while (it != mStreamMaps[sBookChanges].end())
@@ -3262,11 +3262,10 @@ NetworkOPsImp::transJson(
     if (meta)
     {
         jvObj[jss::meta] = meta->get().getJson(JsonOptions::none);
-        RPC::insertDeliveredAmount(
+        insertDeliveredAmount(
             jvObj[jss::meta], *ledger, transaction, meta->get());
         RPC::insertNFTSyntheticInJson(jvObj, transaction, meta->get());
-        RPC::insertMPTokenIssuanceID(
-            jvObj[jss::meta], transaction, meta->get());
+        insertMPTokenIssuanceID(jvObj[jss::meta], transaction, meta->get());
     }
 
     // add CTID where the needed data for it exists

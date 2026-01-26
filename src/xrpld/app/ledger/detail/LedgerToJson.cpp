@@ -3,8 +3,8 @@
 #include <xrpld/app/misc/DeliverMax.h>
 #include <xrpld/app/txqueue/TxQ.h>
 #include <xrpld/rpc/Context.h>
-#include <xrpld/rpc/DeliveredAmount.h>
-#include <xrpld/rpc/MPTokenIssuanceID.h>
+#include <xrpl/ledger/DeliveredAmount.h>
+#include <xrpl/protocol/MPTokenIssuanceID.h>
 
 #include <xrpl/basics/base_uint.h>
 #include <xrpl/protocol/ApiVersion.h>
@@ -131,14 +131,14 @@ fillJsonTx(
 
             // If applicable, insert delivered amount
             if (txnType == ttPAYMENT || txnType == ttCHECK_CASH)
-                RPC::insertDeliveredAmount(
+                insertDeliveredAmount(
                     txJson[jss::meta],
                     fill.ledger,
                     txn,
                     {txn->getTransactionID(), fill.ledger.seq(), *stMeta});
 
             // If applicable, insert mpt issuance id
-            RPC::insertMPTokenIssuanceID(
+            insertMPTokenIssuanceID(
                 txJson[jss::meta],
                 txn,
                 {txn->getTransactionID(), fill.ledger.seq(), *stMeta});
@@ -168,14 +168,14 @@ fillJsonTx(
 
             // If applicable, insert delivered amount
             if (txnType == ttPAYMENT || txnType == ttCHECK_CASH)
-                RPC::insertDeliveredAmount(
+                insertDeliveredAmount(
                     txJson[jss::metaData],
                     fill.ledger,
                     txn,
                     {txn->getTransactionID(), fill.ledger.seq(), *stMeta});
 
             // If applicable, insert mpt issuance id
-            RPC::insertMPTokenIssuanceID(
+            insertMPTokenIssuanceID(
                 txJson[jss::metaData],
                 txn,
                 {txn->getTransactionID(), fill.ledger.seq(), *stMeta});
