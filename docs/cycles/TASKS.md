@@ -346,4 +346,7 @@ The low-hanging fruit has been picked (29→27 deps). Further reduction requires
 | `1531f3ad96` | [Levelization] Wire up ValidationMessageHandler | 2026-01-26 |
 | `b9e14bca93` | [Levelization] Create TransactionMessageHandler | 2026-01-26 |
 | `242bacd321` | [Levelization] Extend TransactionMessageHandler (handleHaveTransactions, doTransactions) | 2026-01-26 |
+| `9b0c01edee` | [Levelization] Move checkValidation to ValidationMessageHandler | 2026-01-26 |
+| `339111374b` | [Levelization] Create ProposalMessageHandler | 2026-01-26 |
+| `3aa7e5ebb0` | [Levelization] Remove RCLCxPeerPos.h from PeerImp.h (23→22 deps) | 2026-01-26 |
 
