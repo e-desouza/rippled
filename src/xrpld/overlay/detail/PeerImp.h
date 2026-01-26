@@ -755,12 +755,6 @@ private:
         RCLCxPeerPos peerPos);
 
     void
-    checkValidation(
-        std::shared_ptr<STValidation> const& val,
-        uint256 const& key,
-        std::shared_ptr<protocol::TMValidation> const& packet);
-
-    void
     sendLedgerBase(
         std::shared_ptr<Ledger const> const& ledger,
         protocol::TMLedgerData& ledgerData);

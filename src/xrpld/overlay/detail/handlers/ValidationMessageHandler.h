@@ -42,6 +42,24 @@ public:
     onMessage(std::shared_ptr<protocol::TMValidation> const& m, PeerImp& peer);
 
     /**
+     * @brief Check and process a validated validation message.
+     *
+     * Called from the job queue after initial processing. Verifies the
+     * validation signature and relays to other peers if valid.
+     *
+     * @param peer The peer that received this message
+     * @param val The deserialized validation object
+     * @param key The suppression key for this validation
+     * @param packet The original protocol message for relaying
+     */
+    static void
+    checkValidation(
+        PeerImp& peer,
+        std::shared_ptr<STValidation> const& val,
+        uint256 const& key,
+        std::shared_ptr<protocol::TMValidation> const& packet);
+
+    /**
      * @brief Process a TMValidatorList message (v1 format).
      *
      * Handles validator list propagation for peers using protocol version

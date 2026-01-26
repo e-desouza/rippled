@@ -2343,51 +2343,6 @@ PeerImp::checkPropose(
     }
 }
 
-void
-PeerImp::checkValidation(
-    std::shared_ptr<STValidation> const& val,
-    uint256 const& key,
-    std::shared_ptr<protocol::TMValidation> const& packet)
-{
-    if (!val->isValid())
-    {
-        std::string desc{"Validation forwarded by peer is invalid"};
-        JLOG(p_journal_.debug()) << desc;
-        charge(Resource::feeInvalidSignature, desc);
-        return;
-    }
-
-    // FIXME it should be safe to remove this try/catch. Investigate codepaths.
-    try
-    {
-        if (app_.getOPs().recvValidation(val, std::to_string(id())) ||
-            cluster())
-        {
-            // haveMessage contains peers, which are suppressed; i.e. the peers
-            // are the source of the message, consequently the message should
-            // not be relayed to these peers. But the message must be counted
-            // as part of the squelch logic.
-            auto haveMessage =
-                overlay_.relay(*packet, key, val->getSignerPublic());
-            if (!haveMessage.empty())
-            {
-                overlay_.updateSlotAndSquelch(
-                    key,
-                    val->getSignerPublic(),
-                    std::move(haveMessage),
-                    protocol::mtVALIDATION);
-            }
-        }
-    }
-    catch (std::exception const& ex)
-    {
-        JLOG(p_journal_.trace())
-            << "Exception processing validation: " << ex.what();
-        using namespace std::string_literals;
-        charge(Resource::feeMalformedRequest, "validation "s + ex.what());
-    }
-}
-
 // Returns the set of peers that can help us get
 // the TX tree with the specified root hash.
 //

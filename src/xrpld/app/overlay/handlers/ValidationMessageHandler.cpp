@@ -118,7 +118,8 @@ ValidationMessageHandler::onMessage(
                 name,
                 [weak, val, m, key]() {
                     if (auto p = weak.lock())
-                        p->checkValidation(val, key, m);
+                        ValidationMessageHandler::checkValidation(
+                            *p, val, key, m);
                 });
         }
         else
@@ -131,6 +132,57 @@ ValidationMessageHandler::onMessage(
         JLOG(journal.warn()) << "Exception processing validation: " << e.what();
         using namespace std::string_literals;
         peer.fee_.update(Resource::feeMalformedRequest, e.what());
+    }
+}
+
+void
+ValidationMessageHandler::checkValidation(
+    PeerImp& peer,
+    std::shared_ptr<STValidation> const& val,
+    uint256 const& key,
+    std::shared_ptr<protocol::TMValidation> const& packet)
+{
+    auto& journal = peer.p_journal_;
+
+    if (!val->isValid())
+    {
+        std::string desc{"Validation forwarded by peer is invalid"};
+        JLOG(journal.debug()) << desc;
+        peer.charge(Resource::feeInvalidSignature, desc);
+        return;
+    }
+
+    auto& app = peer.app_;
+    auto& overlay = peer.overlay_;
+
+    // FIXME it should be safe to remove this try/catch. Investigate codepaths.
+    try
+    {
+        if (app.getOPs().recvValidation(val, std::to_string(peer.id())) ||
+            peer.cluster())
+        {
+            // haveMessage contains peers, which are suppressed; i.e. the peers
+            // are the source of the message, consequently the message should
+            // not be relayed to these peers. But the message must be counted
+            // as part of the squelch logic.
+            auto haveMessage =
+                overlay.relay(*packet, key, val->getSignerPublic());
+            if (!haveMessage.empty())
+            {
+                overlay.updateSlotAndSquelch(
+                    key,
+                    val->getSignerPublic(),
+                    std::move(haveMessage),
+                    protocol::mtVALIDATION);
+            }
+        }
+    }
+    catch (std::exception const& ex)
+    {
+        JLOG(journal.trace())
+            << "Exception processing validation: " << ex.what();
+        using namespace std::string_literals;
+        peer.charge(Resource::feeMalformedRequest, "validation "s + ex.what());
     }
 }
 
