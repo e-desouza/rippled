@@ -31,9 +31,14 @@ public:
 
     Json::Value
     getServerInfo(bool humanReadable, bool admin, bool counters) override;
+
+    Json::Value
+    getServerCounts(int minObjectCount) override;
+
+    void
+    saveValidatorManifest(std::string const& serialized) override;
 };
 
 }  // namespace xrpl
 
 #endif
-

@@ -1,6 +1,4 @@
 #include <xrpld/app/main/Application.h>
-#include <xrpld/app/misc/ServerCounts.h>
-#include <xrpld/app/rdb/Wallet.h>
 #include <xrpld/app/txqueue/HashRouter.h>
 #include <xrpld/app/validators/ValidatorList.h>
 #include <xrpld/app/validators/ValidatorSite.h>
@@ -667,8 +665,7 @@ OverlayImpl::onManifests(
 
                 if (app_.validators().listed(mo->masterKey))
                 {
-                    auto db = app_.getWalletDB().checkoutDb();
-                    addValidatorManifest(*db, serialized);
+                    overlayOps_.saveValidatorManifest(serialized);
                 }
             }
         }
@@ -789,7 +786,7 @@ OverlayImpl::getServerInfo()
 Json::Value
 OverlayImpl::getServerCounts()
 {
-    return getCountsJson(app_, 10);
+    return overlayOps_.getServerCounts(10);
 }
 
 Json::Value

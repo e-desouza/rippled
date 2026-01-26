@@ -52,9 +52,25 @@ public:
      */
     virtual Json::Value
     getServerInfo(bool humanReadable, bool admin, bool counters) = 0;
+
+    /**
+     * Get server counts (object counts) for crawler response.
+     *
+     * @param minObjectCount Minimum object count to include in response
+     * @return JSON value with object counts
+     */
+    virtual Json::Value
+    getServerCounts(int minObjectCount) = 0;
+
+    /**
+     * Save a validator manifest to the wallet database.
+     *
+     * @param serialized The serialized manifest data
+     */
+    virtual void
+    saveValidatorManifest(std::string const& serialized) = 0;
 };
 
 }  // namespace xrpl
 
 #endif
-

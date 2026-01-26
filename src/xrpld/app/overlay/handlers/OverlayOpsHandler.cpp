@@ -1,8 +1,9 @@
-#include <xrpld/overlay/detail/handlers/OverlayOpsHandler.h>
-
 #include <xrpld/app/main/Application.h>
 #include <xrpld/app/misc/NetworkOPs.h>
+#include <xrpld/app/misc/ServerCounts.h>
+#include <xrpld/app/rdb/Wallet.h>
 #include <xrpld/app/validators/Manifest.h>
+#include <xrpld/overlay/detail/handlers/OverlayOpsHandler.h>
 
 namespace xrpl {
 
@@ -31,5 +32,17 @@ OverlayOpsHandler::getServerInfo(bool humanReadable, bool admin, bool counters)
     return app_.getOPs().getServerInfo(humanReadable, admin, counters);
 }
 
-}  // namespace xrpl
+Json::Value
+OverlayOpsHandler::getServerCounts(int minObjectCount)
+{
+    return getCountsJson(app_, minObjectCount);
+}
 
+void
+OverlayOpsHandler::saveValidatorManifest(std::string const& serialized)
+{
+    auto db = app_.getWalletDB().checkoutDb();
+    addValidatorManifest(*db, serialized);
+}
+
+}  // namespace xrpl
