@@ -1,12 +1,13 @@
 #ifndef XRPL_APP_PEERS_PEERSET_H_INCLUDED
 #define XRPL_APP_PEERS_PEERSET_H_INCLUDED
 
+#include <xrpld/overlay/IOverlayProvider.h>
 #include <xrpld/overlay/Peer.h>
 #include <xrpld/overlay/detail/ProtocolMessage.h>
 
 namespace xrpl {
 
-class Application;  // Forward declaration
+class Overlay;
 
 /** Supports data retrieval by managing a set of peers.
 
@@ -63,8 +64,18 @@ public:
     build() = 0;
 };
 
+/** Create a PeerSetBuilder with lazy overlay access.
+ * The overlay is obtained from the provider when build() is called,
+ * allowing this to be called before the overlay is initialized.
+ */
 std::unique_ptr<PeerSetBuilder>
-make_PeerSetBuilder(Application& app);
+make_PeerSetBuilder(IOverlayProvider& provider);
+
+/** Create a PeerSetBuilder with direct overlay reference.
+ * Use this when overlay is already available.
+ */
+std::unique_ptr<PeerSetBuilder>
+make_PeerSetBuilder(Overlay& overlay);
 
 /**
  * Make a dummy PeerSet that does not do anything.
@@ -72,7 +83,7 @@ make_PeerSetBuilder(Application& app);
  *       where a real PeerSet is not needed.
  */
 std::unique_ptr<PeerSet>
-make_DummyPeerSet(Application& app);
+make_DummyPeerSet(Logs& logs);
 
 }  // namespace xrpl
 

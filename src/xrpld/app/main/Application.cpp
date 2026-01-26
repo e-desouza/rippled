@@ -378,10 +378,7 @@ public:
                   gotTXSet(set, fromAcquire);
               }))
 
-        , m_ledgerReplayer(std::make_unique<LedgerReplayer>(
-              *this,
-              *m_inboundLedgers,
-              make_PeerSetBuilder(*this)))
+        // m_ledgerReplayer initialized in setup() after overlay_ is created
 
         , m_acceptedLedgerCache(
               "AcceptedLedger",
@@ -810,6 +807,13 @@ public:
         XRPL_ASSERT(
             overlay_, "xrpl::ApplicationImp::overlay : non-null overlay");
         return *overlay_;
+    }
+
+    // IOverlayProvider interface
+    Overlay&
+    getOverlay() override
+    {
+        return overlay();
     }
 
     TxQ&
@@ -1418,6 +1422,10 @@ ApplicationImp::setup(boost::program_options::variables_map const& cmdline)
         *validatorOpsHandler_);
     add(*overlay_);  // add to PropertyStream
 
+    // Initialize LedgerReplayer now that overlay is available
+    m_ledgerReplayer = std::make_unique<LedgerReplayer>(
+        *this, *m_inboundLedgers, make_PeerSetBuilder(*overlay_));
+
     // start first consensus round
     if (!m_networkOPs->beginConsensus(
             m_ledgerMaster->getClosedLedger()->header().hash, {}))
@@ -1961,7 +1969,7 @@ ApplicationImp::loadOldLedger(
                         0,
                         InboundLedger::Reason::GENERIC,
                         stopwatch(),
-                        make_DummyPeerSet(*this));
+                        make_DummyPeerSet(logs()));
                     if (il->checkLocal())
                         loadLedger = il->getLedger();
                 }
@@ -2005,7 +2013,7 @@ ApplicationImp::loadOldLedger(
                     0,
                     InboundLedger::Reason::GENERIC,
                     stopwatch(),
-                    make_DummyPeerSet(*this));
+                    make_DummyPeerSet(logs()));
 
                 if (il->checkLocal())
                     loadLedger = il->getLedger();

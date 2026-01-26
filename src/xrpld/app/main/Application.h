@@ -2,12 +2,13 @@
 #define XRPL_APP_MAIN_APPLICATION_H_INCLUDED
 
 #include <xrpld/core/Config.h>
+#include <xrpld/overlay/IOverlayProvider.h>
 #include <xrpld/overlay/PeerReservationTable.h>
 
 #include <xrpl/basics/TaggedCache.h>
-#include <xrpl/server/Port.h>
 #include <xrpl/beast/utility/PropertyStream.h>
 #include <xrpl/protocol/Protocol.h>
+#include <xrpl/server/Port.h>
 #include <xrpl/shamap/TreeNodeCache.h>
 
 #include <boost/asio.hpp>
@@ -92,7 +93,8 @@ class Validations;
 class RCLValidationsAdaptor;
 using RCLValidations = Validations<RCLValidationsAdaptor>;
 
-class Application : public beast::PropertyStream::Source
+class Application : public beast::PropertyStream::Source,
+                    public IOverlayProvider
 {
 public:
     /* VFALCO NOTE

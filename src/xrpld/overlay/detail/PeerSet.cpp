@@ -1,15 +1,14 @@
-#include <xrpld/app/main/Application.h>
 #include <xrpld/overlay/Overlay.h>
 #include <xrpld/overlay/PeerSet.h>
 
-#include <xrpl/core/JobQueue.h>
+#include <xrpl/basics/Log.h>
 
 namespace xrpl {
 
 class PeerSetImpl : public PeerSet
 {
 public:
-    PeerSetImpl(Application& app);
+    explicit PeerSetImpl(Overlay& overlay);
 
     void
     addPeers(
@@ -28,17 +27,13 @@ public:
     getPeerIds() const override;
 
 private:
-    // Used in this class for access to boost::asio::io_context and
-    // xrpl::Overlay.
-    Application& app_;
-    beast::Journal journal_;
+    Overlay& overlay_;
 
     /** The identifiers of the peers we are tracking. */
     std::set<Peer::id_t> peers_;
 };
 
-PeerSetImpl::PeerSetImpl(Application& app)
-    : app_(app), journal_(app.journal("PeerSet"))
+PeerSetImpl::PeerSetImpl(Overlay& overlay) : overlay_(overlay)
 {
 }
 
@@ -50,12 +45,10 @@ PeerSetImpl::addPeers(
 {
     using ScoredPeer = std::pair<int, std::shared_ptr<Peer>>;
 
-    auto const& overlay = app_.overlay();
-
     std::vector<ScoredPeer> pairs;
-    pairs.reserve(overlay.size());
+    pairs.reserve(overlay_.size());
 
-    overlay.foreach([&](auto const& peer) {
+    overlay_.foreach([&](auto const& peer) {
         auto const score = peer->getScore(hasItem(peer));
         pairs.emplace_back(score, std::move(peer));
     });
@@ -94,7 +87,7 @@ PeerSetImpl::sendRequest(
 
     for (auto id : peers_)
     {
-        if (auto p = app_.overlay().findPeerByShortID(id))
+        if (auto p = overlay_.findPeerByShortID(id))
             p->send(packet);
     }
 }
@@ -108,30 +101,54 @@ PeerSetImpl::getPeerIds() const
 class PeerSetBuilderImpl : public PeerSetBuilder
 {
 public:
-    PeerSetBuilderImpl(Application& app) : app_(app)
+    explicit PeerSetBuilderImpl(Overlay& overlay) : overlay_(&overlay)
     {
     }
 
     virtual std::unique_ptr<PeerSet>
     build() override
     {
-        return std::make_unique<PeerSetImpl>(app_);
+        return std::make_unique<PeerSetImpl>(*overlay_);
     }
 
 private:
-    Application& app_;
+    Overlay* overlay_;
+};
+
+class LazyPeerSetBuilderImpl : public PeerSetBuilder
+{
+public:
+    explicit LazyPeerSetBuilderImpl(IOverlayProvider& provider)
+        : provider_(provider)
+    {
+    }
+
+    virtual std::unique_ptr<PeerSet>
+    build() override
+    {
+        return std::make_unique<PeerSetImpl>(provider_.getOverlay());
+    }
+
+private:
+    IOverlayProvider& provider_;
 };
 
 std::unique_ptr<PeerSetBuilder>
-make_PeerSetBuilder(Application& app)
+make_PeerSetBuilder(IOverlayProvider& provider)
 {
-    return std::make_unique<PeerSetBuilderImpl>(app);
+    return std::make_unique<LazyPeerSetBuilderImpl>(provider);
+}
+
+std::unique_ptr<PeerSetBuilder>
+make_PeerSetBuilder(Overlay& overlay)
+{
+    return std::make_unique<PeerSetBuilderImpl>(overlay);
 }
 
 class DummyPeerSet : public PeerSet
 {
 public:
-    DummyPeerSet(Application& app) : j_(app.journal("DummyPeerSet"))
+    DummyPeerSet(beast::Journal j) : j_(j)
     {
     }
 
@@ -166,9 +183,9 @@ private:
 };
 
 std::unique_ptr<PeerSet>
-make_DummyPeerSet(Application& app)
+make_DummyPeerSet(Logs& logs)
 {
-    return std::make_unique<DummyPeerSet>(app);
+    return std::make_unique<DummyPeerSet>(logs.journal("DummyPeerSet"));
 }
 
 }  // namespace xrpl
