@@ -13,6 +13,7 @@ class IFeeTrackOps;
 class IHandshakeParams;
 class IHashRouterOps;
 class IOverlayOps;
+class IValidatorOps;
 
 Overlay::Setup
 setup_Overlay(BasicConfig const& config);
@@ -30,7 +31,8 @@ make_Overlay(
     IFeeTrackOps& feeTrackOps,
     IHandshakeParams& handshakeParams,
     IOverlayOps& overlayOps,
-    IHashRouterOps& hashRouterOps);
+    IHashRouterOps& hashRouterOps,
+    IValidatorOps& validatorOps);
 
 }  // namespace xrpl
 

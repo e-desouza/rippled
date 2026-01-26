@@ -37,6 +37,7 @@
 #include <xrpld/overlay/PeerSet.h>
 #include <xrpld/overlay/detail/handlers/HashRouterOpsHandler.h>
 #include <xrpld/overlay/detail/handlers/OverlayOpsHandler.h>
+#include <xrpld/overlay/detail/handlers/ValidatorOpsHandler.h>
 #include <xrpld/overlay/make_Overlay.h>
 #include <xrpld/rpc/GRPCServer.h>
 #include <xrpld/rpc/ServerHandler.h>
@@ -200,6 +201,7 @@ public:
         peerReservationStorageAdapter_;
     std::unique_ptr<OverlayOpsHandler> overlayOpsHandler_;
     std::unique_ptr<HashRouterOpsHandler> hashRouterOpsHandler_;
+    std::unique_ptr<ValidatorOpsHandler> validatorOpsHandler_;
     std::unique_ptr<HashRouter> hashRouter_;
     RCLValidations mValidations;
     std::unique_ptr<LoadManager> m_loadManager;
@@ -445,6 +447,8 @@ public:
               stopwatch()))
 
         , hashRouterOpsHandler_(std::make_unique<HashRouterOpsHandler>(*this))
+
+        , validatorOpsHandler_(std::make_unique<ValidatorOpsHandler>(*this))
 
         , mValidations(
               ValidationParms(),
@@ -1410,7 +1414,8 @@ ApplicationImp::setup(boost::program_options::variables_map const& cmdline)
         *feeTrackAdapter_,
         *handshakeParamsAdapter_,
         *overlayOpsHandler_,
-        *hashRouterOpsHandler_);
+        *hashRouterOpsHandler_,
+        *validatorOpsHandler_);
     add(*overlay_);  // add to PropertyStream
 
     // start first consensus round

@@ -1,11 +1,11 @@
 #include <xrpld/app/main/Application.h>
 #include <xrpld/app/validators/ValidatorList.h>
-#include <xrpld/app/validators/ValidatorSite.h>
 #include <xrpld/overlay/Cluster.h>
 #include <xrpld/overlay/IFeeTrackOps.h>
 #include <xrpld/overlay/IHandshakeParams.h>
 #include <xrpld/overlay/IHashRouterOps.h>
 #include <xrpld/overlay/IOverlayOps.h>
+#include <xrpld/overlay/IValidatorOps.h>
 #include <xrpld/overlay/detail/ConnectAttempt.h>
 #include <xrpld/overlay/detail/PeerImp.h>
 #include <xrpld/overlay/detail/TrafficCount.h>
@@ -112,7 +112,8 @@ OverlayImpl::OverlayImpl(
     IFeeTrackOps& feeTrackOps,
     IHandshakeParams& handshakeParams,
     IOverlayOps& overlayOps,
-    IHashRouterOps& hashRouterOps)
+    IHashRouterOps& hashRouterOps,
+    IValidatorOps& validatorOps)
     : app_(app)
     , io_context_(io_context)
     , work_(std::in_place, boost::asio::make_work_guard(io_context_))
@@ -134,6 +135,7 @@ OverlayImpl::OverlayImpl(
     , handshakeParams_(handshakeParams)
     , overlayOps_(overlayOps)
     , hashRouterOps_(hashRouterOps)
+    , validatorOps_(validatorOps)
     , m_stats(
           std::bind(&OverlayImpl::collect_metrics, this),
           collector,
@@ -810,7 +812,7 @@ OverlayImpl::getUnlInfo()
     validators.removeMember(jss::trusted_validator_keys);
     validators.removeMember(jss::validation_quorum);
 
-    Json::Value validatorSites = app_.validatorSites().getJson();
+    Json::Value validatorSites = validatorOps_.getValidatorSitesJson();
 
     if (validatorSites.isMember(jss::validator_sites))
     {
@@ -915,7 +917,7 @@ OverlayImpl::processValidatorList(
         return fail(boost::beast::http::status::bad_request);
 
     // find the list
-    auto vl = app_.validators().getAvailable(key, version);
+    auto vl = validatorOps_.getValidatorListAvailable(key, version);
 
     if (!vl)
     {
@@ -1623,7 +1625,8 @@ make_Overlay(
     IFeeTrackOps& feeTrackOps,
     IHandshakeParams& handshakeParams,
     IOverlayOps& overlayOps,
-    IHashRouterOps& hashRouterOps)
+    IHashRouterOps& hashRouterOps,
+    IValidatorOps& validatorOps)
 {
     return std::make_unique<OverlayImpl>(
         app,
@@ -1636,7 +1639,8 @@ make_Overlay(
         feeTrackOps,
         handshakeParams,
         overlayOps,
-        hashRouterOps);
+        hashRouterOps,
+        validatorOps);
 }
 
 }  // namespace xrpl

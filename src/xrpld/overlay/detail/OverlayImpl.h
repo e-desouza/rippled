@@ -6,6 +6,7 @@ class Application;
 class IFeeTrackOps;
 class IHashRouterOps;
 class IOverlayOps;
+class IValidatorOps;
 }  // namespace xrpl
 
 #include <xrpld/overlay/Message.h>
@@ -135,6 +136,9 @@ private:
     // Reference to hash router operations interface (owned by caller)
     IHashRouterOps& hashRouterOps_;
 
+    // Reference to validator operations interface (owned by caller)
+    IValidatorOps& validatorOps_;
+
     //--------------------------------------------------------------------------
 
 public:
@@ -149,7 +153,8 @@ public:
         IFeeTrackOps& feeTrackOps,
         IHandshakeParams& handshakeParams,
         IOverlayOps& overlayOps,
-        IHashRouterOps& hashRouterOps);
+        IHashRouterOps& hashRouterOps,
+        IValidatorOps& validatorOps);
 
     OverlayImpl(OverlayImpl const&) = delete;
     OverlayImpl&
