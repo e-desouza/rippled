@@ -1,5 +1,4 @@
 #include <xrpld/app/main/Application.h>
-#include <xrpld/app/misc/NetworkOPs.h>
 #include <xrpld/app/misc/ServerCounts.h>
 #include <xrpld/app/rdb/Wallet.h>
 #include <xrpld/app/txqueue/HashRouter.h>
@@ -8,6 +7,7 @@
 #include <xrpld/overlay/Cluster.h>
 #include <xrpld/overlay/IFeeTrackOps.h>
 #include <xrpld/overlay/IHandshakeParams.h>
+#include <xrpld/overlay/IOverlayOps.h>
 #include <xrpld/overlay/detail/ConnectAttempt.h>
 #include <xrpld/overlay/detail/PeerImp.h>
 #include <xrpld/overlay/detail/TrafficCount.h>
@@ -21,6 +21,7 @@
 #include <xrpl/beast/core/LexicalCast.h>
 #include <xrpl/beast/rfc2616.h>
 #include <xrpl/protocol/STTx.h>
+#include <xrpl/protocol/jss.h>
 #include <xrpl/server/SimpleWriter.h>
 #include <xrpl/server/json_body.h>
 
@@ -111,7 +112,8 @@ OverlayImpl::OverlayImpl(
     BasicConfig const& config,
     beast::insight::Collector::ptr const& collector,
     IFeeTrackOps& feeTrackOps,
-    IHandshakeParams& handshakeParams)
+    IHandshakeParams& handshakeParams,
+    IOverlayOps& overlayOps)
     : app_(app)
     , io_context_(io_context)
     , work_(std::in_place, boost::asio::make_work_guard(io_context_))
@@ -131,6 +133,7 @@ OverlayImpl::OverlayImpl(
     , slots_(app.logs(), *this, app.config())
     , feeTrackOps_(feeTrackOps)
     , handshakeParams_(handshakeParams)
+    , overlayOps_(overlayOps)
     , m_stats(
           std::bind(&OverlayImpl::collect_metrics, this),
           collector,
@@ -653,7 +656,14 @@ OverlayImpl::onManifests(
                     "xrpl::OverlayImpl::onManifests : manifest "
                     "deserialization succeeded");
 
-                app_.getOPs().pubManifest(*mo);
+                overlayOps_.pubManifest(
+                    mo->masterKey,
+                    mo->signingKey,
+                    mo->sequence,
+                    mo->getSignature(),
+                    mo->getMasterSignature(),
+                    mo->domain,
+                    mo->serialized);
 
                 if (app_.validators().listed(mo->masterKey))
                 {
@@ -756,7 +766,7 @@ OverlayImpl::getServerInfo()
     bool const counters = false;
 
     Json::Value server_info =
-        app_.getOPs().getServerInfo(humanReadable, admin, counters);
+        overlayOps_.getServerInfo(humanReadable, admin, counters);
 
     // Filter out some information
     server_info.removeMember(jss::hostid);
@@ -1612,7 +1622,8 @@ make_Overlay(
     BasicConfig const& config,
     beast::insight::Collector::ptr const& collector,
     IFeeTrackOps& feeTrackOps,
-    IHandshakeParams& handshakeParams)
+    IHandshakeParams& handshakeParams,
+    IOverlayOps& overlayOps)
 {
     return std::make_unique<OverlayImpl>(
         app,
@@ -1623,7 +1634,8 @@ make_Overlay(
         config,
         collector,
         feeTrackOps,
-        handshakeParams);
+        handshakeParams,
+        overlayOps);
 }
 
 }  // namespace xrpl

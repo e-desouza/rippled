@@ -21,6 +21,7 @@
 #include <xrpld/app/overlay/adapters/HandshakeParamsAdapter.h>
 #include <xrpld/app/overlay/adapters/LoadFeeTrackAdapter.h>
 #include <xrpld/app/overlay/adapters/PeerReservationStorageAdapter.h>
+#include <xrpld/overlay/detail/handlers/OverlayOpsHandler.h>
 #include <xrpld/app/misc/SHAMapStore.h>
 #include <xrpld/app/paths/PathRequests.h>
 #include <xrpld/app/rdb/RelationalDatabase.h>
@@ -195,6 +196,7 @@ public:
     std::unique_ptr<LoadFeeTrackAdapter> feeTrackAdapter_;
     std::unique_ptr<HandshakeParamsAdapter> handshakeParamsAdapter_;
     std::unique_ptr<PeerReservationStorageAdapter> peerReservationStorageAdapter_;
+    std::unique_ptr<OverlayOpsHandler> overlayOpsHandler_;
     std::unique_ptr<HashRouter> hashRouter_;
     RCLValidations mValidations;
     std::unique_ptr<LoadManager> m_loadManager;
@@ -431,6 +433,8 @@ public:
         , feeTrackAdapter_(std::make_unique<LoadFeeTrackAdapter>(*mFeeTrack))
 
         , handshakeParamsAdapter_(std::make_unique<HandshakeParamsAdapter>(*this))
+
+        , overlayOpsHandler_(std::make_unique<OverlayOpsHandler>(*this))
 
         , hashRouter_(std::make_unique<HashRouter>(
               setup_HashRouter(*config_),
@@ -1398,7 +1402,8 @@ ApplicationImp::setup(boost::program_options::variables_map const& cmdline)
         *config_,
         m_collectorManager->collector(),
         *feeTrackAdapter_,
-        *handshakeParamsAdapter_);
+        *handshakeParamsAdapter_,
+        *overlayOpsHandler_);
     add(*overlay_);  // add to PropertyStream
 
     // start first consensus round

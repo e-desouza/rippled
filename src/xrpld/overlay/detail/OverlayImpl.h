@@ -4,6 +4,7 @@
 namespace xrpl {
 class Application;
 class IFeeTrackOps;
+class IOverlayOps;
 }
 
 #include <xrpld/overlay/Message.h>
@@ -127,6 +128,9 @@ private:
     // Reference to handshake parameters interface (owned by caller)
     IHandshakeParams& handshakeParams_;
 
+    // Reference to overlay operations interface (owned by caller)
+    IOverlayOps& overlayOps_;
+
     //--------------------------------------------------------------------------
 
 public:
@@ -139,7 +143,8 @@ public:
         BasicConfig const& config,
         beast::insight::Collector::ptr const& collector,
         IFeeTrackOps& feeTrackOps,
-        IHandshakeParams& handshakeParams);
+        IHandshakeParams& handshakeParams,
+        IOverlayOps& overlayOps);
 
     OverlayImpl(OverlayImpl const&) = delete;
     OverlayImpl&
