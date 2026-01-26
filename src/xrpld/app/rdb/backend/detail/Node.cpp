@@ -186,7 +186,7 @@ saveValidatedLedger(
     if (!ledger->header().accountHash.isNonZero())
     {
         // LCOV_EXCL_START
-        JLOG(j.fatal()) << "AH is zero: " << getJson({*ledger, {}});
+        JLOG(j.fatal()) << "AH is zero: " << getJson(LedgerFill{*ledger});
         UNREACHABLE("xrpl::detail::saveValidatedLedger : zero account hash");
         // LCOV_EXCL_STOP
     }

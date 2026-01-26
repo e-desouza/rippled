@@ -2,7 +2,6 @@
 #include <xrpld/app/ledger/LedgerToJson.h>
 #include <xrpld/app/misc/DeliverMax.h>
 #include <xrpld/app/txqueue/TxQ.h>
-#include <xrpld/rpc/Context.h>
 #include <xrpl/ledger/DeliveredAmount.h>
 #include <xrpl/protocol/MPTokenIssuanceID.h>
 
@@ -11,25 +10,6 @@
 #include <xrpl/protocol/jss.h>
 
 namespace xrpl {
-
-// Backward-compatible constructor that takes RPC::Context
-LedgerFill::LedgerFill(
-    ReadView const& l,
-    RPC::Context const* ctx,
-    int o,
-    std::vector<TxQ::TxDetails> q)
-    : ledger(l)
-    , options(o)
-    , txQueue(std::move(q))
-    , apiVersion(ctx ? ctx->apiVersion : RPC::apiMaximumSupportedVersion)
-    , j(ctx ? ctx->j : beast::Journal{beast::Journal::getNullSink()})
-{
-    if (ctx)
-    {
-        closeTime = ctx->ledgerMaster.getCloseTimeBySeq(ledger.seq());
-        validated = ctx->ledgerMaster.isValidated(ledger);
-    }
-}
 
 namespace {
 

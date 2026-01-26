@@ -847,7 +847,7 @@ Ledger::assertSensible(beast::Journal ledgerJ) const
     }
 
     // LCOV_EXCL_START
-    Json::Value j = getJson({*this, {}});
+    Json::Value j = getJson(LedgerFill{*this});
 
     j[jss::accountTreeHash] = to_string(header_.accountHash);
     j[jss::transTreeHash] = to_string(header_.txHash);

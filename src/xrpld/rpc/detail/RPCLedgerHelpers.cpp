@@ -468,7 +468,11 @@ getOrAcquireLedger(RPC::JsonContext const& context)
                         rpcLGR_NOT_FOUND,
                         "acquiring ledger containing requested index");
                     jvResult[jss::acquiring] =
-                        getJson(LedgerFill(*il, &context));
+                        getJson(LedgerFill(
+                            *il,
+                            &context.ledgerMaster,
+                            context.apiVersion,
+                            context.j));
                     return Unexpected(jvResult);
                 }
 

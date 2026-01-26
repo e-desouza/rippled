@@ -11,7 +11,6 @@
 #include <xrpld/app/ledger/TransactionMaster.h>
 #include <xrpld/app/main/Application.h>
 #include <xrpld/app/main/BasicApp.h>
-#include <xrpld/app/main/GRPCServer.h>
 #include <xrpld/app/main/LoadManager.h>
 #include <xrpld/app/main/NodeFamily.h>
 #include <xrpld/app/main/NodeIdentity.h>
@@ -34,6 +33,7 @@
 #include <xrpld/overlay/PeerReservationTable.h>
 #include <xrpld/overlay/PeerSet.h>
 #include <xrpld/overlay/make_Overlay.h>
+#include <xrpld/rpc/GRPCServer.h>
 #include <xrpld/rpc/ServerHandler.h>
 
 #include <xrpl/basics/ByteUtilities.h>
@@ -1739,7 +1739,7 @@ ApplicationImp::getLastFullLedger()
         {
             stream << "Failed on ledger";
             Json::Value p;
-            addJson(p, {*ledger, nullptr, LedgerFill::full});
+            addJson(p, LedgerFill{*ledger, LedgerFill::full});
             stream << p;
         }
 

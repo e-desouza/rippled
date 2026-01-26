@@ -1,5 +1,5 @@
 #include <xrpld/app/ledger/LedgerMaster.h>
-#include <xrpld/app/main/GRPCServer.h>
+#include <xrpld/rpc/GRPCServer.h>
 #include <xrpld/core/ConfigSections.h>
 
 #include <xrpl/beast/core/CurrentThreadName.h>

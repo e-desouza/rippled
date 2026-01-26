@@ -1,9 +1,9 @@
 #include <xrpld/app/main/Application.h>
+#include <xrpld/app/main/RpcCliMain.h>
 #include <xrpld/app/rdb/Vacuum.h>
 #include <xrpld/core/Config.h>
 #include <xrpld/core/ConfigSections.h>
 #include <xrpld/core/TimeKeeper.h>
-#include <xrpld/rpc/RPCCall.h>
 
 #include <xrpl/basics/Log.h>
 #include <xrpl/beast/core/CurrentThreadName.h>
@@ -823,7 +823,7 @@ run(int argc, char** argv)
 
     // We have an RPC command to process:
     beast::setCurrentThreadName("rippled: rpc");
-    return RPCCall::fromCommandLine(
+    return rpcCliMain(
         *config, vm["parameters"].as<std::vector<std::string>>(), *logs);
     // LCOV_EXCL_STOP
 }

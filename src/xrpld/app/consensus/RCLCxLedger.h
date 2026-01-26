@@ -90,7 +90,7 @@ public:
     Json::Value
     getJson() const
     {
-        return xrpl::getJson({*ledger_, {}});
+        return xrpl::getJson(LedgerFill{*ledger_});
     }
 
     /** The ledger instance.

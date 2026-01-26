@@ -81,7 +81,15 @@ LedgerHandler::writeResult(Json::Value& value)
     if (ledger_)
     {
         copyFrom(value, result_);
-        addJson(value, {*ledger_, &context_, options_, queueTxs_});
+        addJson(
+            value,
+            LedgerFill(
+                *ledger_,
+                &context_.ledgerMaster,
+                context_.apiVersion,
+                context_.j,
+                options_,
+                queueTxs_));
     }
     else
     {
@@ -89,15 +97,21 @@ LedgerHandler::writeResult(Json::Value& value)
             auto& closed = value[jss::closed] = Json::objectValue;
             addJson(
                 closed,
-                {*context_.ledgerDataProvider.getClosedLedger(), &context_, 0});
+                LedgerFill(
+                    *context_.ledgerDataProvider.getClosedLedger(),
+                    &context_.ledgerMaster,
+                    context_.apiVersion,
+                    context_.j));
         }
         {
             auto& open = value[jss::open] = Json::objectValue;
             addJson(
                 open,
-                {*context_.ledgerDataProvider.getCurrentLedger(),
-                 &context_,
-                 0});
+                LedgerFill(
+                    *context_.ledgerDataProvider.getCurrentLedger(),
+                    &context_.ledgerMaster,
+                    context_.apiVersion,
+                    context_.j));
         }
     }
 

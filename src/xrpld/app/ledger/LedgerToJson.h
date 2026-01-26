@@ -12,18 +12,27 @@
 
 namespace xrpl {
 
-namespace RPC {
-struct Context;  // Forward declaration for backward compatibility
-}
-
 struct LedgerFill
 {
-    // Primary constructor - takes explicit parameters (preferred)
+    // Simple constructor for non-RPC uses (no LedgerMaster info)
+    explicit LedgerFill(
+        ReadView const& l,
+        int o = 0,
+        std::vector<TxQ::TxDetails> q = {})
+        : ledger(l)
+        , options(o)
+        , txQueue(std::move(q))
+        , apiVersion(RPC::apiMaximumSupportedVersion)
+        , j(beast::Journal{beast::Journal::getNullSink()})
+    {
+    }
+
+    // Full constructor for RPC uses - takes explicit parameters
     LedgerFill(
         ReadView const& l,
         LedgerMaster* lm,
         unsigned int apiVer,
-        beast::Journal journal = beast::Journal{beast::Journal::getNullSink()},
+        beast::Journal journal,
         int o = 0,
         std::vector<TxQ::TxDetails> q = {})
         : ledger(l)
@@ -38,14 +47,6 @@ struct LedgerFill
             validated = lm->isValidated(ledger);
         }
     }
-
-    // Backward-compatible constructor for RPC context
-    // DEPRECATED: Use the primary constructor instead
-    LedgerFill(
-        ReadView const& l,
-        RPC::Context const* ctx,
-        int o = 0,
-        std::vector<TxQ::TxDetails> q = {});
 
     enum Options {
         dumpTxrp = 1,

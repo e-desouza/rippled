@@ -1957,7 +1957,7 @@ NetworkOPsImp::checkLastClosedLedger(
 
     JLOG(m_journal.warn()) << "We are not running on the consensus ledger";
     JLOG(m_journal.info()) << "Our LCL: " << ourClosed->header().hash
-                           << getJson({*ourClosed, {}});
+                           << getJson(LedgerFill{*ourClosed});
     JLOG(m_journal.info()) << "Net LCL " << closedLedger;
 
     if ((mMode == OperatingMode::TRACKING) || (mMode == OperatingMode::FULL))

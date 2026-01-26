@@ -66,7 +66,11 @@ doLedgerData(RPC::JsonContext& context)
     {
         // Return base ledger data on first query
         jvResult[jss::ledger] = getJson(LedgerFill(
-            *lpLedger, &context, isBinary ? LedgerFill::Options::binary : 0));
+            *lpLedger,
+            &context.ledgerMaster,
+            context.apiVersion,
+            context.j,
+            isBinary ? LedgerFill::Options::binary : 0));
     }
 
     auto [rpcStatus, type] = RPC::chooseLedgerEntryType(params);
