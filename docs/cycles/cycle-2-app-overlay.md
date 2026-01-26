@@ -1,8 +1,8 @@
 # Cycle 2: xrpld.app ↔ xrpld.overlay
 
-## ⚠️ IMPLEMENTATION STATUS: TIER 1 COMPLETE
+## ⚠️ IMPLEMENTATION STATUS: TIER 2 IN PROGRESS
 
-**Progress:** overlay→app dependencies reduced from 29 to 12 (59% improvement)
+**Progress:** overlay→app dependencies reduced from 29 to 7 (76% improvement)
 **Cycle 4 (app→rpc):** Reduced from 15 to 2 (87% improvement)
 
 ### Implementation Phases Summary
@@ -12,8 +12,8 @@
 | Initial | Forward declarations, handler pattern setup | 35 → 29 |
 | Handler extraction | Message handlers moved to app module | 29 → 17 |
 | Tier 1 (COMPLETE) | Interface-based dependency inversion | 17 → 12 |
-| Tier 2 (PLANNED) | Medium risk interfaces | 12 → 3 |
-| Tier 3 (PLANNED) | Higher complexity | 3 → 0 |
+| Tier 2 (IN PROGRESS) | Medium risk interfaces | 12 → 7 |
+| Tier 3 (PLANNED) | Higher complexity | 7 → 0 |
 
 ### Tier 1 Commits (Interface-Based Dependency Inversion)
 
@@ -25,35 +25,40 @@
 | `1a8e49ca30` | getServerPorts() to Application (app→rpc) | 3→2 |
 | `a28f6142c7` | IOverlayOps + OverlayOpsHandler | 13→12 |
 
-### Remaining 12 Dependencies (After Tier 1)
+### Tier 2 Commits (Medium Risk Interfaces)
 
-| File | Include | Usage | Tier 2 Step |
-|------|---------|-------|-------------|
+| Commit | Description | Impact |
+|--------|-------------|--------|
+| `9d9c892818` | Extend IOverlayOps (ServerCounts, Wallet) | 12→10 |
+| `f10f47836b` | Wire IHashRouterOps into OverlayImpl | 10→9 |
+| `e8b192e40d` | Create IValidatorOps interface | 9→8 |
+| `3f98db1be8` | IOverlayProvider for lazy overlay access | 8→7 |
+
+### Remaining 7 Dependencies (After Tier 2 Step 5)
+
+| File | Include | Usage | Remaining Step |
+|------|---------|-------|----------------|
 | OverlayImpl.cpp | Application.h | config, journal, validators, manifests | 2.6.3 |
-| OverlayImpl.cpp | ServerCounts.h | `getCountsJson()` for crawl | 2.5.1 |
-| OverlayImpl.cpp | Wallet.h | `addValidatorManifest()` | 2.5.1 |
-| OverlayImpl.cpp | HashRouter.h | `shouldRelay()`, `addSuppression()` | 2.5.2 |
-| OverlayImpl.cpp | ValidatorList.h | `listed()`, `getJson()`, `getAvailable()` | 2.5.3 |
-| OverlayImpl.cpp | ValidatorSite.h | `getJson()` | 2.5.3 |
+| OverlayImpl.cpp | ValidatorList.h | `listed()`, `getJson()`, `getAvailable()` | Complex |
 | PeerImp.cpp | LedgerReplayMsgHandler.h | `processXxx()` methods | 2.6.1 |
 | PeerImp.cpp | InboundLedgers.h | `gotLedgerData()` | 2.5.6 |
 | PeerImp.cpp | InboundTransactions.h | `gotData()`, `getSet()` | 2.5.6 |
 | PeerImp.cpp | LedgerMaster.h | 15 calls, 7 distinct methods | 2.6.2 |
-| PeerImp.h | Application.h | `Application& app_` member | 2.5.4 |
-| PeerSet.cpp | Application.h | `overlay()`, `journal()` | 2.5.5 |
+| PeerImp.h | Application.h | `Application& app_` member | Complex |
 
-### Tier 2 Plan (Medium Risk)
+### Tier 2 Remaining Steps
 
 | Order | Step | Interface/Change | Impact |
 |-------|------|-----------------|--------|
-| 1 | 2.5.1 | Extend IOverlayOps (ServerCounts, Wallet) | 2 deps |
-| 2 | 2.5.2 | Create IHashRouterOps | 1 dep |
-| 3 | 2.5.3 | Create IValidatorOps (ValidatorList, ValidatorSite) | 2 deps |
-| 4 | 2.5.4 | Forward declare Application in PeerImp.h | 1 dep |
-| 5 | 2.5.5 | Inject Overlay& into PeerSet | 1 dep |
 | 6 | 2.5.6 | Create LedgerDataMessageHandler | 2 deps |
 
-**Expected result after Tier 2:** 12 → 3 dependencies
+**Expected result after Tier 2 Step 6:** 7 → 5 dependencies
+
+### Tier 2 Cancelled Steps
+
+| Step | Reason |
+|------|--------|
+| 2.5.4 | Forward declaring Application in PeerImp.h caused ConnectAttempt.cpp to need it directly, net increasing deps |
 
 ### Tier 3 Plan (Higher Complexity)
 
@@ -61,9 +66,11 @@
 |-------|------|-----------------|--------|
 | 1 | 2.6.1 | Create ILedgerReplayHandler | 1 dep |
 | 2 | 2.6.2 | Create ILedgerDataOps (LedgerMaster) | 1 dep |
-| 3 | 2.6.3 | Remove final Application.h | 1 dep |
+| 3 | 2.6.3 | Remove final Application.h (OverlayImpl.cpp) | 1 dep |
+| 4 | 2.6.4 | Remove ValidatorList.h (complex - many usages) | 1 dep |
+| 5 | 2.6.5 | Forward declare Application in PeerImp.h | 1 dep |
 
-**Expected result after Tier 3:** 3 → 0 dependencies (cycle fully broken)
+**Expected result after Tier 3:** 5 → 0 dependencies (cycle fully broken)
 
 ### Lessons Learned from Tier 1
 
