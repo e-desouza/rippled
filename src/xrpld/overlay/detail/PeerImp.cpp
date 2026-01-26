@@ -2,8 +2,8 @@
 #include <xrpld/app/ledger/InboundTransactions.h>
 #include <xrpld/app/ledger/LedgerMaster.h>
 #include <xrpld/app/ledger/detail/LedgerReplayMsgHandler.h>
-#include <xrpld/app/misc/LoadFeeTrack.h>
 #include <xrpld/overlay/Cluster.h>
+#include <xrpld/overlay/IFeeTrackOps.h>
 #include <xrpld/overlay/detail/PeerImp.h>
 #include <xrpld/overlay/detail/Tuning.h>
 #include <xrpld/overlay/detail/handlers/ProposalMessageHandler.h>
@@ -1254,7 +1254,7 @@ PeerImp::onMessage(std::shared_ptr<protocol::TMCluster> const& m)
         clusterFee = fees[index];
     }
 
-    app_.getFeeTrack().setClusterFee(clusterFee);
+    overlay_.feeTrackOps().setClusterFee(clusterFee);
 }
 
 void
@@ -2078,7 +2078,7 @@ PeerImp::doFetchPack(std::shared_ptr<protocol::TMGetObjectByHash> const& packet)
     // VFALCO TODO Invert this dependency using an observer and shared state
     // object. Don't queue fetch pack jobs if we're under load or we already
     // have some queued.
-    if (app_.getFeeTrack().isLoadedLocal() ||
+    if (overlay_.feeTrackOps().isLoadedLocal() ||
         (app_.getLedgerMaster().getValidatedLedgerAge() > 40s) ||
         (app_.getJobQueue().getJobCount(jtPACK) > 10))
     {
@@ -2368,7 +2368,7 @@ PeerImp::processLedgerRequest(std::shared_ptr<protocol::TMGetLedger> const& m)
                 << "processLedgerRequest: Large send queue";
             return;
         }
-        if (app_.getFeeTrack().isLoadedLocal() && !cluster())
+        if (overlay_.feeTrackOps().isLoadedLocal() && !cluster())
         {
             JLOG(p_journal_.debug()) << "processLedgerRequest: Too busy";
             return;

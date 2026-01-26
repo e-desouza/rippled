@@ -1,6 +1,8 @@
 #ifndef XRPL_OVERLAY_IFEETRACKOPS_H_INCLUDED
 #define XRPL_OVERLAY_IFEETRACKOPS_H_INCLUDED
 
+#include <cstdint>
+
 namespace xrpl {
 
 /** Interface for load fee tracking operations needed by the overlay.
@@ -19,6 +21,12 @@ public:
     */
     virtual bool
     isLoadedLocal() const = 0;
+
+    /** Set the cluster fee.
+        @param fee The fee to set for the cluster
+    */
+    virtual void
+    setClusterFee(std::uint32_t fee) = 0;
 };
 
 }  // namespace xrpl

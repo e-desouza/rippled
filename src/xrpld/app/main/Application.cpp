@@ -18,6 +18,7 @@
 #include <xrpld/app/misc/AmendmentTable.h>
 #include <xrpld/app/misc/LoadFeeTrack.h>
 #include <xrpld/app/misc/NetworkOPs.h>
+#include <xrpld/app/overlay/adapters/LoadFeeTrackAdapter.h>
 #include <xrpld/app/misc/SHAMapStore.h>
 #include <xrpld/app/paths/PathRequests.h>
 #include <xrpld/app/rdb/RelationalDatabase.h>
@@ -189,6 +190,7 @@ public:
     std::unique_ptr<ServerHandler> serverHandler_;
     std::unique_ptr<AmendmentTable> m_amendmentTable;
     std::unique_ptr<LoadFeeTrack> mFeeTrack;
+    std::unique_ptr<LoadFeeTrackAdapter> feeTrackAdapter_;
     std::unique_ptr<HashRouter> hashRouter_;
     RCLValidations mValidations;
     std::unique_ptr<LoadManager> m_loadManager;
@@ -421,6 +423,8 @@ public:
 
         , mFeeTrack(
               std::make_unique<LoadFeeTrack>(logs_->journal("LoadManager")))
+
+        , feeTrackAdapter_(std::make_unique<LoadFeeTrackAdapter>(*mFeeTrack))
 
         , hashRouter_(std::make_unique<HashRouter>(
               setup_HashRouter(*config_),
@@ -1378,7 +1382,8 @@ ApplicationImp::setup(boost::program_options::variables_map const& cmdline)
         *m_resolver,
         get_io_context(),
         *config_,
-        m_collectorManager->collector());
+        m_collectorManager->collector(),
+        *feeTrackAdapter_);
     add(*overlay_);  // add to PropertyStream
 
     // start first consensus round

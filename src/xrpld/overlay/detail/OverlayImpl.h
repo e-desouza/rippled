@@ -3,6 +3,7 @@
 
 namespace xrpl {
 class Application;
+class IFeeTrackOps;
 }
 
 #include <xrpld/overlay/Message.h>
@@ -119,6 +120,9 @@ private:
     // Protects the message and the sequence list of manifests
     std::mutex manifestLock_;
 
+    // Reference to fee track operations interface (owned by caller)
+    IFeeTrackOps& feeTrackOps_;
+
     //--------------------------------------------------------------------------
 
 public:
@@ -129,7 +133,8 @@ public:
         Resolver& resolver,
         boost::asio::io_context& io_context,
         BasicConfig const& config,
-        beast::insight::Collector::ptr const& collector);
+        beast::insight::Collector::ptr const& collector,
+        IFeeTrackOps& feeTrackOps);
 
     OverlayImpl(OverlayImpl const&) = delete;
     OverlayImpl&
@@ -157,6 +162,15 @@ public:
     setup() const
     {
         return setup_;
+    }
+
+    /** Get the fee track operations interface.
+        Used by PeerImp to check load status without depending on LoadFeeTrack.
+    */
+    IFeeTrackOps&
+    feeTrackOps()
+    {
+        return feeTrackOps_;
     }
 
     Handoff
