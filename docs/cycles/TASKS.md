@@ -205,6 +205,22 @@ This document tracks the execution of the refined implementation plans for remov
   - **Important:** This reduces header coupling but does NOT reduce levelization count
     because `PeerImp.cpp` still needs the complete type (include moved from .h to .cpp)
 
+**Analysis: Why Further Header Reduction is Difficult:**
+
+The remaining header-level dependencies in `PeerImp.h` cannot be easily removed:
+
+1. **`Application.h`** - Required because:
+   - `Ledger` type is used in method signatures (`sendLedgerBase`, `getLedger`)
+   - `.cpp` files that include `PeerImp.h` access `app_.config()`, `app_.cluster()`, etc.
+   - Would require extracting 50+ methods to interfaces
+
+2. **`RCLCxPeerPos.h`** - Required because:
+   - `RCLCxPeerPos` is passed by value to `checkPropose()`
+   - Changing to `const&` would require changes across 5+ interfaces (NetworkOPs, IConsensusCoordinator, etc.)
+
+**Conclusion for Step 2.2:**
+The low-hanging fruit has been picked (29→27 deps). Further reduction requires the interface extraction approach in Steps 2.3-2.5, which is a larger architectural change.
+
 ### Step 2.3: Move Message Handlers to App
 - [ ] Create `app/overlay/handlers/` directory
 - [ ] Extract validation message handling
