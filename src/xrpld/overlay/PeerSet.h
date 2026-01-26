@@ -1,11 +1,12 @@
 #ifndef XRPL_APP_PEERS_PEERSET_H_INCLUDED
 #define XRPL_APP_PEERS_PEERSET_H_INCLUDED
 
-#include <xrpld/app/main/Application.h>
 #include <xrpld/overlay/Peer.h>
 #include <xrpld/overlay/detail/ProtocolMessage.h>
 
 namespace xrpl {
+
+class Application;  // Forward declaration
 
 /** Supports data retrieval by managing a set of peers.
 
