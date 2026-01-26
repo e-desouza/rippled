@@ -675,7 +675,7 @@ OverlayImpl::onManifests(
                     mo->domain,
                     mo->serialized);
 
-                if (app_.validators().listed(mo->masterKey))
+                if (validatorOps_.isValidatorListed(mo->masterKey))
                 {
                     overlayOps_.saveValidatorManifest(serialized);
                 }
@@ -804,7 +804,7 @@ OverlayImpl::getServerCounts()
 Json::Value
 OverlayImpl::getUnlInfo()
 {
-    Json::Value validators = app_.validators().getJson();
+    Json::Value validators = validatorOps_.getValidatorsJson();
 
     if (validators.isMember(jss::publisher_lists))
     {

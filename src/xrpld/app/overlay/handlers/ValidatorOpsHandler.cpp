@@ -3,6 +3,8 @@
 #include <xrpld/app/validators/ValidatorSite.h>
 #include <xrpld/overlay/detail/handlers/ValidatorOpsHandler.h>
 
+#include <xrpl/protocol/PublicKey.h>
+
 namespace xrpl {
 
 ValidatorOpsHandler::ValidatorOpsHandler(Application& app) : app_(app)
@@ -21,6 +23,18 @@ Json::Value
 ValidatorOpsHandler::getValidatorSitesJson() const
 {
     return app_.validatorSites().getJson();
+}
+
+bool
+ValidatorOpsHandler::isValidatorListed(PublicKey const& identity) const
+{
+    return app_.validators().listed(identity);
+}
+
+Json::Value
+ValidatorOpsHandler::getValidatorsJson() const
+{
+    return app_.validators().getJson();
 }
 
 }  // namespace xrpl

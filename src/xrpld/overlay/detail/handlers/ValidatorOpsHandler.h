@@ -6,6 +6,7 @@
 namespace xrpl {
 
 class Application;
+class PublicKey;
 
 /**
  * Handler that implements IValidatorOps by delegating to ValidatorList
@@ -27,6 +28,12 @@ public:
 
     Json::Value
     getValidatorSitesJson() const override;
+
+    bool
+    isValidatorListed(PublicKey const& identity) const override;
+
+    Json::Value
+    getValidatorsJson() const override;
 };
 
 }  // namespace xrpl

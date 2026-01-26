@@ -9,6 +9,8 @@
 
 namespace xrpl {
 
+class PublicKey;
+
 /** Interface for validator operations needed by the overlay.
 
     This interface abstracts the ValidatorList and ValidatorSite
@@ -36,6 +38,19 @@ public:
     */
     virtual Json::Value
     getValidatorSitesJson() const = 0;
+
+    /** Check if a validator is listed (included on any lists).
+        @param identity Validation public key
+        @return true if the key is listed
+    */
+    virtual bool
+    isValidatorListed(PublicKey const& identity) const = 0;
+
+    /** Get JSON representation of validators (master keys, signing keys, UNL).
+        @return JSON object with validator information
+    */
+    virtual Json::Value
+    getValidatorsJson() const = 0;
 };
 
 }  // namespace xrpl
