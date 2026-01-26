@@ -1,10 +1,10 @@
 #include <xrpld/app/main/Application.h>
-#include <xrpld/app/txqueue/HashRouter.h>
 #include <xrpld/app/validators/ValidatorList.h>
 #include <xrpld/app/validators/ValidatorSite.h>
 #include <xrpld/overlay/Cluster.h>
 #include <xrpld/overlay/IFeeTrackOps.h>
 #include <xrpld/overlay/IHandshakeParams.h>
+#include <xrpld/overlay/IHashRouterOps.h>
 #include <xrpld/overlay/IOverlayOps.h>
 #include <xrpld/overlay/detail/ConnectAttempt.h>
 #include <xrpld/overlay/detail/PeerImp.h>
@@ -111,7 +111,8 @@ OverlayImpl::OverlayImpl(
     beast::insight::Collector::ptr const& collector,
     IFeeTrackOps& feeTrackOps,
     IHandshakeParams& handshakeParams,
-    IOverlayOps& overlayOps)
+    IOverlayOps& overlayOps,
+    IHashRouterOps& hashRouterOps)
     : app_(app)
     , io_context_(io_context)
     , work_(std::in_place, boost::asio::make_work_guard(io_context_))
@@ -132,6 +133,7 @@ OverlayImpl::OverlayImpl(
     , feeTrackOps_(feeTrackOps)
     , handshakeParams_(handshakeParams)
     , overlayOps_(overlayOps)
+    , hashRouterOps_(hashRouterOps)
     , m_stats(
           std::bind(&OverlayImpl::collect_metrics, this),
           collector,
@@ -1139,7 +1141,7 @@ OverlayImpl::relay(
     uint256 const& uid,
     PublicKey const& validator)
 {
-    if (auto const toSkip = app_.getHashRouter().shouldRelay(uid))
+    if (auto const toSkip = hashRouterOps_.shouldRelay(uid))
     {
         auto const sm =
             std::make_shared<Message>(m, protocol::mtPROPOSE_LEDGER, validator);
@@ -1165,7 +1167,7 @@ OverlayImpl::relay(
     uint256 const& uid,
     PublicKey const& validator)
 {
-    if (auto const toSkip = app_.getHashRouter().shouldRelay(uid))
+    if (auto const toSkip = hashRouterOps_.shouldRelay(uid))
     {
         auto const sm =
             std::make_shared<Message>(m, protocol::mtVALIDATION, validator);
@@ -1190,7 +1192,7 @@ OverlayImpl::getManifestsMessage()
 
         app_.validatorManifests().for_each_manifest(
             [&tm](std::size_t s) { tm.mutable_list()->Reserve(s); },
-            [&tm, &hr = app_.getHashRouter()](Manifest const& manifest) {
+            [&tm, &hr = hashRouterOps_](Manifest const& manifest) {
                 tm.add_list()->set_stobject(
                     manifest.serialized.data(), manifest.serialized.size());
                 hr.addSuppression(manifest.hash());
@@ -1620,7 +1622,8 @@ make_Overlay(
     beast::insight::Collector::ptr const& collector,
     IFeeTrackOps& feeTrackOps,
     IHandshakeParams& handshakeParams,
-    IOverlayOps& overlayOps)
+    IOverlayOps& overlayOps,
+    IHashRouterOps& hashRouterOps)
 {
     return std::make_unique<OverlayImpl>(
         app,
@@ -1632,7 +1635,8 @@ make_Overlay(
         collector,
         feeTrackOps,
         handshakeParams,
-        overlayOps);
+        overlayOps,
+        hashRouterOps);
 }
 
 }  // namespace xrpl

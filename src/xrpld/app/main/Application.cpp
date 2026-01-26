@@ -18,11 +18,10 @@
 #include <xrpld/app/misc/AmendmentTable.h>
 #include <xrpld/app/misc/LoadFeeTrack.h>
 #include <xrpld/app/misc/NetworkOPs.h>
+#include <xrpld/app/misc/SHAMapStore.h>
 #include <xrpld/app/overlay/adapters/HandshakeParamsAdapter.h>
 #include <xrpld/app/overlay/adapters/LoadFeeTrackAdapter.h>
 #include <xrpld/app/overlay/adapters/PeerReservationStorageAdapter.h>
-#include <xrpld/overlay/detail/handlers/OverlayOpsHandler.h>
-#include <xrpld/app/misc/SHAMapStore.h>
 #include <xrpld/app/paths/PathRequests.h>
 #include <xrpld/app/rdb/RelationalDatabase.h>
 #include <xrpld/app/rdb/Wallet.h>
@@ -36,6 +35,8 @@
 #include <xrpld/overlay/Cluster.h>
 #include <xrpld/overlay/PeerReservationTable.h>
 #include <xrpld/overlay/PeerSet.h>
+#include <xrpld/overlay/detail/handlers/HashRouterOpsHandler.h>
+#include <xrpld/overlay/detail/handlers/OverlayOpsHandler.h>
 #include <xrpld/overlay/make_Overlay.h>
 #include <xrpld/rpc/GRPCServer.h>
 #include <xrpld/rpc/ServerHandler.h>
@@ -195,8 +196,10 @@ public:
     std::unique_ptr<LoadFeeTrack> mFeeTrack;
     std::unique_ptr<LoadFeeTrackAdapter> feeTrackAdapter_;
     std::unique_ptr<HandshakeParamsAdapter> handshakeParamsAdapter_;
-    std::unique_ptr<PeerReservationStorageAdapter> peerReservationStorageAdapter_;
+    std::unique_ptr<PeerReservationStorageAdapter>
+        peerReservationStorageAdapter_;
     std::unique_ptr<OverlayOpsHandler> overlayOpsHandler_;
+    std::unique_ptr<HashRouterOpsHandler> hashRouterOpsHandler_;
     std::unique_ptr<HashRouter> hashRouter_;
     RCLValidations mValidations;
     std::unique_ptr<LoadManager> m_loadManager;
@@ -432,13 +435,16 @@ public:
 
         , feeTrackAdapter_(std::make_unique<LoadFeeTrackAdapter>(*mFeeTrack))
 
-        , handshakeParamsAdapter_(std::make_unique<HandshakeParamsAdapter>(*this))
+        , handshakeParamsAdapter_(
+              std::make_unique<HandshakeParamsAdapter>(*this))
 
         , overlayOpsHandler_(std::make_unique<OverlayOpsHandler>(*this))
 
         , hashRouter_(std::make_unique<HashRouter>(
               setup_HashRouter(*config_),
               stopwatch()))
+
+        , hashRouterOpsHandler_(std::make_unique<HashRouterOpsHandler>(*this))
 
         , mValidations(
               ValidationParms(),
@@ -1403,7 +1409,8 @@ ApplicationImp::setup(boost::program_options::variables_map const& cmdline)
         m_collectorManager->collector(),
         *feeTrackAdapter_,
         *handshakeParamsAdapter_,
-        *overlayOpsHandler_);
+        *overlayOpsHandler_,
+        *hashRouterOpsHandler_);
     add(*overlay_);  // add to PropertyStream
 
     // start first consensus round

@@ -11,6 +11,7 @@ namespace xrpl {
 
 class IFeeTrackOps;
 class IHandshakeParams;
+class IHashRouterOps;
 class IOverlayOps;
 
 Overlay::Setup
@@ -28,7 +29,8 @@ make_Overlay(
     beast::insight::Collector::ptr const& collector,
     IFeeTrackOps& feeTrackOps,
     IHandshakeParams& handshakeParams,
-    IOverlayOps& overlayOps);
+    IOverlayOps& overlayOps,
+    IHashRouterOps& hashRouterOps);
 
 }  // namespace xrpl
 

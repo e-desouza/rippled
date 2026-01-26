@@ -4,8 +4,9 @@
 namespace xrpl {
 class Application;
 class IFeeTrackOps;
+class IHashRouterOps;
 class IOverlayOps;
-}
+}  // namespace xrpl
 
 #include <xrpld/overlay/Message.h>
 #include <xrpld/overlay/Overlay.h>
@@ -131,6 +132,9 @@ private:
     // Reference to overlay operations interface (owned by caller)
     IOverlayOps& overlayOps_;
 
+    // Reference to hash router operations interface (owned by caller)
+    IHashRouterOps& hashRouterOps_;
+
     //--------------------------------------------------------------------------
 
 public:
@@ -144,7 +148,8 @@ public:
         beast::insight::Collector::ptr const& collector,
         IFeeTrackOps& feeTrackOps,
         IHandshakeParams& handshakeParams,
-        IOverlayOps& overlayOps);
+        IOverlayOps& overlayOps,
+        IHashRouterOps& hashRouterOps);
 
     OverlayImpl(OverlayImpl const&) = delete;
     OverlayImpl&
