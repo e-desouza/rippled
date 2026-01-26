@@ -585,6 +585,12 @@ public:
         return *serverHandler_;
     }
 
+    std::vector<Port> const&
+    getServerPorts() const override
+    {
+        return serverHandler_->setup().ports;
+    }
+
     boost::asio::io_context&
     getIOContext() override
     {

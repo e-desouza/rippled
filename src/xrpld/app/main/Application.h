@@ -5,6 +5,7 @@
 #include <xrpld/overlay/PeerReservationTable.h>
 
 #include <xrpl/basics/TaggedCache.h>
+#include <xrpl/server/Port.h>
 #include <xrpl/beast/utility/PropertyStream.h>
 #include <xrpl/protocol/Protocol.h>
 #include <xrpl/shamap/TreeNodeCache.h>
@@ -206,6 +207,8 @@ public:
     getOrderBookDB() = 0;
     virtual ServerHandler&
     getServerHandler() = 0;
+    virtual std::vector<Port> const&
+    getServerPorts() const = 0;
     virtual TransactionMaster&
     getMasterTransaction() = 0;
     virtual perf::PerfLog&

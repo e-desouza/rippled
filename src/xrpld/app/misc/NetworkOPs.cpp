@@ -36,7 +36,7 @@
 #include <xrpl/protocol/BookChanges.h>
 #include <xrpl/protocol/CTID.h>
 #include <xrpl/protocol/MPTokenIssuanceID.h>
-#include <xrpld/rpc/ServerHandler.h>
+#include <xrpl/server/Port.h>
 
 #include <xrpl/basics/UptimeClock.h>
 #include <xrpl/basics/mulDiv.h>
@@ -2990,7 +2990,7 @@ NetworkOPsImp::getServerInfo(bool human, bool admin, bool counters)
     static_assert(std::is_sorted(std::begin(protocols), std::end(protocols)));
     {
         Json::Value ports{Json::arrayValue};
-        for (auto const& port : app_.getServerHandler().setup().ports)
+        for (auto const& port : app_.getServerPorts())
         {
             // Don't publish admin ports for non-admin users
             if (!admin &&

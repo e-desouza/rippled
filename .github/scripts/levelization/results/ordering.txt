@@ -182,6 +182,7 @@ xrpld.app > xrpl.net
 xrpld.app > xrpl.nodestore
 xrpld.app > xrpl.protocol
 xrpld.app > xrpl.resource
+xrpld.app > xrpl.server
 xrpld.app > xrpl.shamap
 xrpld.conditions > xrpl.basics
 xrpld.conditions > xrpl.protocol
