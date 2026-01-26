@@ -116,15 +116,59 @@ This document tracks the execution of the refined implementation plans for remov
 ## Phase 2: Cycle 2 (app↔overlay)
 
 ### Step 2.1: Classify Overlay→App Usage (Analysis)
-- [ ] Audit PeerImp.cpp
-- [ ] Audit OverlayImpl.cpp
-- [ ] Audit PeerSet.cpp
-- [ ] Audit Handshake.cpp
-- [ ] Audit PeerReservationTable.cpp
-- [ ] Document interface method lists
+- [x] Audit PeerImp.cpp
+- [x] Audit OverlayImpl.cpp
+- [x] Audit PeerSet.cpp
+- [x] Audit Handshake.cpp
+- [x] Audit PeerReservationTable.cpp
+- [x] Document interface method lists
 
-**Status:** Not Started  
+**Status:** ✅ COMPLETE
 **Notes:**
+
+#### PeerImp.cpp (11 app includes, 87 usage sites)
+| Interface Category | App Methods Used |
+|-------------------|------------------|
+| **IOverlayLedgerOps** | `LedgerMaster::getValidatedLedgerAge`, `getValidLedgerIndex`, `haveLedger`, `getLedgerByHash`, `getLedgerBySeq`, `getClosedLedger`, `addFetchPack`, `gotFetchPack`, `makeFetchPack`, `getEarliestFetch`, `getValidatedRules` |
+| **IOverlayTxOps** | `HashRouter::shouldProcess`, `addSuppressionPeer`, `addSuppressionPeerWithStatus`, `shouldRelay`, `setFlags`; `NetworkOPs::processTransaction`; `InboundTransactions::gotData`, `getSet` |
+| **IOverlayValidationOps** | `ValidatorList::for_each_available`, `sendValidatorList`, `parseBlobs` |
+| **IOverlayInboundOps** | `InboundLedgers::gotLedgerData` |
+| **IOverlayFeeOps** | `LoadFeeTrack::isLoadedLocal` |
+
+#### OverlayImpl.cpp (8 app includes)
+| Interface Category | App Methods Used |
+|-------------------|------------------|
+| **IOverlayAppInfo** | `Application` (general), `ServerCounts`, `NetworkOPs` |
+| **IOverlayValidatorOps** | `ValidatorList`, `ValidatorSite` |
+| **IOverlayHashOps** | `HashRouter` |
+| **IOverlayDbOps** | `RelationalDatabase`, `Wallet` |
+
+#### Handshake.cpp (2 app includes)
+| Interface Category | App Methods Used |
+|-------------------|------------------|
+| **IOverlayLedgerOps** | `LedgerMaster::getValidatedLedger`, `getClosedLedger` |
+| **IOverlayAppInfo** | `Application` (for ledger master access) |
+
+#### PeerReservationTable.cpp (2 app includes)
+| Interface Category | App Methods Used |
+|-------------------|------------------|
+| **IOverlayDbOps** | `RelationalDatabase`, `Wallet` |
+
+#### PeerSet.h/cpp (1 app include)
+| Interface Category | App Methods Used |
+|-------------------|------------------|
+| **IOverlayAppInfo** | `Application&` member for general access |
+
+---
+
+**Conclusion:** Need 6-7 interfaces to fully decouple:
+1. `IOverlayLedgerOps` - Ledger access and management
+2. `IOverlayTxOps` - Transaction routing, hash router, inbound txs
+3. `IOverlayValidationOps` - Validator list operations
+4. `IOverlayInboundOps` - Inbound ledger data handling
+5. `IOverlayFeeOps` - Load fee tracking
+6. `IOverlayDbOps` - Database and wallet access
+7. `IOverlayAppInfo` - General app info (optional, may inline)
 
 ### Step 2.2: Define Overlay Dependency Interfaces
 - [ ] Create `IOverlayLedgerOps.h`
