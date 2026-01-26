@@ -1,14 +1,14 @@
 # Levelization Tasks - Cycle Removal Execution Plan
 
 **Created:** 2026-01-26
-**Last Updated:** 2026-01-26 (continued session - ProposalMessageHandler)
-**Status:** In Progress - Cycle 4 at 80%, Cycle 2 at 21%
+**Last Updated:** 2026-01-26 (continued session - StatusChangeMessageHandler)
+**Status:** In Progress - Cycle 4 at 80%, Cycle 2 at 31%
 
 ## Overview
 
 This document tracks the execution of the refined implementation plans for removing the remaining dependency cycles:
 - **Cycle 4: app↔rpc** — Started at 15 deps, **now at 3 deps** (80% reduction)
-- **Cycle 2: app↔overlay** — Started at 29 deps, **now at 22 deps** (24% reduction)
+- **Cycle 2: app↔overlay** — Started at 29 deps, **now at 20 deps** (31% reduction)
 
 ---
 
@@ -231,8 +231,8 @@ The low-hanging fruit has been picked (29→27 deps). Further reduction requires
 - [ ] Run levelization check
 - [ ] Commit
 
-**Status:** ✅ COMPLETE (27→22 deps)
-**Commits:** `1531f3ad96`, `b9e14bca93`, `242bacd321`, `339111374b`, `3aa7e5ebb0`
+**Status:** ✅ COMPLETE (27→20 deps)
+**Commits:** `1531f3ad96`, `b9e14bca93`, `242bacd321`, `339111374b`, `3aa7e5ebb0`, `0b8794e537`, `6946f36d87`
 **Notes:**
 
 **Completed: Wired up ValidationMessageHandler delegation**
@@ -269,11 +269,30 @@ The low-hanging fruit has been picked (29→27 deps). Further reduction requires
 - Removed include from `PeerImp.h`
 - **Dependencies reduced: 23→22**
 
-**Remaining includes in PeerImp.cpp:**
-- `InboundLedgers.h`, `InboundTransactions.h`, `LedgerMaster.h` - core ledger operations
+**Completed: Created ValidatorListPropagationHandler**
+- Extracted validator list propagation code from `PeerImp::onActivate()` to handler
+- Created `ValidatorListPropagationHandler.h` in `overlay/detail/handlers/`
+- Created `ValidatorListPropagationHandler.cpp` in `app/overlay/handlers/`
+- Removed `ValidatorList.h` include from PeerImp.cpp
+- **Dependencies reduced: 22→21**
+- **Commit:** `0b8794e537`
+
+**Completed: Created StatusChangeMessageHandler**
+- Extracted `pubPeerStatus` call from `PeerImp::onMessage(TMStatusChange)` to handler
+- Created `StatusChangeMessageHandler.h` in `overlay/detail/handlers/`
+- Created `StatusChangeMessageHandler.cpp` in `app/overlay/handlers/`
+- Removed `NetworkOPs.h` include from PeerImp.cpp
+- Added explicit `JobQueue.h` include (xrpl.core, not app dependency)
+- **Dependencies reduced: 21→20**
+- **Commit:** `6946f36d87`
+
+**Remaining includes in PeerImp.cpp (6 app deps):**
+- `InboundLedgers.h` - ledger fetching
+- `InboundTransactions.h` - transaction fetching
+- `LedgerMaster.h` - ledger state access (used extensively)
 - `LedgerReplayMsgHandler.h` - ledger replay handling
-- `LoadFeeTrack.h`, `NetworkOPs.h`, `HashRouter.h` - various app services
-- `ValidatorList.h` - validator operations
+- `LoadFeeTrack.h` - fee tracking
+- `HashRouter.h` - message routing
 - These are deeply integrated and would require major architectural changes to remove
 
 ### Step 2.4: Introduce OverlayDeps and Refactor Constructors
@@ -349,4 +368,6 @@ The low-hanging fruit has been picked (29→27 deps). Further reduction requires
 | `9b0c01edee` | [Levelization] Move checkValidation to ValidationMessageHandler | 2026-01-26 |
 | `339111374b` | [Levelization] Create ProposalMessageHandler | 2026-01-26 |
 | `3aa7e5ebb0` | [Levelization] Remove RCLCxPeerPos.h from PeerImp.h (23→22 deps) | 2026-01-26 |
+| `0b8794e537` | [Levelization] Create ValidatorListPropagationHandler (22→21 deps) | 2026-01-26 |
+| `6946f36d87` | [Levelization] Create StatusChangeMessageHandler (21→20 deps) | 2026-01-26 |
 
