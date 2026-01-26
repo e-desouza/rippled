@@ -4,10 +4,10 @@
 #include <xrpld/app/paths/AccountCurrencies.h>
 #include <xrpld/app/paths/PathRequest.h>
 #include <xrpld/app/paths/PathRequests.h>
+#include <xrpld/app/paths/PathTuning.h>
 #include <xrpld/app/paths/RippleCalc.h>
 #include <xrpld/app/paths/detail/PathfinderUtils.h>
 #include <xrpld/core/Config.h>
-#include <xrpld/rpc/detail/Tuning.h>
 
 #include <xrpl/basics/Log.h>
 #include <xrpl/beast/core/LexicalCast.h>
@@ -330,7 +330,7 @@ PathRequest::parseJson(Json::Value const& jvParams)
     {
         Json::Value const& jvSrcCurrencies = jvParams[jss::source_currencies];
         if (!jvSrcCurrencies.isArray() || jvSrcCurrencies.size() == 0 ||
-            jvSrcCurrencies.size() > RPC::Tuning::max_src_cur)
+            jvSrcCurrencies.size() > PathTuning::maxSourceCurrencies)
         {
             jvStatus = rpcError(rpcSRC_CUR_MALFORMED);
             return PFR_PJ_INVALID;
@@ -507,7 +507,7 @@ PathRequest::findPaths(
         {
             if (!sameAccount || c != saDstAmount.getCurrency())
             {
-                if (sourceCurrencies.size() >= RPC::Tuning::max_auto_src_cur)
+                if (sourceCurrencies.size() >= PathTuning::maxAutoSourceCurrencies)
                     return false;
                 sourceCurrencies.insert(
                     {c, c.isZero() ? xrpAccount() : *raSrcAccount});
