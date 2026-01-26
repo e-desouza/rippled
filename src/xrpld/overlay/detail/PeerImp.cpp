@@ -3,7 +3,6 @@
 #include <xrpld/app/ledger/LedgerMaster.h>
 #include <xrpld/app/ledger/detail/LedgerReplayMsgHandler.h>
 #include <xrpld/app/misc/LoadFeeTrack.h>
-#include <xrpld/app/txqueue/HashRouter.h>
 #include <xrpld/overlay/Cluster.h>
 #include <xrpld/overlay/detail/PeerImp.h>
 #include <xrpld/overlay/detail/Tuning.h>
