@@ -12,6 +12,25 @@
 
 namespace xrpl {
 
+// Backward-compatible constructor that takes RPC::Context
+LedgerFill::LedgerFill(
+    ReadView const& l,
+    RPC::Context const* ctx,
+    int o,
+    std::vector<TxQ::TxDetails> q)
+    : ledger(l)
+    , options(o)
+    , txQueue(std::move(q))
+    , apiVersion(ctx ? ctx->apiVersion : RPC::apiMaximumSupportedVersion)
+    , j(ctx ? ctx->j : beast::Journal{beast::Journal::getNullSink()})
+{
+    if (ctx)
+    {
+        closeTime = ctx->ledgerMaster.getCloseTimeBySeq(ledger.seq());
+        validated = ctx->ledgerMaster.isValidated(ledger);
+    }
+}
+
 namespace {
 
 bool
@@ -108,22 +127,22 @@ fillJsonTx(
     if (bBinary)
     {
         txJson[jss::tx_blob] = serializeHex(*txn);
-        if (fill.context->apiVersion > 1)
+        if (fill.apiVersion > 1)
             txJson[jss::hash] = to_string(txn->getTransactionID());
 
         auto const json_meta =
-            (fill.context->apiVersion > 1 ? jss::meta_blob : jss::meta);
+            (fill.apiVersion > 1 ? jss::meta_blob : jss::meta);
         if (stMeta)
             txJson[json_meta] = serializeHex(*stMeta);
     }
-    else if (fill.context->apiVersion > 1)
+    else if (fill.apiVersion > 1)
     {
         copyFrom(
             txJson[jss::tx_json],
             txn->getJson(JsonOptions::disable_API_prior_V2, false));
         txJson[jss::hash] = to_string(txn->getTransactionID());
         RPC::insertDeliverMax(
-            txJson[jss::tx_json], txnType, fill.context->apiVersion);
+            txJson[jss::tx_json], txnType, fill.apiVersion);
 
         if (stMeta)
         {
@@ -147,8 +166,7 @@ fillJsonTx(
         if (!fill.ledger.open())
             txJson[jss::ledger_hash] = to_string(fill.ledger.header().hash);
 
-        bool const validated =
-            fill.context->ledgerMaster.isValidated(fill.ledger);
+        bool const validated = fill.validated.value_or(false);
         txJson[jss::validated] = validated;
         if (validated)
         {
@@ -161,7 +179,7 @@ fillJsonTx(
     else
     {
         copyFrom(txJson, txn->getJson(JsonOptions::none));
-        RPC::insertDeliverMax(txJson, txnType, fill.context->apiVersion);
+        RPC::insertDeliverMax(txJson, txnType, fill.apiVersion);
         if (stMeta)
         {
             txJson[jss::metaData] = stMeta->getJson(JsonOptions::none);
@@ -227,11 +245,8 @@ fillJsonTx(Json::Value& json, LedgerFill const& fill)
     catch (std::exception const& ex)
     {
         // Nothing the user can do about this.
-        if (fill.context)
-        {
-            JLOG(fill.context->j.error())
-                << "Exception in " << __func__ << ": " << ex.what();
-        }
+        JLOG(fill.j.error())
+            << "Exception in " << __func__ << ": " << ex.what();
     }
 }
 
@@ -285,7 +300,7 @@ fillJsonQueue(Json::Value& json, LedgerFill const& fill)
             txJson["last_result"] = transToken(*tx.lastResult);
 
         auto&& temp = fillJsonTx(fill, bBinary, bExpanded, tx.txn, nullptr);
-        if (fill.context->apiVersion > 1)
+        if (fill.apiVersion > 1)
             copyFrom(txJson, temp);
         else
             copyFrom(txJson[jss::tx], temp);
@@ -306,8 +321,7 @@ fillJson(Json::Value& json, LedgerFill const& fill)
             !fill.ledger.open(),
             fill.ledger.header(),
             bFull,
-            (fill.context ? fill.context->apiVersion
-                          : RPC::apiMaximumSupportedVersion));
+            fill.apiVersion);
 
     if (bFull || fill.options & LedgerFill::dumpTxrp)
         fillJsonTx(json, fill);

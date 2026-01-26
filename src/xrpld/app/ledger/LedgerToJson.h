@@ -4,25 +4,48 @@
 #include <xrpld/app/ledger/Ledger.h>
 #include <xrpld/app/ledger/LedgerMaster.h>
 #include <xrpld/app/txqueue/TxQ.h>
-#include <xrpld/rpc/Context.h>
 
 #include <xrpl/basics/chrono.h>
+#include <xrpl/beast/utility/Journal.h>
+#include <xrpl/protocol/ApiVersion.h>
 #include <xrpl/protocol/serialize.h>
 
 namespace xrpl {
 
+namespace RPC {
+struct Context;  // Forward declaration for backward compatibility
+}
+
 struct LedgerFill
 {
+    // Primary constructor - takes explicit parameters (preferred)
+    LedgerFill(
+        ReadView const& l,
+        LedgerMaster* lm,
+        unsigned int apiVer,
+        beast::Journal journal = beast::Journal{beast::Journal::getNullSink()},
+        int o = 0,
+        std::vector<TxQ::TxDetails> q = {})
+        : ledger(l)
+        , options(o)
+        , txQueue(std::move(q))
+        , apiVersion(apiVer)
+        , j(journal)
+    {
+        if (lm)
+        {
+            closeTime = lm->getCloseTimeBySeq(ledger.seq());
+            validated = lm->isValidated(ledger);
+        }
+    }
+
+    // Backward-compatible constructor for RPC context
+    // DEPRECATED: Use the primary constructor instead
     LedgerFill(
         ReadView const& l,
         RPC::Context const* ctx,
         int o = 0,
-        std::vector<TxQ::TxDetails> q = {})
-        : ledger(l), options(o), txQueue(std::move(q)), context(ctx)
-    {
-        if (context)
-            closeTime = context->ledgerMaster.getCloseTimeBySeq(ledger.seq());
-    }
+        std::vector<TxQ::TxDetails> q = {});
 
     enum Options {
         dumpTxrp = 1,
@@ -37,8 +60,10 @@ struct LedgerFill
     ReadView const& ledger;
     int options;
     std::vector<TxQ::TxDetails> txQueue;
-    RPC::Context const* context;
+    unsigned int apiVersion{RPC::apiMaximumSupportedVersion};
+    beast::Journal j;
     std::optional<NetClock::time_point> closeTime;
+    std::optional<bool> validated;
 };
 
 /** Given a Ledger and options, fill a Json::Value with a
