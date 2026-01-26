@@ -171,16 +171,30 @@ This document tracks the execution of the refined implementation plans for remov
 7. `IOverlayAppInfo` - General app info (optional, may inline)
 
 ### Step 2.2: Define Overlay Dependency Interfaces
+- [x] Extract `HashRouterFlags` to `include/xrpl/basics/HashRouterFlags.h`
+- [x] Update `PeerImp.h` to use shared flags header (removes 1 app include)
+- [x] Create `IHashRouterOps.h` interface skeleton
+- [x] Create `IFeeTrackOps.h` interface skeleton
+- [x] Replace `Application.h` include with forward declaration in `PeerSet.h`
 - [ ] Create `IOverlayLedgerOps.h`
 - [ ] Create `IOverlayTxOps.h`
 - [ ] Create `IOverlayValidationOps.h`
 - [ ] Create `IOverlayReservationOps.h`
-- [ ] Create `OverlayDeps.h`
+- [ ] Create `OverlayDeps.h` aggregate
 - [ ] Build and verify
 - [ ] Commit
 
-**Status:** Not Started  
+**Status:** 🔄 IN PROGRESS (29→27 deps, 7% reduction)
 **Notes:**
+- Committed `6a77611371`: HashRouterFlags extraction, dependency 29→28
+- Committed `62d7deb388`: PeerSet.h forward declaration, dependency 28→27
+- Key challenges identified:
+  1. `Ledger` type returned by LedgerMaster methods (would need `ReadView const*`)
+  2. `makeFetchPack(weak_ptr<Peer>)` creates reverse dependency app→overlay
+  3. `LedgerReplayMsgHandler` is a value member in PeerImp.h (requires full type)
+  4. `RCLCxPeerPos` passed by value (requires full type)
+- Header-level deps remaining in PeerImp.h: RCLCxPeerPos.h, LedgerReplayMsgHandler.h, Application.h
+- Alternative approach: focus on moving more includes from headers to .cpp files
 
 ### Step 2.3: Move Message Handlers to App
 - [ ] Create `app/overlay/handlers/` directory
