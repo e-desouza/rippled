@@ -2,13 +2,13 @@
 
 **Created:** 2026-01-26
 **Last Updated:** 2026-01-26 (continued session)
-**Status:** In Progress - Cycle 4 at 80%, Cycle 2 at 14%
+**Status:** In Progress - Cycle 4 at 80%, Cycle 2 at 21%
 
 ## Overview
 
 This document tracks the execution of the refined implementation plans for removing the remaining dependency cycles:
 - **Cycle 4: app↔rpc** — Started at 15 deps, **now at 3 deps** (80% reduction)
-- **Cycle 2: app↔overlay** — Started at 29 deps, **now at 25 deps** (14% reduction)
+- **Cycle 2: app↔overlay** — Started at 29 deps, **now at 23 deps** (21% reduction)
 
 ---
 
@@ -231,8 +231,8 @@ The low-hanging fruit has been picked (29→27 deps). Further reduction requires
 - [ ] Run levelization check
 - [ ] Commit
 
-**Status:** ✅ COMPLETE (27→25 deps)
-**Commits:** `1531f3ad96`, `b9e14bca93`
+**Status:** ✅ COMPLETE (27→23 deps)
+**Commits:** `1531f3ad96`, `b9e14bca93`, `242bacd321`
 **Notes:**
 
 **Completed: Wired up ValidationMessageHandler delegation**
@@ -250,10 +250,18 @@ The low-hanging fruit has been picked (29→27 deps). Further reduction requires
 - Removed `apply.h` include from PeerImp.cpp (no longer needed)
 - **Dependencies reduced: 26→25**
 
-**Remaining includes in PeerImp.cpp that could potentially be removed:**
-- `Transaction.h` - still used by `getMasterTransaction().fetch_from_cache()` return type
-- `TransactionMaster.h` - still used by `handleHaveTransactions` and `doTransactions`
-- These would require additional handler extraction
+**Completed: Extended TransactionMessageHandler**
+- Added `handleHaveTransactions` and `doTransactions` methods
+- Moved these methods from PeerImp.cpp to TransactionMessageHandler.cpp
+- Removed `Transaction.h` and `TransactionMaster.h` includes from PeerImp.cpp
+- **Dependencies reduced: 25→23**
+
+**Remaining includes in PeerImp.cpp:**
+- `InboundLedgers.h`, `InboundTransactions.h`, `LedgerMaster.h` - core ledger operations
+- `LedgerReplayMsgHandler.h` - ledger replay handling
+- `LoadFeeTrack.h`, `NetworkOPs.h`, `HashRouter.h` - various app services
+- `ValidatorList.h` - validator operations
+- These are deeply integrated and would require major architectural changes to remove
 
 ### Step 2.4: Introduce OverlayDeps and Refactor Constructors
 - [ ] Update PeerImp constructor
@@ -318,4 +326,11 @@ The low-hanging fruit has been picked (29→27 deps). Further reduction requires
 | `3cffec86a0` | [Levelization] Extract path tuning constants to app/paths | 2026-01-26 |
 | `1e859a0ec7` | [Levelization] Extract JSON helpers to lower-level modules | 2026-01-26 |
 | `016920268a` | [Levelization] Decouple LedgerToJson.h from RPC::Context | 2026-01-26 |
+| `72377f773b` | [Levelization] Move GRPCServer to rpc module | 2026-01-26 |
+| `6a77611371` | [Levelization] Extract HashRouterFlags | 2026-01-26 |
+| `62d7deb388` | [Levelization] Forward-declare Application in PeerSet.h | 2026-01-26 |
+| `f8a0878fc9` | [Levelization] Forward-declare LedgerReplayMsgHandler in PeerImp.h | 2026-01-26 |
+| `1531f3ad96` | [Levelization] Wire up ValidationMessageHandler | 2026-01-26 |
+| `b9e14bca93` | [Levelization] Create TransactionMessageHandler | 2026-01-26 |
+| `242bacd321` | [Levelization] Extend TransactionMessageHandler (handleHaveTransactions, doTransactions) | 2026-01-26 |
 
