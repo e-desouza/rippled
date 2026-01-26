@@ -42,6 +42,34 @@
 3. **Refactor GRPCServer** - Move to rpc or use forward declarations
 4. **Extract path tuning constants** - Move to app/paths/
 
+### Refined Implementation Plan (2026-01-26)
+
+1. **Extract JSON helpers into lower-level modules**
+   - Move `BookChanges` to `xrpl/json/BookChanges.h` (pure JSON + ledger types).
+   - Split `DeliveredAmount` and `MPTokenIssuanceID` into:
+     - Context-free helper functions in `xrpl/json/...` (no `RPC::Context`).
+     - RPC wiring functions that remain in `src/xrpld/rpc/`, calling the helpers.
+
+2. **Decouple `LedgerToJson` from `RPC::Context`**
+   - Introduce an app-level `LedgerJsonOptions` struct in `app/ledger`.
+   - Change `LedgerToJson` to take `ReadView` + `LedgerJsonOptions` instead of `RPC::Context`.
+   - Add RPC-side helpers that read `RPC::Context` / request JSON, populate `LedgerJsonOptions`, and call the app-level ledger JSON functions.
+
+3. **Extract path tuning constants to app**
+   - Add `app/paths/PathTuning.h` with path-related limits/constants.
+   - Replace `rpc/detail/Tuning.h` includes in app (e.g., `PathRequest.cpp`) with `PathTuning.h`.
+   - Have rpc use `PathTuning.h` or a thin wrapper if needed.
+
+4. **Refactor HTTP/gRPC server wiring**
+   - Define small app-level interfaces (e.g., `IHttpServer`, `IGrpcServer`) that `Application` and `NetworkOPs` depend on.
+   - Implement these interfaces in `src/xrpld/rpc/` using existing `ServerHandler` / `GRPCServer` logic.
+   - Provide factory functions in rpc that construct concrete servers, returning `std::unique_ptr<IHttpServer>` / `std::unique_ptr<IGrpcServer>`; declare the factories in an app header, implement them in rpc.
+
+5. **Decouple `Main.cpp` from `RPCCall`**
+   - Introduce an app-visible façade function (e.g., `int rpcCliMain(int argc, char** argv);`) declared under `app/main/`.
+   - Implement `rpcCliMain` in `src/xrpld/rpc/` using existing `RPCCall` utilities.
+   - Update `Main.cpp` to call the façade instead of including `rpc/RPCCall.h`.
+
 ---
 
 ## Original State (Before Fixes)
@@ -128,6 +156,10 @@ These are pure utility functions that don't depend on RPC and are used by both a
 - `rpc/DeliveredAmount.h` → `xrpl/json/DeliveredAmount.h`
 - `rpc/MPTokenIssuanceID.h` → `xrpl/json/MPTokenIssuanceID.h`
 - `rpc/BookChanges.h` → `xrpl/json/BookChanges.h`
+
+> Note (2026-01-26): In practice this will be implemented by splitting
+> `DeliveredAmount` and `MPTokenIssuanceID` into rpc-agnostic core helpers and
+> RPC wiring functions rather than moving the entire headers.
 
 ### Step 3: Move LedgerDataProvider interface
 

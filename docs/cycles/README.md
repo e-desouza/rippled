@@ -49,6 +49,7 @@ Based on risk/effort analysis, here is the recommended order for removing cycles
   - Added missing includes for header self-containment
 - **Remaining Work:** 29 deps in .cpp files (PeerImp.cpp, OverlayImpl.cpp) accessing app subsystems. Requires creating overlay dependency interfaces and moving message handlers to app module.
 - **Doc:** [cycle-2-app-overlay.md](cycle-2-app-overlay.md)
+  - See the **Refined Implementation Plan** section in that doc for a phased interface-based refactor.
 
 ### Cycle 3: app↔peerfinder ✅ REMOVED
 
@@ -65,6 +66,7 @@ Based on risk/effort analysis, here is the recommended order for removing cycles
   - Extracted `LedgerShortcut` enum to `core/LedgerShortcut.h`
 - **Remaining Work:** 15 deps are deeply coupled (DeliveredAmount uses RPC::Context, GRPCServer needs 4 RPC headers). Requires major refactoring.
 - **Doc:** [cycle-4-app-rpc.md](cycle-4-app-rpc.md)
+  - See the **Refined Implementation Plan** section in that doc for details on JSON helper extraction, `LedgerToJson` decoupling, server wiring, and `Main`/`RPCCall` changes.
 
 ### Cycle 5: consensus↔overlay ✅ REMOVED
 

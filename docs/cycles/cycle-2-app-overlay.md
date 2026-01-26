@@ -2,7 +2,7 @@
 
 ## ⚠️ IMPLEMENTATION STATUS: PARTIAL
 
-**Progress:** overlay→app dependencies reduced from 35 to 29 (17% improvement)
+**Progress:** overlay→app dependencies reduced from 35 to 27 (23% improvement)
 
 ### Changes Made:
 
@@ -12,19 +12,39 @@
    - Added missing includes to `Handshake.h` for header self-containment (`base_uint.h`, `IPAddress.h`, `PublicKey.h`)
    - Kept Application.h include in `PeerImp.h` (required for inline template constructor)
 
-### Remaining Dependencies (29):
+2. **Commit `6a77611371`:** Extract HashRouterFlags to shared library
+   - Created `include/xrpl/basics/HashRouterFlags.h` with flags enum and operators
+   - Updated `PeerImp.h` to include shared header instead of `app/txqueue/HashRouter.h`
+   - Reduces overlay→app by 1 (29→28)
 
-The remaining dependencies are in `.cpp` implementation files, not headers:
+3. **Commit `62d7deb388`:** Forward declare Application in PeerSet.h
+   - Replaced `#include <xrpld/app/main/Application.h>` with forward declaration
+   - Reduces overlay→app by 1 (28→27)
+
+### Remaining Dependencies (27):
+
+The remaining dependencies are deeply integrated:
 
 | File | Includes | Why Difficult |
 |------|----------|---------------|
-| `PeerSet.h` | `app/main/Application.h` | Needed for `app_` member |
-| `PeerImp.h` | 4 app headers | Inline template requires Application definition |
+| `PeerImp.h` | 3 app headers | RCLCxPeerPos.h, LedgerReplayMsgHandler.h, Application.h |
 | `Handshake.cpp` | `app/ledger/LedgerMaster.h`, `app/main/Application.h` | Implementation needs ledger access |
 | `PeerReservationTable.cpp` | `app/rdb/RelationalDatabase.h`, `app/rdb/Wallet.h` | Database access |
 | `PeerSet.cpp` | `app/main/Application.h` | Implementation |
 | `PeerImp.cpp` | 11 app headers | Message handling, validations, ledger sync |
-| `OverlayImpl.cpp` | 9 app headers | Network ops, validators, database |
+| `OverlayImpl.cpp` | 8 app headers | Network ops, validators, database |
+
+### Blockers Identified:
+
+1. **LedgerReplayMsgHandler cannot use unique_ptr** - The inline template constructor in
+   `PeerImp.h` uses `std::make_unique<LedgerReplayMsgHandler>(...)`, which requires the
+   complete type at instantiation. Moving to `unique_ptr` fails with "allocation of incomplete type".
+
+2. **RCLCxPeerPos passed by value** - The `checkPropose()` method takes `RCLCxPeerPos` by value,
+   requiring the full type definition in the header.
+
+3. **Application reference deeply embedded** - Multiple overlay classes store `Application&` and
+   call methods throughout. Full decoupling requires 6-7 interfaces with 50+ methods total.
 
 ### Remaining Work Required:
 
@@ -40,6 +60,32 @@ The remaining dependencies are in `.cpp` implementation files, not headers:
 3. **Inject dependencies via constructor:**
    - Pass interfaces to Overlay/PeerImp instead of Application reference
    - This allows overlay to depend on interfaces, not app types
+
+### Refined Implementation Plan (2026-01-26)
+
+1. **Classify overlay→app usage by responsibility**
+   - For each of `PeerSet`, `PeerImp`, `OverlayImpl`, `Handshake`, and `PeerReservationTable`, record which app subsystems they touch (ledger, txs, validators, DB).
+   - Use this to decide which operations belong in ledger ops, tx ops, validation ops, or reservation/DB ops interfaces.
+
+2. **Introduce fine-grained overlay dependency interfaces**
+   - Define `IOverlayLedgerOps`, `IOverlayTxOps`, `IOverlayValidationOps`, and `IOverlayReservationOps` under `overlay/`, depending only on xrpl library types (no `Application`).
+   - Keep method sets minimal and cohesive, matching the classification from step 1.
+
+3. **Move message handlers to app module**
+   - Move validation and transaction message handling code (e.g., from `PeerImp.cpp`) into `app/overlay/handlers/`.
+   - Have overlay call these handlers via the new interfaces instead of directly using app types.
+
+4. **Introduce an `OverlayDeps` aggregate and inject it**
+   - Create an `OverlayDeps` struct that groups the interfaces overlay needs (ledger, tx, validation, reservation/DB).
+   - Change constructors of `PeerImp`, `PeerSet`, `OverlayImpl`, and related classes to take `OverlayDeps` (or references to the individual interfaces) instead of `Application&`.
+
+5. **Implement app-side adapters and wire them in `Application`**
+   - In the app module, implement the overlay interfaces by delegating to existing subsystems such as `LedgerMaster`, `NetworkOPs`, validators, and the relational database.
+   - Construct concrete implementations during `Application` startup and pass them to overlay when building `OverlayImpl`.
+
+6. **Clean up includes and re-run levelization**
+   - Remove direct includes of app headers from overlay sources where calls now go through the interfaces.
+   - Re-run the levelization tool to confirm that the `xrpld.app → xrpld.overlay` cycle is removed.
 
 ---
 
@@ -106,7 +152,7 @@ Create interfaces in `overlay/` that define what overlay needs from app:
 **New file:** `src/xrpld/overlay/IOverlayDeps.h`
 
 ```cpp
-namespace ripple {
+namespace xrpl {
 
 // Interface for ledger access from overlay
 class IOverlayLedgerProvider {
@@ -132,8 +178,13 @@ public:
     virtual void onValidation(std::shared_ptr<STValidation> const& val) = 0;
 };
 
-} // namespace ripple
+} // namespace xrpl
 ```
+
+> Note (2026-01-26): The actual implementation will use interfaces named
+> `IOverlayLedgerOps`, `IOverlayTxOps`, `IOverlayValidationOps`, and
+> `IOverlayReservationOps`, grouped via an `OverlayDeps` aggregate, as
+> described in the Refined Implementation Plan above.
 
 ### Step 2: Remove Application.h includes from overlay headers
 

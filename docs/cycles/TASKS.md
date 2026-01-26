@@ -196,6 +196,17 @@ This document tracks the execution of the refined implementation plans for remov
 - Header-level deps remaining in PeerImp.h: RCLCxPeerPos.h, LedgerReplayMsgHandler.h, Application.h
 - Alternative approach: focus on moving more includes from headers to .cpp files
 
+**Attempt Log:**
+- **FAILED: unique_ptr for LedgerReplayMsgHandler** - Attempted to change
+  `LedgerReplayMsgHandler ledgerReplayMsgHandler_` to `std::unique_ptr<LedgerReplayMsgHandler>`
+  to allow forward declaration. This failed because:
+  - The inline template constructor in `PeerImp.h` uses `std::make_unique<LedgerReplayMsgHandler>(...)`
+  - `std::make_unique` requires the complete type at the point of instantiation
+  - The template constructor is instantiated from `ConnectAttempt.cpp` which doesn't include `LedgerReplayMsgHandler.h`
+  - Error: "allocation of incomplete type 'xrpl::LedgerReplayMsgHandler'"
+  - **Solution would require:** Moving the template constructor implementation to a .cpp file,
+    which is a more invasive change affecting the compile-time instantiation pattern
+
 ### Step 2.3: Move Message Handlers to App
 - [ ] Create `app/overlay/handlers/` directory
 - [ ] Extract validation message handling
