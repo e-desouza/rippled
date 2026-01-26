@@ -13,7 +13,7 @@
 | Handler extraction | Message handlers moved to app module | 29 → 17 |
 | Tier 1 (COMPLETE) | Interface-based dependency inversion | 17 → 12 |
 | Tier 2 (COMPLETE) | Medium risk interfaces | 12 → 5 |
-| Tier 3 (IN PROGRESS) | Higher complexity | 5 → 4 (1 complete) |
+| Tier 3 (IN PROGRESS) | Higher complexity - interface extensions | 5 → 4 |
 
 ### Tier 1 Commits (Interface-Based Dependency Inversion)
 
@@ -57,7 +57,8 @@
 | Commit | Description | Impact |
 |--------|-------------|--------|
 | `2a08b18549` | ILedgerReplayMsgHandler + Factory | 5→4 |
-| `e0f96d5c60` | ILedgerMasterOps + Handler (LedgerMaster decoupling) | LedgerMaster.h→Ledger.h |
+| `b39b8171bb` | ILedgerMasterOps + Handler (LedgerMaster decoupling) | LedgerMaster.h→Ledger.h |
+| `16e448e5bb` | Extend IValidatorOps (isValidatorListed, getValidatorsJson) | Prep for 2.6.4 |
 
 ### Tier 3 Plan (Higher Complexity)
 
@@ -65,12 +66,15 @@
 |-------|------|-----------------|--------|--------|
 | 1 | 2.6.1 | Create ILedgerReplayMsgHandler | ✅ DONE | 5→4 |
 | 2 | 2.6.2 | Create ILedgerMasterOps (LedgerMaster methods) | ✅ DONE | Replaced LedgerMaster.h with Ledger.h |
-| 3 | 2.6.3 | Remove final Application.h (OverlayImpl.cpp) | PENDING | 1 dep |
-| 4 | 2.6.4 | Remove ValidatorList.h (complex - many usages) | PENDING | 1 dep |
-| 5 | 2.6.5 | Forward declare Application in PeerImp.h | PENDING | 1 dep |
-| 6 | 2.6.6 | Abstract Ledger type from PeerImp.cpp | PENDING | 1 dep |
+| 3 | 2.6.3 | Remove final Application.h (OverlayImpl.cpp) | ❌ CANCELLED | Too many app_ usages |
+| 4 | 2.6.4 | Extend IValidatorOps, remove ValidatorList.h | 🔄 PARTIAL | Interface extended, can't remove include (ManifestCache deps) |
+| 5 | 2.6.5 | Forward declare Application in PeerImp.h | ❌ CANCELLED | Same issue as 2.5.4 - moves dep, doesn't remove it |
+| 6 | 2.6.6 | Abstract Ledger type from PeerImp.cpp | NOT STARTED | 1 dep |
 
-**Expected result after Tier 3:** 4 → 0 dependencies (cycle fully broken)
+**Current State:** 4 remaining dependencies. Further reduction requires:
+- Creating IManifestOps for ManifestCache operations (to remove ValidatorList.h)
+- Creating ILedgerOps interface for Ledger type (to remove Ledger.h from PeerImp.cpp)
+- Major refactoring of Application.h dependencies (many usages throughout overlay)
 
 ### Lessons Learned from Tier 1
 
