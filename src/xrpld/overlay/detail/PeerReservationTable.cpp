@@ -1,4 +1,3 @@
-#include <xrpld/app/rdb/RelationalDatabase.h>
 #include <xrpld/app/rdb/Wallet.h>
 #include <xrpld/overlay/PeerReservationTable.h>
 
