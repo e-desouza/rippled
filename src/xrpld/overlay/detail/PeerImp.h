@@ -38,8 +38,9 @@ namespace xrpl {
 
 struct ValidatorBlobInfo;
 class SHAMap;
-class ValidationMessageHandler;
 class LedgerReplayMsgHandler;
+class TransactionMessageHandler;
+class ValidationMessageHandler;
 
 /**
  * @class PeerImp
@@ -264,6 +265,7 @@ private:
     std::unique_ptr<LedgerReplayMsgHandler> ledgerReplayMsgHandler_;
 
     friend class OverlayImpl;
+    friend class TransactionMessageHandler;
     friend class ValidationMessageHandler;
 
     class Metrics

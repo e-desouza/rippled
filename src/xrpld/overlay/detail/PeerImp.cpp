@@ -6,12 +6,12 @@
 #include <xrpld/app/misc/LoadFeeTrack.h>
 #include <xrpld/app/misc/NetworkOPs.h>
 #include <xrpld/app/misc/Transaction.h>
-#include <xrpld/app/tx/apply.h>
 #include <xrpld/app/txqueue/HashRouter.h>
 #include <xrpld/app/validators/ValidatorList.h>
 #include <xrpld/overlay/Cluster.h>
 #include <xrpld/overlay/detail/PeerImp.h>
 #include <xrpld/overlay/detail/Tuning.h>
+#include <xrpld/overlay/detail/handlers/TransactionMessageHandler.h>
 #include <xrpld/overlay/detail/handlers/ValidationMessageHandler.h>
 
 #include <xrpl/basics/UptimeClock.h>
@@ -1336,144 +1336,9 @@ PeerImp::onMessage(std::shared_ptr<protocol::TMEndpoints> const& m)
 void
 PeerImp::onMessage(std::shared_ptr<protocol::TMTransaction> const& m)
 {
-    handleTransaction(m, true, false);
-}
-
-void
-PeerImp::handleTransaction(
-    std::shared_ptr<protocol::TMTransaction> const& m,
-    bool eraseTxQueue,
-    bool batch)
-{
-    XRPL_ASSERT(
-        eraseTxQueue != batch,
-        ("xrpl::PeerImp::handleTransaction : valid inputs"));
-    if (tracking_.load() == Tracking::diverged)
-        return;
-
-    if (app_.getOPs().isNeedNetworkLedger())
-    {
-        // If we've never been in synch, there's nothing we can do
-        // with a transaction
-        JLOG(p_journal_.debug())
-            << "Ignoring incoming transaction: Need network ledger";
-        return;
-    }
-
-    SerialIter sit(makeSlice(m->rawtransaction()));
-
-    try
-    {
-        auto stx = std::make_shared<STTx const>(sit);
-        uint256 txID = stx->getTransactionID();
-
-        // Charge strongly for attempting to relay a txn with tfInnerBatchTxn
-        // LCOV_EXCL_START
-        /*
-           There is no need to check whether the featureBatch amendment is
-           enabled.
-
-           * If the `tfInnerBatchTxn` flag is set, and the amendment is
-           enabled, then it's an invalid transaction because inner batch
-           transactions should not be relayed.
-           * If the `tfInnerBatchTxn` flag is set, and the amendment is *not*
-           enabled, then the transaction is malformed because it's using an
-           "unknown" flag. There's no need to waste the resources to send it
-           to the transaction engine.
-
-           We don't normally check transaction validity at this level, but
-           since we _need_ to check it when the amendment is enabled, we may as
-           well drop it if the flag is set regardless.
-        */
-        if (stx->isFlag(tfInnerBatchTxn))
-        {
-            JLOG(p_journal_.warn()) << "Ignoring Network relayed Tx containing "
-                                       "tfInnerBatchTxn (handleTransaction).";
-            fee_.update(Resource::feeModerateBurdenPeer, "inner batch txn");
-            return;
-        }
-        // LCOV_EXCL_STOP
-
-        HashRouterFlags flags;
-        constexpr std::chrono::seconds tx_interval = 10s;
-
-        if (!app_.getHashRouter().shouldProcess(txID, id_, flags, tx_interval))
-        {
-            // we have seen this transaction recently
-            if (any(flags & HashRouterFlags::BAD))
-            {
-                fee_.update(Resource::feeUselessData, "known bad");
-                JLOG(p_journal_.debug()) << "Ignoring known bad tx " << txID;
-            }
-
-            // Erase only if the server has seen this tx. If the server has not
-            // seen this tx then the tx could not has been queued for this peer.
-            else if (eraseTxQueue && txReduceRelayEnabled())
-                removeTxQueue(txID);
-
-            overlay_.reportInboundTraffic(
-                TrafficCount::category::transaction_duplicate,
-                Message::messageSize(*m));
-
-            return;
-        }
-
-        JLOG(p_journal_.debug()) << "Got tx " << txID;
-
-        bool checkSignature = true;
-        if (cluster())
-        {
-            if (!m->has_deferred() || !m->deferred())
-            {
-                // Skip local checks if a server we trust
-                // put the transaction in its open ledger
-                flags |= HashRouterFlags::TRUSTED;
-            }
-
-            // for non-validator nodes only -- localPublicKey is set for
-            // validators only
-            if (!app_.getValidationPublicKey())
-            {
-                // For now, be paranoid and have each validator
-                // check each transaction, regardless of source
-                checkSignature = false;
-            }
-        }
-
-        if (app_.getLedgerMaster().getValidatedLedgerAge() > 4min)
-        {
-            JLOG(p_journal_.trace())
-                << "No new transactions until synchronized";
-        }
-        else if (
-            app_.getJobQueue().getJobCount(jtTRANSACTION) >
-            app_.config().MAX_TRANSACTIONS)
-        {
-            overlay_.incJqTransOverflow();
-            JLOG(p_journal_.info()) << "Transaction queue is full";
-        }
-        else
-        {
-            app_.getJobQueue().addJob(
-                jtTRANSACTION,
-                "RcvCheckTx",
-                [weak = std::weak_ptr<PeerImp>(shared_from_this()),
-                 flags,
-                 checkSignature,
-                 batch,
-                 stx]() {
-                    if (auto peer = weak.lock())
-                        peer->checkTransaction(
-                            flags, checkSignature, stx, batch);
-                });
-        }
-    }
-    catch (std::exception const& ex)
-    {
-        JLOG(p_journal_.warn())
-            << "Transaction invalid: " << strHex(m->rawtransaction())
-            << ". Exception: " << ex.what();
-    }
+    // Delegate to TransactionMessageHandler which has the implementation
+    // in the app module to avoid cycle dependencies
+    TransactionMessageHandler::onMessage(m, *this);
 }
 
 void
@@ -2385,25 +2250,9 @@ PeerImp::handleHaveTransactions(
 void
 PeerImp::onMessage(std::shared_ptr<protocol::TMTransactions> const& m)
 {
-    if (!txReduceRelayEnabled())
-    {
-        JLOG(p_journal_.error())
-            << "TMTransactions: tx reduce-relay is disabled";
-        fee_.update(Resource::feeMalformedRequest, "disabled");
-        return;
-    }
-
-    JLOG(p_journal_.trace())
-        << "received TMTransactions " << m->transactions_size();
-
-    overlay_.addTxMetrics(m->transactions_size());
-
-    for (std::uint32_t i = 0; i < m->transactions_size(); ++i)
-        handleTransaction(
-            std::shared_ptr<protocol::TMTransaction>(
-                m->mutable_transactions(i), [](protocol::TMTransaction*) {}),
-            false,
-            true);
+    // Delegate to TransactionMessageHandler which has the implementation
+    // in the app module to avoid cycle dependencies
+    TransactionMessageHandler::onMessage(m, *this);
 }
 
 void
@@ -2555,158 +2404,6 @@ PeerImp::doTransactions(
 
     if (reply.transactions_size() > 0)
         send(std::make_shared<Message>(reply, protocol::mtTRANSACTIONS));
-}
-
-void
-PeerImp::checkTransaction(
-    HashRouterFlags flags,
-    bool checkSignature,
-    std::shared_ptr<STTx const> const& stx,
-    bool batch)
-{
-    // VFALCO TODO Rewrite to not use exceptions
-    try
-    {
-        // charge strongly for relaying batch txns
-        // LCOV_EXCL_START
-        /*
-           There is no need to check whether the featureBatch amendment is
-           enabled.
-
-           * If the `tfInnerBatchTxn` flag is set, and the amendment is
-           enabled, then it's an invalid transaction because inner batch
-           transactions should not be relayed.
-           * If the `tfInnerBatchTxn` flag is set, and the amendment is *not*
-           enabled, then the transaction is malformed because it's using an
-           "unknown" flag. There's no need to waste the resources to send it
-           to the transaction engine.
-
-           We don't normally check transaction validity at this level, but
-           since we _need_ to check it when the amendment is enabled, we may as
-           well drop it if the flag is set regardless.
-        */
-        if (stx->isFlag(tfInnerBatchTxn))
-        {
-            JLOG(p_journal_.warn()) << "Ignoring Network relayed Tx containing "
-                                       "tfInnerBatchTxn (checkSignature).";
-            charge(Resource::feeModerateBurdenPeer, "inner batch txn");
-            return;
-        }
-        // LCOV_EXCL_STOP
-
-        // Expired?
-        if (stx->isFieldPresent(sfLastLedgerSequence) &&
-            (stx->getFieldU32(sfLastLedgerSequence) <
-             app_.getLedgerMaster().getValidLedgerIndex()))
-        {
-            JLOG(p_journal_.info())
-                << "Marking transaction " << stx->getTransactionID()
-                << "as BAD because it's expired";
-            app_.getHashRouter().setFlags(
-                stx->getTransactionID(), HashRouterFlags::BAD);
-            charge(Resource::feeUselessData, "expired tx");
-            return;
-        }
-
-        if (isPseudoTx(*stx))
-        {
-            // Don't do anything with pseudo transactions except put them in the
-            // TransactionMaster cache
-            std::string reason;
-            auto tx = std::make_shared<Transaction>(stx, reason, app_);
-            XRPL_ASSERT(
-                tx->getStatus() == NEW,
-                "xrpl::PeerImp::checkTransaction Transaction created "
-                "correctly");
-            if (tx->getStatus() == NEW)
-            {
-                JLOG(p_journal_.debug())
-                    << "Processing " << (batch ? "batch" : "unsolicited")
-                    << " pseudo-transaction tx " << tx->getID();
-
-                app_.getMasterTransaction().canonicalize(&tx);
-                // Tell the overlay about it, but don't relay it.
-                auto const toSkip =
-                    app_.getHashRouter().shouldRelay(tx->getID());
-                if (toSkip)
-                {
-                    JLOG(p_journal_.debug())
-                        << "Passing skipped pseudo pseudo-transaction tx "
-                        << tx->getID();
-                    app_.overlay().relay(tx->getID(), {}, *toSkip);
-                }
-                if (!batch)
-                {
-                    JLOG(p_journal_.debug())
-                        << "Charging for pseudo-transaction tx " << tx->getID();
-                    charge(Resource::feeUselessData, "pseudo tx");
-                }
-
-                return;
-            }
-        }
-
-        if (checkSignature)
-        {
-            // Check the signature before handing off to the job queue.
-            if (auto [valid, validReason] = checkValidity(
-                    app_.getHashRouter(),
-                    *stx,
-                    app_.getLedgerMaster().getValidatedRules(),
-                    app_.config());
-                valid != Validity::Valid)
-            {
-                if (!validReason.empty())
-                {
-                    JLOG(p_journal_.debug())
-                        << "Exception checking transaction: " << validReason;
-                }
-
-                // Probably not necessary to set HashRouterFlags::BAD, but
-                // doesn't hurt.
-                app_.getHashRouter().setFlags(
-                    stx->getTransactionID(), HashRouterFlags::BAD);
-                charge(
-                    Resource::feeInvalidSignature,
-                    "check transaction signature failure");
-                return;
-            }
-        }
-        else
-        {
-            forceValidity(
-                app_.getHashRouter(), stx->getTransactionID(), Validity::Valid);
-        }
-
-        std::string reason;
-        auto tx = std::make_shared<Transaction>(stx, reason, app_);
-
-        if (tx->getStatus() == INVALID)
-        {
-            if (!reason.empty())
-            {
-                JLOG(p_journal_.debug())
-                    << "Exception checking transaction: " << reason;
-            }
-            app_.getHashRouter().setFlags(
-                stx->getTransactionID(), HashRouterFlags::BAD);
-            charge(Resource::feeInvalidSignature, "tx (impossible)");
-            return;
-        }
-
-        bool const trusted = any(flags & HashRouterFlags::TRUSTED);
-        app_.getOPs().processTransaction(
-            tx, trusted, false, NetworkOPs::FailHard::no);
-    }
-    catch (std::exception const& ex)
-    {
-        JLOG(p_journal_.warn())
-            << "Exception in " << __func__ << ": " << ex.what();
-        app_.getHashRouter().setFlags(
-            stx->getTransactionID(), HashRouterFlags::BAD);
-        using namespace std::string_literals;
-        charge(Resource::feeInvalidData, "tx "s + ex.what());
-    }
 }
 
 // Called from our JobQueue
