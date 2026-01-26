@@ -12,6 +12,7 @@ namespace xrpl {
 class IFeeTrackOps;
 class IHandshakeParams;
 class IHashRouterOps;
+class ILedgerDataOps;
 class IOverlayOps;
 class IValidatorOps;
 
@@ -32,7 +33,8 @@ make_Overlay(
     IHandshakeParams& handshakeParams,
     IOverlayOps& overlayOps,
     IHashRouterOps& hashRouterOps,
-    IValidatorOps& validatorOps);
+    IValidatorOps& validatorOps,
+    ILedgerDataOps& ledgerDataOps);
 
 }  // namespace xrpl
 

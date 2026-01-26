@@ -4,6 +4,7 @@
 #include <xrpld/overlay/IFeeTrackOps.h>
 #include <xrpld/overlay/IHandshakeParams.h>
 #include <xrpld/overlay/IHashRouterOps.h>
+#include <xrpld/overlay/ILedgerDataOps.h>
 #include <xrpld/overlay/IOverlayOps.h>
 #include <xrpld/overlay/IValidatorOps.h>
 #include <xrpld/overlay/detail/ConnectAttempt.h>
@@ -113,7 +114,8 @@ OverlayImpl::OverlayImpl(
     IHandshakeParams& handshakeParams,
     IOverlayOps& overlayOps,
     IHashRouterOps& hashRouterOps,
-    IValidatorOps& validatorOps)
+    IValidatorOps& validatorOps,
+    ILedgerDataOps& ledgerDataOps)
     : app_(app)
     , io_context_(io_context)
     , work_(std::in_place, boost::asio::make_work_guard(io_context_))
@@ -136,6 +138,7 @@ OverlayImpl::OverlayImpl(
     , overlayOps_(overlayOps)
     , hashRouterOps_(hashRouterOps)
     , validatorOps_(validatorOps)
+    , ledgerDataOps_(ledgerDataOps)
     , m_stats(
           std::bind(&OverlayImpl::collect_metrics, this),
           collector,
@@ -1626,7 +1629,8 @@ make_Overlay(
     IHandshakeParams& handshakeParams,
     IOverlayOps& overlayOps,
     IHashRouterOps& hashRouterOps,
-    IValidatorOps& validatorOps)
+    IValidatorOps& validatorOps,
+    ILedgerDataOps& ledgerDataOps)
 {
     return std::make_unique<OverlayImpl>(
         app,
@@ -1640,7 +1644,8 @@ make_Overlay(
         handshakeParams,
         overlayOps,
         hashRouterOps,
-        validatorOps);
+        validatorOps,
+        ledgerDataOps);
 }
 
 }  // namespace xrpl

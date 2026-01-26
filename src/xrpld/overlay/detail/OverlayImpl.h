@@ -46,6 +46,7 @@ namespace xrpl {
 class PeerImp;
 class BasicConfig;
 class IHandshakeParams;
+class ILedgerDataOps;
 
 class OverlayImpl : public Overlay, public reduce_relay::SquelchHandler
 {
@@ -139,6 +140,9 @@ private:
     // Reference to validator operations interface (owned by caller)
     IValidatorOps& validatorOps_;
 
+    // Reference to ledger data operations interface (owned by caller)
+    ILedgerDataOps& ledgerDataOps_;
+
     //--------------------------------------------------------------------------
 
 public:
@@ -154,7 +158,8 @@ public:
         IHandshakeParams& handshakeParams,
         IOverlayOps& overlayOps,
         IHashRouterOps& hashRouterOps,
-        IValidatorOps& validatorOps);
+        IValidatorOps& validatorOps,
+        ILedgerDataOps& ledgerDataOps);
 
     OverlayImpl(OverlayImpl const&) = delete;
     OverlayImpl&
@@ -200,6 +205,16 @@ public:
     handshakeParams() const
     {
         return handshakeParams_;
+    }
+
+    /** Get the ledger data operations interface.
+        Used by PeerImp to handle ledger data without depending on
+        InboundLedgers/InboundTransactions.
+    */
+    ILedgerDataOps&
+    ledgerDataOps()
+    {
+        return ledgerDataOps_;
     }
 
     Handoff

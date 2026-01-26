@@ -36,6 +36,7 @@
 #include <xrpld/overlay/PeerReservationTable.h>
 #include <xrpld/overlay/PeerSet.h>
 #include <xrpld/overlay/detail/handlers/HashRouterOpsHandler.h>
+#include <xrpld/overlay/detail/handlers/LedgerDataOpsHandler.h>
 #include <xrpld/overlay/detail/handlers/OverlayOpsHandler.h>
 #include <xrpld/overlay/detail/handlers/ValidatorOpsHandler.h>
 #include <xrpld/overlay/make_Overlay.h>
@@ -202,6 +203,7 @@ public:
     std::unique_ptr<OverlayOpsHandler> overlayOpsHandler_;
     std::unique_ptr<HashRouterOpsHandler> hashRouterOpsHandler_;
     std::unique_ptr<ValidatorOpsHandler> validatorOpsHandler_;
+    std::unique_ptr<ILedgerDataOps> ledgerDataOpsHandler_;
     std::unique_ptr<HashRouter> hashRouter_;
     RCLValidations mValidations;
     std::unique_ptr<LoadManager> m_loadManager;
@@ -446,6 +448,8 @@ public:
         , hashRouterOpsHandler_(std::make_unique<HashRouterOpsHandler>(*this))
 
         , validatorOpsHandler_(std::make_unique<ValidatorOpsHandler>(*this))
+
+        , ledgerDataOpsHandler_(make_LedgerDataOpsHandler(*this))
 
         , mValidations(
               ValidationParms(),
@@ -1419,7 +1423,8 @@ ApplicationImp::setup(boost::program_options::variables_map const& cmdline)
         *handshakeParamsAdapter_,
         *overlayOpsHandler_,
         *hashRouterOpsHandler_,
-        *validatorOpsHandler_);
+        *validatorOpsHandler_,
+        *ledgerDataOpsHandler_);
     add(*overlay_);  // add to PropertyStream
 
     // Initialize LedgerReplayer now that overlay is available

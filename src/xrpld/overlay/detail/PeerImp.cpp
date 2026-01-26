@@ -1,9 +1,8 @@
-#include <xrpld/app/ledger/InboundLedgers.h>
-#include <xrpld/app/ledger/InboundTransactions.h>
 #include <xrpld/app/ledger/LedgerMaster.h>
 #include <xrpld/app/ledger/detail/LedgerReplayMsgHandler.h>
 #include <xrpld/overlay/Cluster.h>
 #include <xrpld/overlay/IFeeTrackOps.h>
+#include <xrpld/overlay/ILedgerDataOps.h>
 #include <xrpld/overlay/detail/PeerImp.h>
 #include <xrpld/overlay/detail/Tuning.h>
 #include <xrpld/overlay/detail/handlers/ProposalMessageHandler.h>
@@ -108,8 +107,9 @@ PeerImp::PeerImp(
           headers_,
           FEATURE_LEDGER_REPLAY,
           app_.config().LEDGER_REPLAY))
-    , ledgerReplayMsgHandler_(
-          std::make_unique<LedgerReplayMsgHandler>(app, app.getLedgerReplayer()))
+    , ledgerReplayMsgHandler_(std::make_unique<LedgerReplayMsgHandler>(
+          app,
+          app.getLedgerReplayer()))
 {
     JLOG(journal_.info())
         << "compression enabled " << (compressionEnabled_ == Compressed::On)
@@ -1596,7 +1596,7 @@ PeerImp::onMessage(std::shared_ptr<protocol::TMLedgerData> const& m)
             jtTXN_DATA, "RcvPeerData", [weak, ledgerHash, m]() {
                 if (auto peer = weak.lock())
                 {
-                    peer->app_.getInboundTransactions().gotData(
+                    peer->overlay_.ledgerDataOps().gotTransactionData(
                         ledgerHash, peer, m);
                 }
             });
@@ -1604,7 +1604,7 @@ PeerImp::onMessage(std::shared_ptr<protocol::TMLedgerData> const& m)
     }
 
     // Consume the message
-    app_.getInboundLedgers().gotLedgerData(ledgerHash, shared_from_this(), m);
+    overlay_.ledgerDataOps().gotLedgerData(ledgerHash, shared_from_this(), m);
 }
 
 void
@@ -2300,8 +2300,10 @@ PeerImp::getTxSet(std::shared_ptr<protocol::TMGetLedger> const& m) const
     JLOG(p_journal_.trace()) << "getTxSet: TX set";
 
     uint256 const txSetHash{m->ledgerhash()};
+    // Use const_cast since ledgerDataOps() access doesn't modify overlay state
     std::shared_ptr<SHAMap> shaMap{
-        app_.getInboundTransactions().getSet(txSetHash, false)};
+        const_cast<OverlayImpl&>(overlay_).ledgerDataOps().getTransactionSet(
+            txSetHash, false)};
     if (!shaMap)
     {
         if (m->has_querytype() && !m->has_requestcookie())
@@ -2657,8 +2659,9 @@ PeerImp::PeerImp(
           headers_,
           FEATURE_LEDGER_REPLAY,
           app_.config().LEDGER_REPLAY))
-    , ledgerReplayMsgHandler_(
-          std::make_unique<LedgerReplayMsgHandler>(app, app.getLedgerReplayer()))
+    , ledgerReplayMsgHandler_(std::make_unique<LedgerReplayMsgHandler>(
+          app,
+          app.getLedgerReplayer()))
 {
     read_buffer_.commit(boost::asio::buffer_copy(
         read_buffer_.prepare(boost::asio::buffer_size(buffers)), buffers));
@@ -2678,8 +2681,8 @@ PeerImp::PeerImp(
 template PeerImp::PeerImp(
     Application&,
     std::unique_ptr<stream_type>&&,
-    boost::beast::basic_multi_buffer<std::allocator<char>>::subrange<true>
-        const&,
+    boost::beast::basic_multi_buffer<std::allocator<char>>::subrange<
+        true> const&,
     std::shared_ptr<PeerFinder::Slot>&&,
     http_response_type&&,
     Resource::Consumer,
