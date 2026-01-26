@@ -1,7 +1,6 @@
 #ifndef XRPL_OVERLAY_PEERIMP_H_INCLUDED
 #define XRPL_OVERLAY_PEERIMP_H_INCLUDED
 
-#include <xrpld/app/consensus/RCLCxPeerPos.h>
 #include <xrpld/app/main/Application.h>
 
 #include <xrpl/basics/HashRouterFlags.h>
