@@ -97,6 +97,28 @@ Sub-agent B (remote):
   4. Check results: ssh edesouza@10.100.1.17 "tail -50 .../build.log"
 ```
 
+## Levelization / Cycle Detection
+
+**ALWAYS use the optimized script for levelization and cycle detection:**
+
+```bash
+.github/scripts/levelization/generate_fast.sh
+```
+
+**DO NOT use** the original `generate.sh` - it takes ~4 minutes vs ~0.5 seconds for the fast version.
+
+The fast script:
+- Uses awk for text processing instead of bash read loops
+- Performs O(n) cycle detection instead of O(n²) nested grep
+- Produces identical loop detection results
+- Results are in `.github/scripts/levelization/results/`
+
+Key output files:
+- `loops.txt` - Detected dependency cycles
+- `paths.txt` - Module dependency paths with counts
+- `ordering.txt` - Valid module ordering (no cycles)
+- `rawincludes.txt` - Raw include statements
+
 ## Build System
 
 ### Local Builds (Default)
