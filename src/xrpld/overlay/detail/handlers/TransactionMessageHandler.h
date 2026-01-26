@@ -94,6 +94,32 @@ public:
         std::shared_ptr<STTx const> const& stx,
         bool batch);
 
+    /**
+     * @brief Handle TMHaveTransactions message (called from job queue).
+     *
+     * Checks which transactions we have in cache and requests missing ones.
+     *
+     * @param peer The peer that received the message
+     * @param m The have transactions message
+     */
+    static void
+    handleHaveTransactions(
+        PeerImp& peer,
+        std::shared_ptr<protocol::TMHaveTransactions> const& m);
+
+    /**
+     * @brief Handle transaction requests from TMGetObjectByHash.
+     *
+     * Responds with requested transactions from the cache.
+     *
+     * @param peer The peer that received the message
+     * @param packet The get object by hash message
+     */
+    static void
+    doTransactions(
+        PeerImp& peer,
+        std::shared_ptr<protocol::TMGetObjectByHash> const& packet);
+
 private:
     // No state - all methods are static
     TransactionMessageHandler() = delete;

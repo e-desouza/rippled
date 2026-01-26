@@ -658,33 +658,6 @@ private:
     void
     onWriteMessage(error_code ec, std::size_t bytes_transferred);
 
-    /** Called from onMessage(TMTransaction(s)).
-       @param m Transaction protocol message
-       @param eraseTxQueue is true when called from onMessage(TMTransaction)
-       and is false when called from onMessage(TMTransactions). If true then
-       the transaction hash is erased from txQueue_. Don't need to erase from
-       the queue when called from onMessage(TMTransactions) because this
-       message is a response to the missing transactions request and the queue
-       would not have any of these transactions.
-       @param batch is false when called from onMessage(TMTransaction)
-       and is true when called from onMessage(TMTransactions). If true, then the
-       transaction is part of a batch, and should not be charged an extra fee.
-     */
-    void
-    handleTransaction(
-        std::shared_ptr<protocol::TMTransaction> const& m,
-        bool eraseTxQueue,
-        bool batch);
-
-    /** Handle protocol message with hashes of transactions that have not
-       been relayed by an upstream node down to its peers - request
-       transactions, which have not been relayed to this peer.
-       @param m protocol message with transactions' hashes
-     */
-    void
-    handleHaveTransactions(
-        std::shared_ptr<protocol::TMHaveTransactions> const& m);
-
     std::string const&
     fingerprint() const override
     {
@@ -774,20 +747,6 @@ private:
 
     void
     doFetchPack(std::shared_ptr<protocol::TMGetObjectByHash> const& packet);
-
-    /** Process peer's request to send missing transactions. The request is
-        sent in response to TMHaveTransactions.
-        @param packet protocol message containing missing transactions' hashes.
-     */
-    void
-    doTransactions(std::shared_ptr<protocol::TMGetObjectByHash> const& packet);
-
-    void
-    checkTransaction(
-        HashRouterFlags flags,
-        bool checkSignature,
-        std::shared_ptr<STTx const> const& stx,
-        bool batch);
 
     void
     checkPropose(

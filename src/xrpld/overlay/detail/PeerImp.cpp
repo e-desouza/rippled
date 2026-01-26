@@ -1,11 +1,9 @@
 #include <xrpld/app/ledger/InboundLedgers.h>
 #include <xrpld/app/ledger/InboundTransactions.h>
 #include <xrpld/app/ledger/LedgerMaster.h>
-#include <xrpld/app/ledger/TransactionMaster.h>
 #include <xrpld/app/ledger/detail/LedgerReplayMsgHandler.h>
 #include <xrpld/app/misc/LoadFeeTrack.h>
 #include <xrpld/app/misc/NetworkOPs.h>
-#include <xrpld/app/misc/Transaction.h>
 #include <xrpld/app/txqueue/HashRouter.h>
 #include <xrpld/app/validators/ValidatorList.h>
 #include <xrpld/overlay/Cluster.h>
@@ -2050,7 +2048,7 @@ PeerImp::onMessage(std::shared_ptr<protocol::TMGetObjectByHash> const& m)
             std::weak_ptr<PeerImp> weak = shared_from_this();
             app_.getJobQueue().addJob(jtREQUESTED_TXN, "DoTxs", [weak, m]() {
                 if (auto peer = weak.lock())
-                    peer->doTransactions(m);
+                    TransactionMessageHandler::doTransactions(*peer, m);
             });
             return;
         }
@@ -2193,58 +2191,8 @@ PeerImp::onMessage(std::shared_ptr<protocol::TMHaveTransactions> const& m)
     std::weak_ptr<PeerImp> weak = shared_from_this();
     app_.getJobQueue().addJob(jtMISSING_TXN, "HandleHaveTxs", [weak, m]() {
         if (auto peer = weak.lock())
-            peer->handleHaveTransactions(m);
+            TransactionMessageHandler::handleHaveTransactions(*peer, m);
     });
-}
-
-void
-PeerImp::handleHaveTransactions(
-    std::shared_ptr<protocol::TMHaveTransactions> const& m)
-{
-    protocol::TMGetObjectByHash tmBH;
-    tmBH.set_type(protocol::TMGetObjectByHash_ObjectType_otTRANSACTIONS);
-    tmBH.set_query(true);
-
-    JLOG(p_journal_.trace())
-        << "received TMHaveTransactions " << m->hashes_size();
-
-    for (std::uint32_t i = 0; i < m->hashes_size(); i++)
-    {
-        if (!stringIsUint256Sized(m->hashes(i)))
-        {
-            JLOG(p_journal_.error())
-                << "TMHaveTransactions with invalid hash size";
-            fee_.update(Resource::feeMalformedRequest, "hash size");
-            return;
-        }
-
-        uint256 hash(m->hashes(i));
-
-        auto txn = app_.getMasterTransaction().fetch_from_cache(hash);
-
-        JLOG(p_journal_.trace()) << "checking transaction " << (bool)txn;
-
-        if (!txn)
-        {
-            JLOG(p_journal_.debug()) << "adding transaction to request";
-
-            auto obj = tmBH.add_objects();
-            obj->set_hash(hash.data(), hash.size());
-        }
-        else
-        {
-            // Erase only if a peer has seen this tx. If the peer has not
-            // seen this tx then the tx could not has been queued for this
-            // peer.
-            removeTxQueue(hash);
-        }
-    }
-
-    JLOG(p_journal_.trace())
-        << "transaction request object is " << tmBH.objects_size();
-
-    if (tmBH.objects_size() > 0)
-        send(std::make_shared<Message>(tmBH, protocol::mtGET_OBJECTS));
 }
 
 void
@@ -2349,61 +2297,6 @@ PeerImp::doFetchPack(std::shared_ptr<protocol::TMGetObjectByHash> const& packet)
         jtPACK, "MakeFetchPack", [pap, weak, packet, hash, elapsed]() {
             pap->getLedgerMaster().makeFetchPack(weak, packet, hash, elapsed);
         });
-}
-
-void
-PeerImp::doTransactions(
-    std::shared_ptr<protocol::TMGetObjectByHash> const& packet)
-{
-    protocol::TMTransactions reply;
-
-    JLOG(p_journal_.trace()) << "received TMGetObjectByHash requesting tx "
-                             << packet->objects_size();
-
-    if (packet->objects_size() > reduce_relay::MAX_TX_QUEUE_SIZE)
-    {
-        JLOG(p_journal_.error()) << "doTransactions, invalid number of hashes";
-        fee_.update(Resource::feeMalformedRequest, "too big");
-        return;
-    }
-
-    for (std::uint32_t i = 0; i < packet->objects_size(); ++i)
-    {
-        auto const& obj = packet->objects(i);
-
-        if (!stringIsUint256Sized(obj.hash()))
-        {
-            fee_.update(Resource::feeMalformedRequest, "hash size");
-            return;
-        }
-
-        uint256 hash(obj.hash());
-
-        auto txn = app_.getMasterTransaction().fetch_from_cache(hash);
-
-        if (!txn)
-        {
-            JLOG(p_journal_.error()) << "doTransactions, transaction not found "
-                                     << Slice(hash.data(), hash.size());
-            fee_.update(Resource::feeMalformedRequest, "tx not found");
-            return;
-        }
-
-        Serializer s;
-        auto tx = reply.add_transactions();
-        auto sttx = txn->getSTransaction();
-        sttx->add(s);
-        tx->set_rawtransaction(s.data(), s.size());
-        tx->set_status(
-            txn->getStatus() == INCLUDED ? protocol::tsCURRENT
-                                         : protocol::tsNEW);
-        tx->set_receivetimestamp(
-            app_.timeKeeper().now().time_since_epoch().count());
-        tx->set_deferred(txn->getSubmitResult().queued);
-    }
-
-    if (reply.transactions_size() > 0)
-        send(std::make_shared<Message>(reply, protocol::mtTRANSACTIONS));
 }
 
 // Called from our JobQueue

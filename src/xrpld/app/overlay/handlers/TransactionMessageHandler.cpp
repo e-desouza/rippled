@@ -18,6 +18,13 @@ using namespace std::chrono_literals;
 
 namespace xrpl {
 
+// Helper function to check for valid uint256 values in protobuf buffers
+static bool
+stringIsUint256Sized(std::string const& pBuffStr)
+{
+    return pBuffStr.size() == uint256::size();
+}
+
 void
 TransactionMessageHandler::onMessage(
     std::shared_ptr<protocol::TMTransaction> const& m,
@@ -313,6 +320,119 @@ TransactionMessageHandler::checkTransaction(
         using namespace std::string_literals;
         peer.charge(Resource::feeInvalidData, "tx "s + ex.what());
     }
+}
+
+void
+TransactionMessageHandler::handleHaveTransactions(
+    PeerImp& peer,
+    std::shared_ptr<protocol::TMHaveTransactions> const& m)
+{
+    auto& app = peer.app_;
+    auto const& journal = peer.p_journal_;
+
+    protocol::TMGetObjectByHash tmBH;
+    tmBH.set_type(protocol::TMGetObjectByHash_ObjectType_otTRANSACTIONS);
+    tmBH.set_query(true);
+
+    JLOG(journal.trace())
+        << "received TMHaveTransactions " << m->hashes_size();
+
+    for (std::uint32_t i = 0; i < m->hashes_size(); i++)
+    {
+        if (!stringIsUint256Sized(m->hashes(i)))
+        {
+            JLOG(journal.error())
+                << "TMHaveTransactions with invalid hash size";
+            peer.fee_.update(Resource::feeMalformedRequest, "hash size");
+            return;
+        }
+
+        uint256 hash(m->hashes(i));
+
+        auto txn = app.getMasterTransaction().fetch_from_cache(hash);
+
+        JLOG(journal.trace()) << "checking transaction " << (bool)txn;
+
+        if (!txn)
+        {
+            JLOG(journal.debug()) << "adding transaction to request";
+
+            auto obj = tmBH.add_objects();
+            obj->set_hash(hash.data(), hash.size());
+        }
+        else
+        {
+            // Erase only if a peer has seen this tx. If the peer has not
+            // seen this tx then the tx could not has been queued for this
+            // peer.
+            peer.removeTxQueue(hash);
+        }
+    }
+
+    JLOG(journal.trace())
+        << "transaction request object is " << tmBH.objects_size();
+
+    if (tmBH.objects_size() > 0)
+        peer.send(std::make_shared<Message>(tmBH, protocol::mtGET_OBJECTS));
+}
+
+void
+TransactionMessageHandler::doTransactions(
+    PeerImp& peer,
+    std::shared_ptr<protocol::TMGetObjectByHash> const& packet)
+{
+    auto& app = peer.app_;
+    auto const& journal = peer.p_journal_;
+
+    protocol::TMTransactions reply;
+
+    JLOG(journal.trace()) << "received TMGetObjectByHash requesting tx "
+                          << packet->objects_size();
+
+    if (packet->objects_size() > reduce_relay::MAX_TX_QUEUE_SIZE)
+    {
+        JLOG(journal.error()) << "doTransactions, invalid number of hashes";
+        peer.fee_.update(Resource::feeMalformedRequest, "too big");
+        return;
+    }
+
+    for (std::uint32_t i = 0; i < packet->objects_size(); ++i)
+    {
+        auto const& obj = packet->objects(i);
+
+        if (!stringIsUint256Sized(obj.hash()))
+        {
+            peer.fee_.update(Resource::feeMalformedRequest, "hash size");
+            return;
+        }
+
+        uint256 hash(obj.hash());
+
+        auto txn = app.getMasterTransaction().fetch_from_cache(hash);
+
+        if (!txn)
+        {
+            JLOG(journal.error()) << "doTransactions, transaction not found "
+                                  << Slice(hash.data(), hash.size());
+            peer.fee_.update(Resource::feeMalformedRequest, "tx not found");
+            return;
+        }
+
+        Serializer s;
+        auto tx = reply.add_transactions();
+        auto sttx = txn->getSTransaction();
+        sttx->add(s);
+        tx->set_rawtransaction(s.data(), s.size());
+        tx->set_status(
+            txn->getStatus() == INCLUDED ? protocol::tsCURRENT
+                                         : protocol::tsNEW);
+        tx->set_receivetimestamp(
+            app.timeKeeper().now().time_since_epoch().count());
+        tx->set_deferred(txn->getSubmitResult().queued);
+    }
+
+    if (reply.transactions_size() > 0)
+        peer.send(std::make_shared<Message>(reply, protocol::mtTRANSACTIONS));
 }
 
 }  // namespace xrpl
