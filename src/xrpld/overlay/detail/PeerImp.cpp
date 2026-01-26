@@ -3,12 +3,12 @@
 #include <xrpld/app/ledger/LedgerMaster.h>
 #include <xrpld/app/ledger/detail/LedgerReplayMsgHandler.h>
 #include <xrpld/app/misc/LoadFeeTrack.h>
-#include <xrpld/app/misc/NetworkOPs.h>
 #include <xrpld/app/txqueue/HashRouter.h>
 #include <xrpld/overlay/Cluster.h>
 #include <xrpld/overlay/detail/PeerImp.h>
 #include <xrpld/overlay/detail/Tuning.h>
 #include <xrpld/overlay/detail/handlers/ProposalMessageHandler.h>
+#include <xrpld/overlay/detail/handlers/StatusChangeMessageHandler.h>
 #include <xrpld/overlay/detail/handlers/TransactionMessageHandler.h>
 #include <xrpld/overlay/detail/handlers/ValidationMessageHandler.h>
 #include <xrpld/overlay/detail/handlers/ValidatorListPropagationHandler.h>
@@ -17,6 +17,7 @@
 #include <xrpl/basics/base64.h>
 #include <xrpl/basics/random.h>
 #include <xrpl/basics/safe_cast.h>
+#include <xrpl/core/JobQueue.h>
 #include <xrpl/core/PerfLog.h>
 #include <xrpl/json/to_string.h>
 #include <xrpl/protocol/TxFlags.h>
@@ -1716,78 +1717,15 @@ PeerImp::onMessage(std::shared_ptr<protocol::TMStatusChange> const& m)
             m->ledgerseq(), app_.getLedgerMaster().getValidLedgerIndex());
     }
 
-    app_.getOPs().pubPeerStatus([=, this]() -> Json::Value {
-        Json::Value j = Json::objectValue;
+    // Get the closed ledger hash while holding the lock
+    uint256 closedLedgerHash{};
+    {
+        std::lock_guard sl(recentLock_);
+        closedLedgerHash = closedLedgerHash_;
+    }
 
-        if (m->has_newstatus())
-        {
-            switch (m->newstatus())
-            {
-                case protocol::nsCONNECTING:
-                    j[jss::status] = "CONNECTING";
-                    break;
-                case protocol::nsCONNECTED:
-                    j[jss::status] = "CONNECTED";
-                    break;
-                case protocol::nsMONITORING:
-                    j[jss::status] = "MONITORING";
-                    break;
-                case protocol::nsVALIDATING:
-                    j[jss::status] = "VALIDATING";
-                    break;
-                case protocol::nsSHUTTING:
-                    j[jss::status] = "SHUTTING";
-                    break;
-            }
-        }
-
-        if (m->has_newevent())
-        {
-            switch (m->newevent())
-            {
-                case protocol::neCLOSING_LEDGER:
-                    j[jss::action] = "CLOSING_LEDGER";
-                    break;
-                case protocol::neACCEPTED_LEDGER:
-                    j[jss::action] = "ACCEPTED_LEDGER";
-                    break;
-                case protocol::neSWITCHED_LEDGER:
-                    j[jss::action] = "SWITCHED_LEDGER";
-                    break;
-                case protocol::neLOST_SYNC:
-                    j[jss::action] = "LOST_SYNC";
-                    break;
-            }
-        }
-
-        if (m->has_ledgerseq())
-        {
-            j[jss::ledger_index] = m->ledgerseq();
-        }
-
-        if (m->has_ledgerhash())
-        {
-            uint256 closedLedgerHash{};
-            {
-                std::lock_guard sl(recentLock_);
-                closedLedgerHash = closedLedgerHash_;
-            }
-            j[jss::ledger_hash] = to_string(closedLedgerHash);
-        }
-
-        if (m->has_networktime())
-        {
-            j[jss::date] = Json::UInt(m->networktime());
-        }
-
-        if (m->has_firstseq() && m->has_lastseq())
-        {
-            j[jss::ledger_index_min] = Json::UInt(m->firstseq());
-            j[jss::ledger_index_max] = Json::UInt(m->lastseq());
-        }
-
-        return j;
-    });
+    // Delegate status publishing to handler which has access to NetworkOPs
+    StatusChangeMessageHandler::publishPeerStatus(m, *this, closedLedgerHash);
 }
 
 void

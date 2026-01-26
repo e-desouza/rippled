@@ -265,6 +265,7 @@ private:
 
     friend class OverlayImpl;
     friend class ProposalMessageHandler;
+    friend class StatusChangeMessageHandler;
     friend class TransactionMessageHandler;
     friend class ValidationMessageHandler;
     friend class ValidatorListPropagationHandler;
