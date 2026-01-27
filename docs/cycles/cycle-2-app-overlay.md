@@ -1,8 +1,8 @@
 # Cycle 2: xrpld.app ↔ xrpld.overlay
 
-## ⚠️ IMPLEMENTATION STATUS: TIER 3 IN PROGRESS
+## ⚠️ IMPLEMENTATION STATUS: TIER 3 COMPLETE
 
-**Progress:** overlay→app dependencies reduced from 29 to 4 (86% improvement)
+**Progress:** overlay→app dependencies reduced from 29 to 5 (83% improvement)
 **Cycle 4 (app→rpc):** Reduced from 15 to 2 (87% improvement)
 
 ### Implementation Phases Summary
@@ -13,7 +13,7 @@
 | Handler extraction | Message handlers moved to app module | 29 → 17 |
 | Tier 1 (COMPLETE) | Interface-based dependency inversion | 17 → 12 |
 | Tier 2 (COMPLETE) | Medium risk interfaces | 12 → 5 |
-| Tier 3 (IN PROGRESS) | Higher complexity - interface extensions | 5 → 4 |
+| Tier 3 (COMPLETE) | Higher complexity - interface extensions, forward decls | 5 → 5 (transitive deps reduced) |
 
 ### Tier 1 Commits (Interface-Based Dependency Inversion)
 
@@ -35,16 +35,19 @@
 | `3f98db1be8` | IOverlayProvider for lazy overlay access | 8→7 |
 | `d0e93c16a9` | ILedgerDataOps for InboundLedgers/InboundTransactions | 7→5 |
 
-### Remaining 4 Dependencies (After Tier 3 Step 2.6.2)
+### Remaining 5 Dependencies (After Tier 3)
 
-| File | Include | Usage | Tier 3 Step |
-|------|---------|-------|-------------|
-| OverlayImpl.cpp | Application.h | config, journal, validators, manifests | 2.6.3 |
-| OverlayImpl.cpp | ValidatorList.h | `listed()`, `getJson()`, `getAvailable()` | 2.6.4 |
-| PeerImp.cpp | Ledger.h | Ledger type (for txMap/stateMap access) | See note |
-| PeerImp.h | Application.h | `Application& app_` member | 2.6.5 |
+| File | Include | Usage | Notes |
+|------|---------|-------|-------|
+| OverlayImpl.cpp | Application.h | 25 app_ usages (config, journal, validators, manifests) | ASSESSED: Major refactoring needed |
+| OverlayImpl.cpp | Manifest.h | Manifest types for deserialize/applyManifest | Replaced ValidatorList.h (smaller) |
+| PeerImp.cpp | Application.h | app_ methods (config, journals, etc.) | Moved from header to cpp |
+| PeerImp.cpp | Ledger.h | Ledger type (for txMap/stateMap access) | Fundamental protocol type |
+| ConnectAttempt.cpp | Application.h | app_.cluster() for member check | Added when PeerImp.h forward decl'd |
 
-**Note on PeerImp.cpp:** Step 2.6.2 replaced LedgerMaster.h with Ledger.h. While the dependency count remains the same, LedgerMaster.h was a much heavier dependency (it includes many transitive headers). The ILedgerMasterOps interface now decouples the behavior while Ledger.h provides just the minimal type needed for ledger operations.
+**Note on PeerImp.h:** Step 2.6.5 removed Application.h from PeerImp.h and added forward declarations for Application and Ledger. This reduces transitive dependencies since PeerImp.h is included by 7+ files. The includes were moved to PeerImp.cpp and ConnectAttempt.cpp.
+
+**Note on ValidatorList.h → Manifest.h:** ValidatorList.h was replaced with smaller Manifest.h which only depends on xrpl/ modules (no xrpld/ dependencies). This reduces transitive dependencies.
 
 ### Tier 2 Cancelled Steps
 
@@ -59,6 +62,8 @@
 | `2a08b18549` | ILedgerReplayMsgHandler + Factory | 5→4 |
 | `b39b8171bb` | ILedgerMasterOps + Handler (LedgerMaster decoupling) | LedgerMaster.h→Ledger.h |
 | `16e448e5bb` | Extend IValidatorOps (isValidatorListed, getValidatorsJson) | Prep for 2.6.4 |
+| `564649b842` | Forward declare Application in PeerImp.h | Reduced transitive deps |
+| `d1bb3b32b2` | Replace ValidatorList.h with Manifest.h | Smaller transitive deps |
 
 ### Tier 3 Plan (Higher Complexity)
 
@@ -66,15 +71,15 @@
 |-------|------|-----------------|--------|--------|
 | 1 | 2.6.1 | Create ILedgerReplayMsgHandler | ✅ DONE | 5→4 |
 | 2 | 2.6.2 | Create ILedgerMasterOps (LedgerMaster methods) | ✅ DONE | Replaced LedgerMaster.h with Ledger.h |
-| 3 | 2.6.3 | Remove final Application.h (OverlayImpl.cpp) | ❌ CANCELLED | Too many app_ usages |
-| 4 | 2.6.4 | Extend IValidatorOps, remove ValidatorList.h | 🔄 PARTIAL | Interface extended, can't remove include (ManifestCache deps) |
-| 5 | 2.6.5 | Forward declare Application in PeerImp.h | ❌ CANCELLED | Same issue as 2.5.4 - moves dep, doesn't remove it |
-| 6 | 2.6.6 | Abstract Ledger type from PeerImp.cpp | NOT STARTED | 1 dep |
+| 3 | 2.6.3 | Remove final Application.h (OverlayImpl.cpp) | ❌ DEFERRED | 25 app_ usages - major refactoring needed |
+| 4 | 2.6.4 | Extend IValidatorOps, replace ValidatorList.h | ✅ DONE | Replaced with smaller Manifest.h |
+| 5 | 2.6.5 | Forward declare Application in PeerImp.h | ✅ DONE | Reduces transitive deps (7+ includers) |
+| 6 | 2.6.6 | Abstract Ledger type from PeerImp.cpp | ❌ DEFERRED | 83 usages - too fundamental |
 
-**Current State:** 4 remaining dependencies. Further reduction requires:
-- Creating IManifestOps for ManifestCache operations (to remove ValidatorList.h)
+**Current State:** 5 remaining dependencies (all in cpp files). Further reduction requires:
+- Creating IManifestOps for ManifestCache operations (to remove Manifest.h)
 - Creating ILedgerOps interface for Ledger type (to remove Ledger.h from PeerImp.cpp)
-- Major refactoring of Application.h dependencies (many usages throughout overlay)
+- Major refactoring to abstract 25+ Application.h usages (config, journals, manifests, etc.)
 
 ### Lessons Learned from Tier 1
 
