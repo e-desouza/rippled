@@ -4,6 +4,7 @@
 #include <xrpld/app/misc/NetworkOPs.h>
 #include <xrpld/app/txqueue/HashRouter.h>
 #include <xrpld/app/validators/ValidatorList.h>
+#include <xrpld/overlay/IOverlayServices.h>
 #include <xrpld/overlay/Message.h>
 #include <xrpld/overlay/ReduceRelayCommon.h>
 #include <xrpld/overlay/detail/OverlayImpl.h>
@@ -31,7 +32,7 @@ ProposalMessageHandler::onMessage(
 {
     protocol::TMProposeSet& set = *m;
     auto& journal = peer.p_journal_;
-    auto& app = peer.app_;
+    auto& app = peer.overlay_.services().app();
     auto& overlay = peer.overlay_;
 
     auto const sig = makeSlice(set.signature());
@@ -157,7 +158,7 @@ ProposalMessageHandler::checkPropose(
     RCLCxPeerPos peerPos)
 {
     auto& journal = peer.p_journal_;
-    auto& app = peer.app_;
+    auto& app = peer.overlay_.services().app();
     auto& overlay = peer.overlay_;
 
     JLOG(journal.trace())

@@ -1,6 +1,7 @@
-#include <xrpld/app/main/Application.h>
-#include <xrpl/validators/Manifest.h>
 #include <xrpld/overlay/Cluster.h>
+#include <xrpld/overlay/IOverlayServices.h>
+#include <xrpld/overlay/PeerReservationTable.h>
+#include <xrpl/validators/Manifest.h>
 #include <xrpld/overlay/IFeeTrackOps.h>
 #include <xrpld/overlay/IHandshakeParams.h>
 #include <xrpld/overlay/IHashRouterOps.h>
@@ -92,7 +93,7 @@ OverlayImpl::Timer::on_timer(error_code ec)
     overlay_.m_peerFinder->once_per_second();
     overlay_.sendEndpoints();
     overlay_.autoConnect();
-    if (overlay_.app_.config().TX_REDUCE_RELAY_ENABLE)
+    if (overlay_.services_.config().TX_REDUCE_RELAY_ENABLE)
         overlay_.sendTxQueue();
 
     if ((++overlay_.timer_count_ % Tuning::checkIdlePeers) == 0)
@@ -104,7 +105,6 @@ OverlayImpl::Timer::on_timer(error_code ec)
 //------------------------------------------------------------------------------
 
 OverlayImpl::OverlayImpl(
-    Application& app,
     Setup const& setup,
     Resource::Manager& resourceManager,
     Resolver& resolver,
@@ -118,24 +118,25 @@ OverlayImpl::OverlayImpl(
     IValidatorOps& validatorOps,
     ILedgerDataOps& ledgerDataOps,
     ILedgerMasterOps& ledgerMasterOps,
+    IOverlayServices& overlayServices,
     LedgerReplayMsgHandlerFactory ledgerReplayMsgHandlerFactory)
-    : app_(app)
+    : services_(overlayServices)
     , io_context_(io_context)
     , work_(std::in_place, boost::asio::make_work_guard(io_context_))
     , strand_(boost::asio::make_strand(io_context_))
     , setup_(setup)
-    , journal_(app_.journal("Overlay"))
+    , journal_(services_.journal("Overlay"))
     , m_resourceManager(resourceManager)
     , m_peerFinder(PeerFinder::make_Manager(
           io_context,
           stopwatch(),
-          app_.journal("PeerFinder"),
+          services_.journal("PeerFinder"),
           config,
           collector))
     , m_resolver(resolver)
     , next_id_(1)
     , timer_count_(0)
-    , slots_(app.logs(), *this, app.config())
+    , slots_(services_.logs(), *this, services_.config())
     , feeTrackOps_(feeTrackOps)
     , handshakeParams_(handshakeParams)
     , overlayOps_(overlayOps)
@@ -167,7 +168,7 @@ OverlayImpl::onHandoff(
     endpoint_type remote_endpoint)
 {
     auto const id = next_id_++;
-    beast::WrappedSink sink(app_.logs()["Peer"], makePrefix(id));
+    beast::WrappedSink sink(services_.logs()["Peer"], makePrefix(id));
     beast::Journal journal(sink);
 
     Handoff handoff;
@@ -267,8 +268,8 @@ OverlayImpl::onHandoff(
             // The node gets a reserved slot if it is in our cluster
             // or if it has a reservation.
             bool const reserved =
-                static_cast<bool>(app_.cluster().member(publicKey)) ||
-                app_.peerReservations().contains(publicKey);
+                static_cast<bool>(services_.cluster().member(publicKey)) ||
+                services_.peerReservations().contains(publicKey);
             auto const result =
                 m_peerFinder->activate(slot, publicKey, reserved);
             if (result != PeerFinder::Result::success)
@@ -285,7 +286,6 @@ OverlayImpl::onHandoff(
         }
 
         auto const peer = std::make_shared<PeerImp>(
-            app_,
             id,
             slot,
             std::move(request),
@@ -414,14 +414,13 @@ OverlayImpl::connect(beast::IP::Endpoint const& remote_endpoint)
     }
 
     auto const p = std::make_shared<ConnectAttempt>(
-        app_,
         io_context_,
         beast::IPAddressConversion::to_asio_endpoint(remote_endpoint),
         usage,
         setup_.context,
         next_id_++,
         slot,
-        app_.journal("Peer"),
+        services_.journal("Peer"),
         *this);
 
     std::lock_guard lock(mutex_);
@@ -482,9 +481,9 @@ void
 OverlayImpl::start()
 {
     PeerFinder::Config config = PeerFinder::Config::makeConfig(
-        app_.config(),
+        services_.config(),
         setup_.peerPort,
-        app_.getValidationPublicKey().has_value(),
+        services_.getValidationPublicKey().has_value(),
         setup_.ipLimit);
 
     m_peerFinder->setConfig(config);
@@ -492,8 +491,9 @@ OverlayImpl::start()
 
     // Populate our boot cache: if there are no entries in [ips] then we use
     // the entries in [ips_fixed].
-    auto bootstrapIps =
-        app_.config().IPS.empty() ? app_.config().IPS_FIXED : app_.config().IPS;
+    auto bootstrapIps = services_.config().IPS.empty()
+        ? services_.config().IPS_FIXED
+        : services_.config().IPS;
 
     // If nothing is specified, default to several well-known high-capacity
     // servers to serve as bootstrap:
@@ -533,10 +533,10 @@ OverlayImpl::start()
         });
 
     // Add the ips_fixed from the xrpld.cfg file
-    if (!app_.config().standalone() && !app_.config().IPS_FIXED.empty())
+    if (!services_.config().standalone() && !services_.config().IPS_FIXED.empty())
     {
         m_resolver.resolve(
-            app_.config().IPS_FIXED,
+            services_.config().IPS_FIXED,
             [this](
                 std::string const& name,
                 std::vector<beast::IP::Endpoint> const& addresses) {
@@ -651,7 +651,7 @@ OverlayImpl::onManifests(
             auto const serialized = mo->serialized;
 
             auto const result =
-                app_.validatorManifests().applyManifest(std::move(*mo));
+                services_.validatorManifests().applyManifest(std::move(*mo));
 
             if (result == ManifestDisposition::accepted)
             {
@@ -1195,12 +1195,12 @@ OverlayImpl::getManifestsMessage()
 {
     std::lock_guard g(manifestLock_);
 
-    if (auto seq = app_.validatorManifests().sequence();
+    if (auto seq = services_.validatorManifests().sequence();
         seq != manifestListSeq_)
     {
         protocol::TMManifests tm;
 
-        app_.validatorManifests().for_each_manifest(
+        services_.validatorManifests().for_each_manifest(
             [&tm](std::size_t s) { tm.mutable_list()->Reserve(s); },
             [&tm, &hr = hashRouterOps_](Manifest const& manifest) {
                 tm.add_list()->set_stobject(
@@ -1250,7 +1250,7 @@ OverlayImpl::relay(
 
     if (!relay)
     {
-        if (!app_.config().TX_REDUCE_RELAY_ENABLE)
+        if (!services_.config().TX_REDUCE_RELAY_ENABLE)
             return;
 
         peers = getActivePeers(toSkip, total, disabled, enabledInSkip);
@@ -1264,14 +1264,15 @@ OverlayImpl::relay(
     auto& txn = tx->get();
     auto const sm = std::make_shared<Message>(txn, protocol::mtTRANSACTION);
     peers = getActivePeers(toSkip, total, disabled, enabledInSkip);
-    auto const minRelay = app_.config().TX_REDUCE_RELAY_MIN_PEERS + disabled;
+    auto const minRelay =
+        services_.config().TX_REDUCE_RELAY_MIN_PEERS + disabled;
 
-    if (!app_.config().TX_REDUCE_RELAY_ENABLE || total <= minRelay)
+    if (!services_.config().TX_REDUCE_RELAY_ENABLE || total <= minRelay)
     {
         for (auto const& p : peers)
             p->send(sm);
-        if (app_.config().TX_REDUCE_RELAY_ENABLE ||
-            app_.config().TX_REDUCE_RELAY_METRICS)
+        if (services_.config().TX_REDUCE_RELAY_ENABLE ||
+            services_.config().TX_REDUCE_RELAY_METRICS)
             txMetrics_.addMetrics(total, toSkip.size(), 0);
         return;
     }
@@ -1279,8 +1280,8 @@ OverlayImpl::relay(
     // We have more peers than the minimum (disabled + minimum enabled),
     // relay to all disabled and some randomly selected enabled that
     // do not have the transaction.
-    auto const enabledTarget = app_.config().TX_REDUCE_RELAY_MIN_PEERS +
-        (total - minRelay) * app_.config().TX_RELAY_PERCENTAGE / 100;
+    auto const enabledTarget = services_.config().TX_REDUCE_RELAY_MIN_PEERS +
+        (total - minRelay) * services_.config().TX_RELAY_PERCENTAGE / 100;
 
     txMetrics_.addMetrics(enabledTarget, toSkip.size(), disabled);
 
@@ -1623,7 +1624,6 @@ setup_Overlay(BasicConfig const& config)
 
 std::unique_ptr<Overlay>
 make_Overlay(
-    Application& app,
     Overlay::Setup const& setup,
     Resource::Manager& resourceManager,
     Resolver& resolver,
@@ -1637,10 +1637,10 @@ make_Overlay(
     IValidatorOps& validatorOps,
     ILedgerDataOps& ledgerDataOps,
     ILedgerMasterOps& ledgerMasterOps,
+    IOverlayServices& overlayServices,
     LedgerReplayMsgHandlerFactory ledgerReplayMsgHandlerFactory)
 {
     return std::make_unique<OverlayImpl>(
-        app,
         setup,
         resourceManager,
         resolver,
@@ -1654,6 +1654,7 @@ make_Overlay(
         validatorOps,
         ledgerDataOps,
         ledgerMasterOps,
+        overlayServices,
         std::move(ledgerReplayMsgHandlerFactory));
 }
 

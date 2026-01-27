@@ -22,6 +22,7 @@
 #include <xrpld/app/misc/SHAMapStore.h>
 #include <xrpld/app/overlay/adapters/HandshakeParamsAdapter.h>
 #include <xrpld/app/overlay/adapters/LoadFeeTrackAdapter.h>
+#include <xrpld/app/overlay/adapters/OverlayServicesAdapter.h>
 #include <xrpld/app/overlay/adapters/PeerReservationStorageAdapter.h>
 #include <xrpld/app/paths/PathRequests.h>
 #include <xrpld/app/rdb/RelationalDatabase.h>
@@ -209,6 +210,7 @@ public:
     std::unique_ptr<ValidatorOpsHandler> validatorOpsHandler_;
     std::unique_ptr<ILedgerDataOps> ledgerDataOpsHandler_;
     std::unique_ptr<ILedgerMasterOps> ledgerMasterOpsHandler_;
+    std::unique_ptr<OverlayServicesAdapter> overlayServicesAdapter_;
     std::unique_ptr<HashRouter> hashRouter_;
     RCLValidations mValidations;
     std::unique_ptr<LoadManager> m_loadManager;
@@ -1419,8 +1421,8 @@ ApplicationImp::setup(boost::program_options::variables_map const& cmdline)
     //             move the instantiation inside a conditional:
     //
     //             if (!config_.standalone())
+    overlayServicesAdapter_ = std::make_unique<OverlayServicesAdapter>(*this);
     overlay_ = make_Overlay(
-        *this,
         setup_Overlay(*config_),
         *m_resourceManager,
         *m_resolver,
@@ -1434,6 +1436,7 @@ ApplicationImp::setup(boost::program_options::variables_map const& cmdline)
         *validatorOpsHandler_,
         *ledgerDataOpsHandler_,
         *ledgerMasterOpsHandler_,
+        *overlayServicesAdapter_,
         make_LedgerReplayMsgHandlerFactory(*this));
     add(*overlay_);  // add to PropertyStream
 

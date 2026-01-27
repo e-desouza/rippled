@@ -31,6 +31,7 @@ xrpld.app > xrpld.conditions
 test.overlay > test.toplevel
 test.jtx > xrpld.rpc
 xrpld.app > date.toplevel
+xrpld.overlay > xrpl.shamap
 test.overlay > xrpl.basics
 xrpld.app > xrpl.shamap
 libxrpl.server > xrpl.basics
@@ -107,6 +108,7 @@ xrpld.overlay > xrpl.basics
 xrpld.app > xrpl.basics
 xrpld.app > xrpld.core
 libxrpl.net > xrpl.basics
+xrpld.app > xrpld.overlay
 xrpld.app > xrpl.crypto
 test.core > xrpl.core
 libxrpl.crypto > xrpl.beast
@@ -167,6 +169,7 @@ libxrpl.validators > xrpl.json
 test.conditions > xrpld.conditions
 test.json > test.jtx
 test.server > xrpl.json
+xrpld.overlay > xrpl.nodestore
 test.consensus > test.csf
 xrpld.peerfinder > xrpld.core
 xrpl.protocol > xrpl.proto

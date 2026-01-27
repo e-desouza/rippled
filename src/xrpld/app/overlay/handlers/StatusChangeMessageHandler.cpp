@@ -2,6 +2,8 @@
 
 #include <xrpld/app/main/Application.h>
 #include <xrpld/app/misc/NetworkOPs.h>
+#include <xrpld/overlay/IOverlayServices.h>
+#include <xrpld/overlay/detail/OverlayImpl.h>
 #include <xrpld/overlay/detail/PeerImp.h>
 
 #include <xrpl/json/json_value.h>
@@ -17,7 +19,7 @@ StatusChangeMessageHandler::publishPeerStatus(
     PeerImp& peer,
     uint256 const& closedLedgerHash)
 {
-    peer.app_.getOPs().pubPeerStatus([=]() -> Json::Value {
+    peer.overlay_.services().app().getOPs().pubPeerStatus([=]() -> Json::Value {
         Json::Value j = Json::objectValue;
 
         if (m->has_newstatus())

@@ -99,7 +99,6 @@ private:
     };
 
     // Core application and networking components
-    Application& app_;
     Peer::id_t const id_;
     beast::WrappedSink sink_;
     beast::Journal const journal_;
@@ -141,7 +140,6 @@ public:
      *       the actual connection attempt.
      */
     ConnectAttempt(
-        Application& app,
         boost::asio::io_context& io_context,
         endpoint_type const& remote_endpoint,
         Resource::Consumer usage,

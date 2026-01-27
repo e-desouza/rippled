@@ -79,7 +79,6 @@ private:
     {
     public:
         PeerTest(
-            Application& app,
             std::shared_ptr<PeerFinder::Slot> const& slot,
             http_request_type&& request,
             PublicKey const& publicKey,
@@ -88,7 +87,6 @@ private:
             std::unique_ptr<tx_reduce_relay_test::stream_type>&& stream_ptr,
             OverlayImpl& overlay)
             : PeerImp(
-                  app,
                   sid_,
                   slot,
                   std::move(request),
@@ -166,7 +164,6 @@ private:
         auto consumer = overlay.resourceManager().newInboundEndpoint(remote);
         auto [slot, _] = overlay.peerFinder().new_inbound_slot(local, remote);
         auto const peer = std::make_shared<PeerTest>(
-            env.app(),
             slot,
             std::move(request),
             key,

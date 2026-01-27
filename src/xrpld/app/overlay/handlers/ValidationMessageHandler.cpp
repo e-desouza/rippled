@@ -5,6 +5,7 @@
 #include <xrpld/app/txqueue/HashRouter.h>
 #include <xrpld/app/validators/ValidatorList.h>
 #include <xrpld/consensus/Validations.h>
+#include <xrpld/overlay/IOverlayServices.h>
 #include <xrpld/overlay/Message.h>
 #include <xrpld/overlay/detail/OverlayImpl.h>
 #include <xrpld/overlay/detail/PeerImp.h>
@@ -26,7 +27,7 @@ ValidationMessageHandler::onMessage(
     std::shared_ptr<protocol::TMValidation> const& m,
     PeerImp& peer)
 {
-    auto& app = peer.app_;
+    auto& app = peer.overlay_.services().app();
     auto& overlay = peer.overlay_;
     auto const& journal = peer.p_journal_;
 
@@ -152,7 +153,7 @@ ValidationMessageHandler::checkValidation(
         return;
     }
 
-    auto& app = peer.app_;
+    auto& app = peer.overlay_.services().app();
     auto& overlay = peer.overlay_;
 
     // FIXME it should be safe to remove this try/catch. Investigate codepaths.
@@ -268,7 +269,7 @@ ValidationMessageHandler::processValidatorListMessage(
     std::uint32_t version,
     std::vector<ValidatorBlobInfo> const& blobs)
 {
-    auto& app = peer.app_;
+    auto& app = peer.overlay_.services().app();
     auto const& journal = peer.p_journal_;
 
     // If there are no blobs, the message is malformed (possibly because of

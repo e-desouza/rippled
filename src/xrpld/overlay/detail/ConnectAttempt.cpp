@@ -1,5 +1,5 @@
-#include <xrpld/app/main/Application.h>
 #include <xrpld/overlay/Cluster.h>
+#include <xrpld/overlay/IOverlayServices.h>
 #include <xrpld/overlay/detail/ConnectAttempt.h>
 #include <xrpld/overlay/detail/PeerImp.h>
 #include <xrpld/overlay/detail/ProtocolVersion.h>
@@ -14,7 +14,6 @@
 namespace xrpl {
 
 ConnectAttempt::ConnectAttempt(
-    Application& app,
     boost::asio::io_context& io_context,
     endpoint_type const& remote_endpoint,
     Resource::Consumer usage,
@@ -24,7 +23,6 @@ ConnectAttempt::ConnectAttempt(
     beast::Journal journal,
     OverlayImpl& overlay)
     : Child(overlay)
-    , app_(app)
     , id_(id)
     , sink_(journal, OverlayImpl::makePrefix(id))
     , journal_(sink_)
@@ -582,7 +580,7 @@ ConnectAttempt::processResponse()
         JLOG(journal_.info())
             << "Public Key: " << toBase58(TokenType::NodePublic, publicKey);
 
-        auto const member = app_.cluster().member(publicKey);
+        auto const member = overlay_.services().cluster().member(publicKey);
         if (member)
         {
             JLOG(journal_.info()) << "Cluster name: " << *member;
@@ -605,7 +603,6 @@ ConnectAttempt::processResponse()
             return tryAsyncShutdown();
 
         auto const peer = std::make_shared<PeerImp>(
-            app_,
             std::move(stream_ptr_),
             read_buf_.data(),
             std::move(slot_),

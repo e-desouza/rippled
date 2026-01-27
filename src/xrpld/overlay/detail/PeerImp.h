@@ -34,8 +34,6 @@
 
 namespace xrpl {
 
-class Application;
-class Ledger;
 struct ValidatorBlobInfo;
 class SHAMap;
 class ILedgerReplayMsgHandler;
@@ -124,7 +122,6 @@ private:
         boost::asio::basic_waitable_timer<std::chrono::steady_clock>;
     using Compressed = compression::Compressed;
 
-    Application& app_;
     id_t const id_;
     std::string fingerprint_;
     std::string prefix_;
@@ -311,7 +308,6 @@ public:
 
     /** Create an active incoming peer from an established ssl connection. */
     PeerImp(
-        Application& app,
         id_t id,
         std::shared_ptr<PeerFinder::Slot> const& slot,
         http_request_type&& request,
@@ -325,7 +321,6 @@ public:
     // VFALCO legacyPublicKey should be implied by the Slot
     template <class Buffers>
     PeerImp(
-        Application& app,
         std::unique_ptr<stream_type>&& stream_ptr,
         Buffers const& buffers,
         std::shared_ptr<PeerFinder::Slot>&& slot,
@@ -750,14 +745,6 @@ private:
 
     void
     doFetchPack(std::shared_ptr<protocol::TMGetObjectByHash> const& packet);
-
-    void
-    sendLedgerBase(
-        std::shared_ptr<Ledger const> const& ledger,
-        protocol::TMLedgerData& ledgerData);
-
-    std::shared_ptr<Ledger const>
-    getLedger(std::shared_ptr<protocol::TMGetLedger> const& m);
 
     std::shared_ptr<SHAMap const>
     getTxSet(std::shared_ptr<protocol::TMGetLedger> const& m) const;

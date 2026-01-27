@@ -5,6 +5,7 @@
 #include <xrpld/app/misc/Transaction.h>
 #include <xrpld/app/tx/apply.h>
 #include <xrpld/app/txqueue/HashRouter.h>
+#include <xrpld/overlay/IOverlayServices.h>
 #include <xrpld/overlay/Message.h>
 #include <xrpld/overlay/detail/OverlayImpl.h>
 #include <xrpld/overlay/detail/PeerImp.h>
@@ -67,7 +68,7 @@ TransactionMessageHandler::handleTransaction(
     bool eraseTxQueue,
     bool batch)
 {
-    auto& app = peer.app_;
+    auto& app = peer.overlay_.services().app();
     auto& overlay = peer.overlay_;
     auto const& journal = peer.p_journal_;
 
@@ -190,7 +191,7 @@ TransactionMessageHandler::checkTransaction(
     std::shared_ptr<STTx const> const& stx,
     bool batch)
 {
-    auto& app = peer.app_;
+    auto& app = peer.overlay_.services().app();
     auto const& journal = peer.p_journal_;
 
     // VFALCO TODO Rewrite to not use exceptions
@@ -326,7 +327,7 @@ TransactionMessageHandler::handleHaveTransactions(
     PeerImp& peer,
     std::shared_ptr<protocol::TMHaveTransactions> const& m)
 {
-    auto& app = peer.app_;
+    auto& app = peer.overlay_.services().app();
     auto const& journal = peer.p_journal_;
 
     protocol::TMGetObjectByHash tmBH;
@@ -380,7 +381,7 @@ TransactionMessageHandler::doTransactions(
     PeerImp& peer,
     std::shared_ptr<protocol::TMGetObjectByHash> const& packet)
 {
-    auto& app = peer.app_;
+    auto& app = peer.overlay_.services().app();
     auto const& journal = peer.p_journal_;
 
     protocol::TMTransactions reply;

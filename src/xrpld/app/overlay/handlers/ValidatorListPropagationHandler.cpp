@@ -3,6 +3,8 @@
 #include <xrpld/app/main/Application.h>
 #include <xrpld/app/txqueue/HashRouter.h>
 #include <xrpld/app/validators/ValidatorList.h>
+#include <xrpld/overlay/IOverlayServices.h>
+#include <xrpld/overlay/detail/OverlayImpl.h>
 #include <xrpld/overlay/detail/PeerImp.h>
 
 namespace xrpl {
@@ -10,7 +12,7 @@ namespace xrpl {
 void
 ValidatorListPropagationHandler::sendValidatorLists(PeerImp& peer)
 {
-    auto& app = peer.app_;
+    auto& app = peer.overlay_.services().app();
     auto& hashRouter = app.getHashRouter();
 
     app.validators().for_each_available(

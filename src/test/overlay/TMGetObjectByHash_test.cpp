@@ -38,7 +38,6 @@ class TMGetObjectByHash_test : public beast::unit_test::suite
     {
     public:
         PeerTest(
-            Application& app,
             std::shared_ptr<PeerFinder::Slot> const& slot,
             http_request_type&& request,
             PublicKey const& publicKey,
@@ -47,7 +46,6 @@ class TMGetObjectByHash_test : public beast::unit_test::suite
             std::unique_ptr<TMGetObjectByHash_test::stream_type>&& stream_ptr,
             OverlayImpl& overlay)
             : PeerImp(
-                  app,
                   id_++,
                   slot,
                   std::move(request),
@@ -110,7 +108,6 @@ class TMGetObjectByHash_test : public beast::unit_test::suite
         auto [slot, _] = overlay.peerFinder().new_inbound_slot(local, remote);
 
         auto peer = std::make_shared<PeerTest>(
-            env.app(),
             slot,
             std::move(request),
             key,

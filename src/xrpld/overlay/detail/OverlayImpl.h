@@ -2,11 +2,11 @@
 #define XRPL_OVERLAY_OVERLAYIMPL_H_INCLUDED
 
 namespace xrpl {
-class Application;
 class IFeeTrackOps;
 class IHashRouterOps;
 class ILedgerReplayMsgHandler;
 class IOverlayOps;
+class IOverlayServices;
 class IValidatorOps;
 }  // namespace xrpl
 
@@ -92,7 +92,7 @@ private:
         on_timer(error_code ec);
     };
 
-    Application& app_;
+    IOverlayServices& services_;
     boost::asio::io_context& io_context_;
     std::optional<boost::asio::executor_work_guard<
         boost::asio::io_context::executor_type>>
@@ -156,7 +156,6 @@ private:
 
 public:
     OverlayImpl(
-        Application& app,
         Setup const& setup,
         Resource::Manager& resourceManager,
         Resolver& resolver,
@@ -170,6 +169,7 @@ public:
         IValidatorOps& validatorOps,
         ILedgerDataOps& ledgerDataOps,
         ILedgerMasterOps& ledgerMasterOps,
+        IOverlayServices& overlayServices,
         LedgerReplayMsgHandlerFactory ledgerReplayMsgHandlerFactory);
 
     OverlayImpl(OverlayImpl const&) = delete;
@@ -245,6 +245,16 @@ public:
     createLedgerReplayMsgHandler()
     {
         return ledgerReplayMsgHandlerFactory_();
+    }
+
+    /** Get the overlay services interface.
+        Provides access to Application services without directly depending
+        on Application.h.
+    */
+    IOverlayServices&
+    services()
+    {
+        return services_;
     }
 
     Handoff

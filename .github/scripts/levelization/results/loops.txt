@@ -1,6 +1,3 @@
-Loop: xrpld.app xrpld.overlay
-  xrpld.app > xrpld.overlay
-
 Loop: xrpld.app xrpld.rpc
   xrpld.rpc > xrpld.app
 
