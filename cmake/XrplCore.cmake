@@ -113,6 +113,12 @@ target_link_libraries(xrpl.libxrpl.subscription PUBLIC
   xrpl.libxrpl.resource
 )
 
+add_module(xrpl validators)
+target_link_libraries(xrpl.libxrpl.validators PUBLIC
+  xrpl.libxrpl.basics
+  xrpl.libxrpl.protocol
+)
+
 # Level 07
 add_module(xrpl net)
 target_link_libraries(xrpl.libxrpl.net PUBLIC
@@ -171,6 +177,7 @@ target_link_modules(xrpl PUBLIC
   net
   ledger
   subscription
+  validators
 )
 
 # All headers in libxrpl are in modules.

@@ -1,7 +1,7 @@
 #ifndef XRPL_APP_RDB_WALLET_H_INCLUDED
 #define XRPL_APP_RDB_WALLET_H_INCLUDED
 
-#include <xrpld/app/validators/Manifest.h>
+#include <xrpl/validators/Manifest.h>
 #include <xrpld/core/Config.h>
 #include <xrpld/core/DatabaseCon.h>
 #include <xrpld/overlay/PeerReservationTable.h>

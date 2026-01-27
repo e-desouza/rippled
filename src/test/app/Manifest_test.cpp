@@ -1,9 +1,11 @@
 #include <test/jtx.h>
 
 #include <xrpld/app/rdb/Wallet.h>
-#include <xrpld/app/validators/Manifest.h>
+#include <xrpld/app/validators/ManifestPersistence.h>
 #include <xrpld/app/validators/ValidatorList.h>
 #include <xrpld/core/DBInit.h>
+
+#include <xrpl/validators/Manifest.h>
 
 #include <xrpl/basics/base64.h>
 #include <xrpl/basics/contract.h>
@@ -272,7 +274,8 @@ public:
             {
                 // save should not store untrusted master keys to db
                 // except for revocations
-                m.save(
+                saveManifests(
+                    m,
                     *dbCon,
                     "ValidatorManifests",
                     [&unl](PublicKey const& pubKey) {
@@ -281,7 +284,7 @@ public:
 
                 ManifestCache loaded;
 
-                loaded.load(*dbCon, "ValidatorManifests");
+                loadManifests(loaded, *dbCon, "ValidatorManifests");
 
                 // check that all loaded manifests are revocations
                 std::vector<Manifest const*> const loadedManifests(
@@ -300,14 +303,15 @@ public:
                         toBase58(TokenType::NodePublic, man->masterKey));
                 unl->load({}, s1, keys);
 
-                m.save(
+                saveManifests(
+                    m,
                     *dbCon,
                     "ValidatorManifests",
                     [&unl](PublicKey const& pubKey) {
                         return unl->listed(pubKey);
                     });
                 ManifestCache loaded;
-                loaded.load(*dbCon, "ValidatorManifests");
+                loadManifests(loaded, *dbCon, "ValidatorManifests");
 
                 // check that the manifest caches are the same
                 std::vector<Manifest const*> const loadedManifests(
@@ -334,7 +338,8 @@ public:
                 std::vector<std::string> const emptyRevocation;
 
                 std::string const badManifest = "bad manifest";
-                BEAST_EXPECT(!loaded.load(
+                BEAST_EXPECT(!loadManifests(
+                    loaded,
                     *dbCon,
                     "ValidatorManifests",
                     badManifest,
@@ -347,7 +352,8 @@ public:
                 std::string const cfgManifest =
                     makeManifestString(pk, sk, kp.first, kp.second, 0);
 
-                BEAST_EXPECT(loaded.load(
+                BEAST_EXPECT(loadManifests(
+                    loaded,
                     *dbCon,
                     "ValidatorManifests",
                     cfgManifest,
@@ -360,7 +366,8 @@ public:
 
                 std::vector<std::string> const badRevocation = {
                     "bad revocation"};
-                BEAST_EXPECT(!loaded.load(
+                BEAST_EXPECT(!loadManifests(
+                    loaded,
                     *dbCon,
                     "ValidatorManifests",
                     emptyManifest,
@@ -373,7 +380,8 @@ public:
                 std::vector<std::string> const nonRevocation = {
                     makeManifestString(pk, sk, kp.first, kp.second, 0)};
 
-                BEAST_EXPECT(!loaded.load(
+                BEAST_EXPECT(!loadManifests(
+                    loaded,
                     *dbCon,
                     "ValidatorManifests",
                     emptyManifest,
@@ -382,7 +390,8 @@ public:
 
                 std::vector<std::string> const badSigRevocation = {
                     makeRevocationString(sk, keyType, true)};
-                BEAST_EXPECT(!loaded.load(
+                BEAST_EXPECT(!loadManifests(
+                    loaded,
                     *dbCon,
                     "ValidatorManifests",
                     emptyManifest,
@@ -391,7 +400,8 @@ public:
 
                 std::vector<std::string> const cfgRevocation = {
                     makeRevocationString(sk, keyType)};
-                BEAST_EXPECT(loaded.load(
+                BEAST_EXPECT(loadManifests(
+                    loaded,
                     *dbCon,
                     "ValidatorManifests",
                     emptyManifest,

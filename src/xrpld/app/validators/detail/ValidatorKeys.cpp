@@ -1,4 +1,4 @@
-#include <xrpld/app/validators/Manifest.h>
+#include <xrpl/validators/Manifest.h>
 #include <xrpld/app/validators/ValidatorKeys.h>
 #include <xrpld/core/Config.h>
 #include <xrpld/core/ConfigSections.h>

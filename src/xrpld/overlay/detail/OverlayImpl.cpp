@@ -1,5 +1,5 @@
 #include <xrpld/app/main/Application.h>
-#include <xrpld/app/validators/Manifest.h>
+#include <xrpl/validators/Manifest.h>
 #include <xrpld/overlay/Cluster.h>
 #include <xrpld/overlay/IFeeTrackOps.h>
 #include <xrpld/overlay/IHandshakeParams.h>

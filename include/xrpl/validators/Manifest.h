@@ -1,5 +1,5 @@
-#ifndef XRPL_APP_MISC_MANIFEST_H_INCLUDED
-#define XRPL_APP_MISC_MANIFEST_H_INCLUDED
+#ifndef XRPL_VALIDATORS_MANIFEST_H_INCLUDED
+#define XRPL_VALIDATORS_MANIFEST_H_INCLUDED
 
 #include <xrpl/basics/UnorderedContainers.h>
 #include <xrpl/beast/utility/Journal.h>
@@ -230,9 +230,12 @@ to_string(ManifestDisposition m)
     }
 }
 
-class DatabaseCon;
+/** Remembers manifests with the highest sequence number.
 
-/** Remembers manifests with the highest sequence number. */
+    Database persistence methods (load/save) are provided separately in
+    xrpld/app/validators/ManifestPersistence.h for applications that
+    need database support.
+*/
 class ManifestCache
 {
 private:
@@ -336,58 +339,6 @@ public:
     ManifestDisposition
     applyManifest(Manifest m);
 
-    /** Populate manifest cache with manifests in database and config.
-
-        @param dbCon Database connection with dbTable
-
-        @param dbTable Database table
-
-        @param configManifest Base64 encoded manifest for local node's
-            validator keys
-
-        @param configRevocation Base64 encoded validator key revocation
-            from the config
-
-        @par Thread Safety
-
-        May be called concurrently
-    */
-    bool
-    load(
-        DatabaseCon& dbCon,
-        std::string const& dbTable,
-        std::string const& configManifest,
-        std::vector<std::string> const& configRevocation);
-
-    /** Populate manifest cache with manifests in database.
-
-        @param dbCon Database connection with dbTable
-
-        @param dbTable Database table
-
-        @par Thread Safety
-
-        May be called concurrently
-    */
-    void
-    load(DatabaseCon& dbCon, std::string const& dbTable);
-
-    /** Save cached manifests to database.
-
-        @param dbCon Database connection with `ValidatorManifests` table
-
-        @param isTrusted Function that returns true if manifest is trusted
-
-        @par Thread Safety
-
-        May be called concurrently
-    */
-    void
-    save(
-        DatabaseCon& dbCon,
-        std::string const& dbTable,
-        std::function<bool(PublicKey const&)> const& isTrusted);
-
     /** Invokes the callback once for every populated manifest.
 
         @note Do not call ManifestCache member functions from within the
@@ -440,6 +391,33 @@ public:
             (void)_;
             f(manifest);
         }
+    }
+
+    /** Returns the journal associated with this cache. */
+    beast::Journal
+    journal() const
+    {
+        return j_;
+    }
+
+    /** Provides read-only access to the internal map for persistence.
+
+        @note This acquires a shared lock on the mutex.
+        @note Do not call ManifestCache member functions from within the
+        callback. This can re-lock the mutex from the same thread, which is UB.
+
+        @param f Function called with const reference to the map
+
+        @par Thread Safety
+
+        May be called concurrently
+    */
+    template <class Function>
+    void
+    with_map(Function&& f) const
+    {
+        std::shared_lock lock{mutex_};
+        f(map_);
     }
 };
 

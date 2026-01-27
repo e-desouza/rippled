@@ -13,6 +13,7 @@ libxrpl.net > openssl.toplevel
 test.csf > xrpld.consensus
 xrpld.app > xrpl.json
 xrpl.resource > xrpl.beast
+xrpld.app > xrpl.validators
 test.app > xrpl.basics
 xrpl.subscription > xrpl.resource
 test.peerfinder > xrpl.beast
@@ -25,6 +26,7 @@ xrpld.rpc > xrpl.protocol
 xrpl.shamap > xrpl.basics
 tests.libxrpl > google.protobuf
 test.peerfinder > test.jtx
+xrpld.rpc > xrpl.validators
 xrpld.app > xrpld.conditions
 test.overlay > test.toplevel
 test.jtx > xrpld.rpc
@@ -55,6 +57,7 @@ libxrpl.resource > xrpl.resource
 xrpld.core > xrpl.beast
 xrpld.overlay > xrpl.protocol
 xrpld.consensus > xrpl.beast
+xrpl.validators > xrpl.protocol
 test.basics > test.jtx
 xrpl.ledger > xrpl.protocol
 xrpl.subscription > xrpl.basics
@@ -64,6 +67,7 @@ test.rpc > xrpld.app
 test.shamap > xrpl.nodestore
 test.protocol > xrpl.json
 test.overlay > xrpl.protocol
+xrpl.validators > xrpl.basics
 xrpld.rpc > xrpl.crypto
 test.peerfinder > test.beast
 xrpl.nodestore > nudb.toplevel
@@ -71,6 +75,7 @@ xrpld.overlay > xrpl.core
 xrpl.protocol > xrpl.beast
 test.basics > xrpl.core
 xrpld.app > xrpld.consensus
+xrpld.overlay > xrpl.validators
 xrpld.core > sys.toplevel
 test.ledger > xrpld.core
 test.server > test.toplevel
@@ -106,6 +111,7 @@ xrpld.app > xrpl.crypto
 test.core > xrpl.core
 libxrpl.crypto > xrpl.beast
 test.shamap > xrpl.protocol
+libxrpl.validators > xrpl.protocol
 test.overlay > xrpld.peerfinder
 test.server > xrpl.basics
 xrpld.rpc > grpcpp.toplevel
@@ -113,6 +119,7 @@ xrpld.perflog > xrpl.beast
 test.basics > xrpld.rpc
 test.core > test.toplevel
 test.core > xrpl.server
+test.app > xrpl.validators
 xrpld.app > xrpl.beast
 test.consensus > test.jtx
 xrpl.shamap > xrpl.beast
@@ -120,6 +127,7 @@ xrpld.overlay > xrpl.beast
 xrpld.conditions > xrpl.protocol
 test.resource > xrpl.resource
 libxrpl.resource > xrpl.json
+libxrpl.validators > xrpl.basics
 test.protocol > xrpl.basics
 test.ledger > xrpl.basics
 xrpl.server > xrpl.protocol
@@ -155,6 +163,7 @@ xrpld.rpc > xrpl.beast
 test.toplevel > xrpl.json
 libxrpl.net > xrpl.net
 test.jtx > xrpld.app
+libxrpl.validators > xrpl.json
 test.conditions > xrpld.conditions
 test.json > test.jtx
 test.server > xrpl.json
@@ -238,6 +247,7 @@ test.server > test.jtx
 xrpl.basics > rocksdb.toplevel
 test.csf > xrpl.beast
 libxrpl.server > xrpl.json
+xrpl.validators > xrpl.beast
 xrpld.app > sys.toplevel
 test.protocol > test.toplevel
 xrpld.overlay > google.protobuf
@@ -295,6 +305,7 @@ libxrpl.core > xrpl.core
 test.jtx > xrpl.net
 libxrpl.protocol > xrpl.json
 test.overlay > xrpl.beast
+libxrpl.validators > xrpl.validators
 test.resource > xrpl.beast
 test.ledger > test.jtx
 xrpld.peerfinder > xrpl.basics

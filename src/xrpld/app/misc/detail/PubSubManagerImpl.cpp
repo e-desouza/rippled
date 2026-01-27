@@ -19,7 +19,7 @@
 
 #include <xrpld/app/main/Application.h>
 #include <xrpld/app/misc/detail/PubSubManagerImpl.h>
-#include <xrpld/app/validators/Manifest.h>
+#include <xrpl/validators/Manifest.h>
 
 #include <stdexcept>
 

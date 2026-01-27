@@ -2,7 +2,7 @@
 #include <xrpld/app/misc/NetworkOPs.h>
 #include <xrpld/app/misc/ServerCounts.h>
 #include <xrpld/app/rdb/Wallet.h>
-#include <xrpld/app/validators/Manifest.h>
+#include <xrpl/validators/Manifest.h>
 #include <xrpld/overlay/detail/handlers/OverlayOpsHandler.h>
 
 namespace xrpl {

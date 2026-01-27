@@ -1,8 +1,9 @@
 #ifndef XRPL_XRPL_RPC_HANDLERS_VERSION_H
 #define XRPL_XRPL_RPC_HANDLERS_VERSION_H
 
-#include <xrpld/app/main/Application.h>
 #include <xrpld/rpc/Context.h>
+#include <xrpld/rpc/Status.h>
+#include <xrpld/rpc/detail/Handler.h>
 
 #include <xrpl/protocol/ApiVersion.h>
 
@@ -12,10 +13,7 @@ namespace RPC {
 class VersionHandler
 {
 public:
-    explicit VersionHandler(JsonContext& c)
-        : apiVersion_(c.apiVersion), betaEnabled_(c.app.config().BETA_RPC_API)
-    {
-    }
+    explicit VersionHandler(JsonContext& c);
 
     Status
     check()

@@ -29,6 +29,7 @@
 #include <xrpld/app/tx/apply.h>
 #include <xrpld/app/txqueue/HashRouter.h>
 #include <xrpld/app/txqueue/TxQ.h>
+#include <xrpld/app/validators/ManifestPersistence.h>
 #include <xrpld/app/validators/ValidatorKeys.h>
 #include <xrpld/app/validators/ValidatorSite.h>
 #include <xrpld/core/DBInit.h>
@@ -1360,7 +1361,8 @@ ApplicationImp::setup(boost::program_options::variables_map const& cmdline)
         if (validatorKeys_.configInvalid())
             return false;
 
-        if (!validatorManifests_->load(
+        if (!loadManifests(
+                *validatorManifests_,
                 getWalletDB(),
                 "ValidatorManifests",
                 validatorKeys_.manifest,
@@ -1370,7 +1372,7 @@ ApplicationImp::setup(boost::program_options::variables_map const& cmdline)
             return false;
         }
 
-        publisherManifests_->load(getWalletDB(), "PublisherManifests");
+        loadManifests(*publisherManifests_, getWalletDB(), "PublisherManifests");
 
         // It is possible to have a valid ValidatorKeys object without
         // setting the signingKey or masterKey. This occurs if the
@@ -1655,13 +1657,19 @@ ApplicationImp::run()
     validatorSites_->stop();
 
     // TODO Store manifests in manifests.sqlite instead of wallet.db
-    validatorManifests_->save(
-        getWalletDB(), "ValidatorManifests", [this](PublicKey const& pubKey) {
+    saveManifests(
+        *validatorManifests_,
+        getWalletDB(),
+        "ValidatorManifests",
+        [this](PublicKey const& pubKey) {
             return validators().listed(pubKey);
         });
 
-    publisherManifests_->save(
-        getWalletDB(), "PublisherManifests", [this](PublicKey const& pubKey) {
+    saveManifests(
+        *publisherManifests_,
+        getWalletDB(),
+        "PublisherManifests",
+        [this](PublicKey const& pubKey) {
             return validators().trustedPublisher(pubKey);
         });
 

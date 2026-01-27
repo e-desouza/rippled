@@ -1,13 +1,10 @@
-#include <xrpld/app/rdb/Wallet.h>
-#include <xrpld/app/validators/Manifest.h>
-#include <xrpld/core/DatabaseCon.h>
-
 #include <xrpl/basics/Log.h>
 #include <xrpl/basics/StringUtilities.h>
 #include <xrpl/basics/base64.h>
 #include <xrpl/json/json_reader.h>
 #include <xrpl/protocol/PublicKey.h>
 #include <xrpl/protocol/Sign.h>
+#include <xrpl/validators/Manifest.h>
 
 #include <boost/algorithm/string/trim.hpp>
 
@@ -520,79 +517,4 @@ ManifestCache::applyManifest(Manifest m)
     return ManifestDisposition::accepted;
 }
 
-void
-ManifestCache::load(DatabaseCon& dbCon, std::string const& dbTable)
-{
-    auto db = dbCon.checkoutDb();
-    xrpl::getManifests(*db, dbTable, *this, j_);
-}
-
-bool
-ManifestCache::load(
-    DatabaseCon& dbCon,
-    std::string const& dbTable,
-    std::string const& configManifest,
-    std::vector<std::string> const& configRevocation)
-{
-    load(dbCon, dbTable);
-
-    if (!configManifest.empty())
-    {
-        auto mo = deserializeManifest(base64_decode(configManifest));
-        if (!mo)
-        {
-            JLOG(j_.error()) << "Malformed validator_token in config";
-            return false;
-        }
-
-        if (mo->revoked())
-        {
-            JLOG(j_.warn()) << "Configured manifest revokes public key";
-        }
-
-        if (applyManifest(std::move(*mo)) == ManifestDisposition::invalid)
-        {
-            JLOG(j_.error()) << "Manifest in config was rejected";
-            return false;
-        }
-    }
-
-    if (!configRevocation.empty())
-    {
-        std::string revocationStr;
-        revocationStr.reserve(std::accumulate(
-            configRevocation.cbegin(),
-            configRevocation.cend(),
-            std::size_t(0),
-            [](std::size_t init, std::string const& s) {
-                return init + s.size();
-            }));
-
-        for (auto const& line : configRevocation)
-            revocationStr += boost::algorithm::trim_copy(line);
-
-        auto mo = deserializeManifest(base64_decode(revocationStr));
-
-        if (!mo || !mo->revoked() ||
-            applyManifest(std::move(*mo)) == ManifestDisposition::invalid)
-        {
-            JLOG(j_.error()) << "Invalid validator key revocation in config";
-            return false;
-        }
-    }
-
-    return true;
-}
-
-void
-ManifestCache::save(
-    DatabaseCon& dbCon,
-    std::string const& dbTable,
-    std::function<bool(PublicKey const&)> const& isTrusted)
-{
-    std::shared_lock lock{mutex_};
-    auto db = dbCon.checkoutDb();
-
-    saveManifests(*db, dbTable, isTrusted, map_, j_);
-}
 }  // namespace xrpl
