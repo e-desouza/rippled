@@ -1,3 +1,0 @@
-Loop: xrpld.app xrpld.rpc
-  xrpld.rpc > xrpld.app
-

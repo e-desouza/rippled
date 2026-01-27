@@ -298,6 +298,7 @@ tests.libxrpl > xrpl.basics
 xrpld.perflog > xrpl.nodestore
 test.rpc > test.toplevel
 test.rpc > xrpl.basics
+xrpld.rpc > xrpld.app
 test.app > xrpl.ledger
 tests.libxrpl > xrpl.crypto
 tests.libxrpl > xrpl.net

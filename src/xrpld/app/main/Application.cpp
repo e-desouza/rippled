@@ -48,7 +48,8 @@
 #include <xrpld/overlay/detail/handlers/OverlayOpsHandler.h>
 #include <xrpld/overlay/detail/handlers/ValidatorOpsHandler.h>
 #include <xrpld/overlay/make_Overlay.h>
-#include <xrpld/rpc/RPCHandler.h>
+#include <xrpld/app/rpc/IStartupRpcExecutor.h>
+#include <xrpld/app/rpc/make_StartupRpcExecutor.h>
 
 #include <xrpl/basics/ByteUtilities.h>
 #include <xrpl/basics/ResolverAsio.h>
@@ -1522,46 +1523,32 @@ ApplicationImp::setup(boost::program_options::variables_map const& cmdline)
     //
     // Execute start up rpc commands.
     //
-    for (auto cmd : config_->section(SECTION_RPC_STARTUP).lines())
+    if (!config_->section(SECTION_RPC_STARTUP).lines().empty())
     {
-        Json::Reader jrReader;
-        Json::Value jvCommand;
-
-        if (!jrReader.parse(cmd, jvCommand))
+        auto rpcExecutor = make_StartupRpcExecutor();
+        for (auto cmd : config_->section(SECTION_RPC_STARTUP).lines())
         {
-            JLOG(m_journal.fatal()) << "Couldn't parse entry in ["
-                                    << SECTION_RPC_STARTUP << "]: '" << cmd;
-        }
+            Json::Reader jrReader;
+            Json::Value jvCommand;
 
-        if (!config_->quiet())
-        {
-            JLOG(m_journal.fatal())
-                << "Startup RPC: " << jvCommand << std::endl;
-        }
+            if (!jrReader.parse(cmd, jvCommand))
+            {
+                JLOG(m_journal.fatal()) << "Couldn't parse entry in ["
+                                        << SECTION_RPC_STARTUP << "]: '" << cmd;
+            }
 
-        Resource::Charge loadType = Resource::feeReferenceRPC;
-        Resource::Consumer c;
-        RPC::JsonContext context{
-            {journal("RPCHandler"),
-             *this,
-             loadType,
-             getOPs(),
-             getLedgerMaster(),
-             getLedgerMaster(),
-             getOPs(),
-             c,
-             Role::ADMIN,
-             {},
-             {},
-             RPC::apiMaximumSupportedVersion},
-            jvCommand};
+            if (!config_->quiet())
+            {
+                JLOG(m_journal.fatal())
+                    << "Startup RPC: " << jvCommand << std::endl;
+            }
 
-        Json::Value jvResult;
-        RPC::doCommand(context, jvResult);
+            Json::Value jvResult = rpcExecutor->execute(*this, jvCommand);
 
-        if (!config_->quiet())
-        {
-            JLOG(m_journal.fatal()) << "Result: " << jvResult << std::endl;
+            if (!config_->quiet())
+            {
+                JLOG(m_journal.fatal()) << "Result: " << jvResult << std::endl;
+            }
         }
     }
 
