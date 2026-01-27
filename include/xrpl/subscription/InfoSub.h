@@ -1,5 +1,5 @@
-#ifndef XRPLD_APP_MISC_INFOSUB_H_INCLUDED
-#define XRPLD_APP_MISC_INFOSUB_H_INCLUDED
+#ifndef XRPL_SUBSCRIPTION_INFOSUB_H_INCLUDED
+#define XRPL_SUBSCRIPTION_INFOSUB_H_INCLUDED
 
 #include <xrpl/basics/CountedObject.h>
 #include <xrpl/json/json_value.h>

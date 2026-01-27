@@ -3,8 +3,9 @@
 
 #include <xrpld/app/consensus/RCLCxPeerPos.h>
 #include <xrpld/app/ledger/Ledger.h>
+#include <xrpl/subscription/InfoSub.h>
+#include <xrpld/core/FailHard.h>
 #include <xrpld/core/OperatingMode.h>
-#include <xrpld/app/misc/InfoSub.h>
 
 #include <xrpl/core/JobQueue.h>
 #include <xrpl/ledger/ReadView.h>
@@ -55,11 +56,12 @@ class NetworkOPs : public InfoSub::Source
 public:
     using clock_type = beast::abstract_clock<std::chrono::steady_clock>;
 
-    enum class FailHard : unsigned char { no, yes };
+    // For backwards compatibility, expose the FailHard enum from namespace xrpl
+    using FailHard = xrpl::FailHard;
     static inline FailHard
     doFailHard(bool noMeansDont)
     {
-        return noMeansDont ? FailHard::yes : FailHard::no;
+        return xrpl::doFailHard(noMeansDont);
     }
 
 public:

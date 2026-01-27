@@ -1,3 +1,4 @@
+#include <xrpld/core/FailHard.h>
 #include <xrpld/rpc/Context.h>
 #include <xrpld/rpc/detail/TransactionSign.h>
 
@@ -15,7 +16,7 @@ doSubmitMultiSigned(RPC::JsonContext& context)
 {
     context.loadType = Resource::feeHeavyBurdenRPC;
     auto const failHard = context.params[jss::fail_hard].asBool();
-    auto const failType = NetworkOPs::doFailHard(failHard);
+    auto const failType = doFailHard(failHard);
 
     return RPC::transactionSubmitMultiSigned(
         context.params,

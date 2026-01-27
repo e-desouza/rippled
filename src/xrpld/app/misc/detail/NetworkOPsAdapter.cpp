@@ -152,7 +152,7 @@ NetworkOPsAdapter::processTransaction(
     std::shared_ptr<Transaction>& transaction,
     bool bUnlimited,
     bool bLocal,
-    NetworkOPs::FailHard failType)
+    FailHard failType)
 {
     ops_.processTransaction(transaction, bUnlimited, bLocal, failType);
 }

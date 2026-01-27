@@ -1,7 +1,7 @@
 #ifndef XRPL_APP_LEDGER_BOOKLISTENERS_H_INCLUDED
 #define XRPL_APP_LEDGER_BOOKLISTENERS_H_INCLUDED
 
-#include <xrpld/app/misc/InfoSub.h>
+#include <xrpl/subscription/InfoSub.h>
 
 #include <xrpl/protocol/MultiApiJson.h>
 

@@ -1,7 +1,7 @@
 #ifndef XRPL_RPC_TRANSACTIONSIGN_H_INCLUDED
 #define XRPL_RPC_TRANSACTIONSIGN_H_INCLUDED
 
-#include <xrpld/app/misc/NetworkOPs.h>
+#include <xrpld/core/FailHard.h>
 #include <xrpld/rpc/Role.h>
 #include <xrpld/rpc/detail/Tuning.h>
 
@@ -9,7 +9,9 @@ namespace xrpl {
 
 // Forward declarations
 class Application;
+class Config;
 class LoadFeeTrack;
+class NetworkOPs;
 class Transaction;
 class TxQ;
 
@@ -68,26 +70,22 @@ using ProcessTransactionFn = std::function<void(
     std::shared_ptr<Transaction>& transaction,
     bool bUnlimited,
     bool bLocal,
-    NetworkOPs::FailHard failType)>;
+    FailHard failType)>;
 
-inline ProcessTransactionFn
-getProcessTxnFn(NetworkOPs& netOPs)
-{
-    return [&netOPs](
-               std::shared_ptr<Transaction>& transaction,
-               bool bUnlimited,
-               bool bLocal,
-               NetworkOPs::FailHard failType) {
-        netOPs.processTransaction(transaction, bUnlimited, bLocal, failType);
-    };
-}
+/** Create a ProcessTransactionFn that delegates to
+   NetworkOPs::processTransaction.
+    @param netOPs The NetworkOPs instance to use for transaction processing.
+    @return A function object that can be called to process transactions.
+*/
+ProcessTransactionFn
+getProcessTxnFn(NetworkOPs& netOPs);
 
 /** Returns a Json::objectValue. */
 Json::Value
 transactionSign(
     Json::Value params,  // Passed by value so it can be modified locally.
     unsigned apiVersion,
-    NetworkOPs::FailHard failType,
+    FailHard failType,
     Role role,
     std::chrono::seconds validatedLedgerAge,
     Application& app);
@@ -97,7 +95,7 @@ Json::Value
 transactionSubmit(
     Json::Value params,  // Passed by value so it can be modified locally.
     unsigned apiVersion,
-    NetworkOPs::FailHard failType,
+    FailHard failType,
     Role role,
     std::chrono::seconds validatedLedgerAge,
     Application& app,
@@ -108,7 +106,7 @@ Json::Value
 transactionSignFor(
     Json::Value params,  // Passed by value so it can be modified locally.
     unsigned apiVersion,
-    NetworkOPs::FailHard failType,
+    FailHard failType,
     Role role,
     std::chrono::seconds validatedLedgerAge,
     Application& app);
@@ -118,7 +116,7 @@ Json::Value
 transactionSubmitMultiSigned(
     Json::Value params,  // Passed by value so it can be modified locally.
     unsigned apiVersion,
-    NetworkOPs::FailHard failType,
+    FailHard failType,
     Role role,
     std::chrono::seconds validatedLedgerAge,
     Application& app,

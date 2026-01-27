@@ -4,6 +4,7 @@
 #include <xrpld/app/misc/LoadFeeTrack.h>
 #include <xrpld/app/txqueue/TxQ.h>
 #include <xrpld/core/ConfigSections.h>
+#include <xrpld/core/FailHard.h>
 #include <xrpld/rpc/detail/TransactionSign.h>
 
 #include <xrpl/basics/contract.h>
@@ -2768,11 +2769,7 @@ public:
 
     // A function that can be called as though it would process a transaction.
     static void
-    fakeProcessTransaction(
-        std::shared_ptr<Transaction>&,
-        bool,
-        bool,
-        NetworkOPs::FailHard)
+    fakeProcessTransaction(std::shared_ptr<Transaction>&, bool, bool, FailHard)
     {
         ;
     }
@@ -2814,7 +2811,7 @@ public:
         using signFunc = Json::Value (*)(
             Json::Value params,
             unsigned int apiVersion,
-            NetworkOPs::FailHard failType,
+            FailHard failType,
             Role role,
             std::chrono::seconds validatedLedgerAge,
             Application& app);
@@ -2822,7 +2819,7 @@ public:
         using submitFunc = Json::Value (*)(
             Json::Value params,
             unsigned int apiVersion,
-            NetworkOPs::FailHard failType,
+            FailHard failType,
             Role role,
             std::chrono::seconds validatedLedgerAge,
             Application& app,
@@ -2863,12 +2860,7 @@ public:
                     {
                         assert(get<1>(testFunc) == nullptr);
                         result = signFn(
-                            req,
-                            1,
-                            NetworkOPs::FailHard::yes,
-                            testRole,
-                            1s,
-                            env.app());
+                            req, 1, FailHard::yes, testRole, 1s, env.app());
                     }
                     else
                     {
@@ -2877,7 +2869,7 @@ public:
                         result = submitFn(
                             req,
                             1,
-                            NetworkOPs::FailHard::yes,
+                            FailHard::yes,
                             testRole,
                             1s,
                             env.app(),

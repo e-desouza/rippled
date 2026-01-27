@@ -20,7 +20,7 @@
 #ifndef XRPL_APP_MISC_ITRANSACTIONPROCESSOR_H_INCLUDED
 #define XRPL_APP_MISC_ITRANSACTIONPROCESSOR_H_INCLUDED
 
-#include <xrpld/app/misc/NetworkOPs.h>  // For FailHard enum
+#include <xrpld/core/FailHard.h>
 
 #include <cstddef>
 #include <memory>
@@ -87,7 +87,7 @@ public:
         std::shared_ptr<Transaction>& transaction,
         bool bUnlimited,
         bool bLocal,
-        NetworkOPs::FailHard failType) = 0;
+        FailHard failType) = 0;
 
     /**
      * @brief Process a set of transactions synchronously as a batch.

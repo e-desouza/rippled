@@ -105,6 +105,14 @@ target_link_libraries(xrpl.libxrpl.core PUBLIC
 add_module(xrpl resource)
 target_link_libraries(xrpl.libxrpl.resource PUBLIC xrpl.libxrpl.protocol)
 
+add_module(xrpl subscription)
+target_link_libraries(xrpl.libxrpl.subscription PUBLIC
+  xrpl.libxrpl.basics
+  xrpl.libxrpl.json
+  xrpl.libxrpl.protocol
+  xrpl.libxrpl.resource
+)
+
 # Level 07
 add_module(xrpl net)
 target_link_libraries(xrpl.libxrpl.net PUBLIC
@@ -162,6 +170,7 @@ target_link_modules(xrpl PUBLIC
   shamap
   net
   ledger
+  subscription
 )
 
 # All headers in libxrpl are in modules.

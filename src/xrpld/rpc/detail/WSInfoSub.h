@@ -1,7 +1,7 @@
 #ifndef XRPL_RPC_WSINFOSUB_H
 #define XRPL_RPC_WSINFOSUB_H
 
-#include <xrpld/app/misc/InfoSub.h>
+#include <xrpl/subscription/InfoSub.h>
 #include <xrpld/rpc/Role.h>
 
 #include <xrpl/beast/net/IPAddressConversion.h>

@@ -1,6 +1,8 @@
 #include <xrpld/app/main/Application.h>
+#include <xrpld/app/misc/NetworkOPs.h>
 #include <xrpld/app/misc/Transaction.h>
 #include <xrpld/app/tx/apply.h>
+#include <xrpld/core/FailHard.h>
 #include <xrpld/rpc/Context.h>
 #include <xrpld/rpc/detail/TransactionSign.h>
 
@@ -10,10 +12,10 @@
 
 namespace xrpl {
 
-static NetworkOPs::FailHard
+static FailHard
 getFailHard(RPC::JsonContext const& context)
 {
-    return NetworkOPs::doFailHard(
+    return doFailHard(
         context.params.isMember("fail_hard") &&
         context.params["fail_hard"].asBool());
 }

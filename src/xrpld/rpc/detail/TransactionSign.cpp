@@ -2,6 +2,7 @@
 #include <xrpld/app/main/Application.h>
 #include <xrpld/app/misc/DeliverMax.h>
 #include <xrpld/app/misc/LoadFeeTrack.h>
+#include <xrpld/app/misc/NetworkOPs.h>
 #include <xrpld/app/misc/Transaction.h>
 #include <xrpld/app/paths/Pathfinder.h>
 #include <xrpld/app/tx/apply.h>  // Validity::Valid
@@ -27,6 +28,19 @@
 
 namespace xrpl {
 namespace RPC {
+
+ProcessTransactionFn
+getProcessTxnFn(NetworkOPs& netOPs)
+{
+    return [&netOPs](
+               std::shared_ptr<Transaction>& transaction,
+               bool bUnlimited,
+               bool bLocal,
+               FailHard failType) {
+        netOPs.processTransaction(transaction, bUnlimited, bLocal, failType);
+    };
+}
+
 namespace detail {
 
 // Used to pass extra parameters used when returning a
@@ -980,7 +994,7 @@ Json::Value
 transactionSign(
     Json::Value jvRequest,
     unsigned apiVersion,
-    NetworkOPs::FailHard failType,
+    FailHard failType,
     Role role,
     std::chrono::seconds validatedLedgerAge,
     Application& app)
@@ -1014,7 +1028,7 @@ Json::Value
 transactionSubmit(
     Json::Value jvRequest,
     unsigned apiVersion,
-    NetworkOPs::FailHard failType,
+    FailHard failType,
     Role role,
     std::chrono::seconds validatedLedgerAge,
     Application& app,
@@ -1148,7 +1162,7 @@ Json::Value
 transactionSignFor(
     Json::Value jvRequest,
     unsigned apiVersion,
-    NetworkOPs::FailHard failType,
+    FailHard failType,
     Role role,
     std::chrono::seconds validatedLedgerAge,
     Application& app)
@@ -1264,7 +1278,7 @@ Json::Value
 transactionSubmitMultiSigned(
     Json::Value jvRequest,
     unsigned apiVersion,
-    NetworkOPs::FailHard failType,
+    FailHard failType,
     Role role,
     std::chrono::seconds validatedLedgerAge,
     Application& app,

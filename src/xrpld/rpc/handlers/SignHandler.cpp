@@ -1,4 +1,5 @@
 #include <xrpld/app/main/Application.h>
+#include <xrpld/core/FailHard.h>
 #include <xrpld/rpc/Context.h>
 #include <xrpld/rpc/detail/TransactionSign.h>
 
@@ -21,7 +22,7 @@ doSign(RPC::JsonContext& context)
     }
 
     context.loadType = Resource::feeHeavyBurdenRPC;
-    NetworkOPs::FailHard const failType = NetworkOPs::doFailHard(
+    FailHard const failType = doFailHard(
         context.params.isMember(jss::fail_hard) &&
         context.params[jss::fail_hard].asBool());
 

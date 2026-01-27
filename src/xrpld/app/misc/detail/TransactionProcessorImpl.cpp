@@ -57,7 +57,7 @@ TransactionProcessorImpl::processTransaction(
     std::shared_ptr<Transaction>& transaction,
     bool bUnlimited,
     bool bLocal,
-    NetworkOPs::FailHard failType)
+    FailHard failType)
 {
     // TODO: Implement when wiring together the NetworkOPs split.
     // This will extract logic from NetworkOPsImp::processTransaction()

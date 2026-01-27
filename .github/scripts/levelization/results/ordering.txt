@@ -14,6 +14,7 @@ test.csf > xrpld.consensus
 xrpld.app > xrpl.json
 xrpl.resource > xrpl.beast
 test.app > xrpl.basics
+xrpl.subscription > xrpl.resource
 test.peerfinder > xrpl.beast
 xrpl.resource > xrpl.basics
 libxrpl.shamap > xrpl.shamap
@@ -31,6 +32,7 @@ xrpld.app > date.toplevel
 test.overlay > xrpl.basics
 xrpld.app > xrpl.shamap
 libxrpl.server > xrpl.basics
+xrpl.subscription > xrpl.protocol
 test.ledger > xrpl.protocol
 xrpld.core > xrpl.core
 xrpld.overlay > xrpl.resource
@@ -55,6 +57,8 @@ xrpld.overlay > xrpl.protocol
 xrpld.consensus > xrpl.beast
 test.basics > test.jtx
 xrpl.ledger > xrpl.protocol
+xrpl.subscription > xrpl.basics
+xrpld.rpc > xrpl.subscription
 xrpld.rpc > xrpl.basics
 test.rpc > xrpld.app
 test.shamap > xrpl.nodestore
@@ -92,6 +96,7 @@ libxrpl.ledger > xrpl.json
 test.app > xrpl.core
 test.shamap > xrpl.shamap
 xrpl.server > xrpl.beast
+xrpl.subscription > xrpl.json
 test.jtx > xrpl.server
 xrpld.overlay > xrpl.basics
 xrpld.app > xrpl.basics
@@ -125,6 +130,7 @@ xrpld.app > xrpl.server
 xrpld.rpc > xrpl.core
 test.protocol > xrpl.crypto
 libxrpl.basics > xrpl.basics
+xrpld.app > xrpl.subscription
 libxrpl.resource > xrpl.beast
 xrpl.server > xrpl.basics
 xrpl.shamap > xrpl.protocol
@@ -266,6 +272,7 @@ test.overlay > xrpl.shamap
 test.core > xrpld.core
 libxrpl.protocol > xrpl.crypto
 test.protocol > xrpl.protocol
+libxrpl.subscription > xrpl.subscription
 xrpld.rpc > xrpl.json
 test.shamap > test.jtx
 xrpld.core > xrpl.protocol

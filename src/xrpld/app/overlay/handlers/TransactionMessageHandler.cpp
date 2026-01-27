@@ -308,8 +308,7 @@ TransactionMessageHandler::checkTransaction(
         }
 
         bool const trusted = any(flags & HashRouterFlags::TRUSTED);
-        app.getOPs().processTransaction(
-            tx, trusted, false, NetworkOPs::FailHard::no);
+        app.getOPs().processTransaction(tx, trusted, false, FailHard::no);
     }
     catch (std::exception const& ex)
     {

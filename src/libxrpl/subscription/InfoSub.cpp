@@ -1,4 +1,4 @@
-#include <xrpld/app/misc/InfoSub.h>
+#include <xrpl/subscription/InfoSub.h>
 
 namespace xrpl {
 

@@ -76,7 +76,7 @@ public:
         std::shared_ptr<Transaction>& transaction,
         bool bUnlimited,
         bool bLocal,
-        NetworkOPs::FailHard failType) override;
+        FailHard failType) override;
 
     void
     processTransactionSet(CanonicalTXSet const& set) override;

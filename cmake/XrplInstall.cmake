@@ -26,6 +26,7 @@ install (
     xrpl.libxrpl.resource
     xrpl.libxrpl.server
     xrpl.libxrpl.shamap
+    xrpl.libxrpl.subscription
     antithesis-sdk-cpp
   EXPORT XrplExports
   LIBRARY DESTINATION lib
