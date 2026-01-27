@@ -1,4 +1,4 @@
-#include <xrpld/app/ledger/LedgerDataProvider.h>
+#include <xrpl/ledger/LedgerDataProvider.h>
 #include <xrpld/app/ledger/LedgerMaster.h>
 #include <xrpld/app/main/Application.h>
 #include <xrpld/app/main/CollectorManager.h>
@@ -485,6 +485,7 @@ ServerHandler::processSession(
                  app_.getOPs(),
                  app_.getLedgerMaster(),
                  static_cast<LedgerDataProvider&>(app_.getLedgerMaster()),
+                 app_.getOPs(),
                  is->getConsumer(),
                  role,
                  coro,
@@ -885,6 +886,7 @@ ServerHandler::processRequest(
              m_networkOPs,
              app_.getLedgerMaster(),
              static_cast<LedgerDataProvider&>(app_.getLedgerMaster()),
+             m_networkOPs,
              usage,
              role,
              coro,

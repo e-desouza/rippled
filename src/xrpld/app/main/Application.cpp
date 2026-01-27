@@ -1540,6 +1540,7 @@ ApplicationImp::setup(boost::program_options::variables_map const& cmdline)
              getOPs(),
              getLedgerMaster(),
              getLedgerMaster(),
+             getOPs(),
              c,
              Role::ADMIN,
              {},

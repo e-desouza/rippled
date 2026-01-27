@@ -1,5 +1,8 @@
 #include <xrpld/app/main/Application.h>
+#include <xrpld/app/misc/NetworkOPs.h>
 #include <xrpld/perflog/detail/PerfLogImp.h>
+
+#include <xrpl/nodestore/Database.h>
 
 #include <xrpl/basics/BasicConfig.h>
 #include <xrpl/beast/core/CurrentThreadName.h>

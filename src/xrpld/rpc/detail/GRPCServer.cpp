@@ -1,9 +1,11 @@
 #include <xrpld/app/ledger/LedgerMaster.h>
 #include <xrpld/app/main/Application.h>
+#include <xrpld/app/misc/NetworkOPs.h>
 #include <xrpld/core/ConfigSections.h>
 #include <xrpld/rpc/GRPCServer.h>
 
 #include <xrpl/beast/core/CurrentThreadName.h>
+#include <xrpl/subscription/InfoSub.h>
 #include <xrpl/beast/net/IPAddressConversion.h>
 #include <xrpl/resource/Fees.h>
 
@@ -164,6 +166,7 @@ GRPCServerImpl::CallData<Request, Response>::process(
                  app_.getOPs(),
                  app_.getLedgerMaster(),
                  app_.getLedgerMaster(),
+                 app_.getOPs(),
                  usage,
                  role,
                  coro,

@@ -5,7 +5,8 @@
 #include <test/jtx/permissioned_dex.h>
 
 #include <xrpld/app/ledger/LedgerMaster.h>
-#include <xrpld/app/ledger/LedgerDataProvider.h>
+#include <xrpld/app/misc/NetworkOPs.h>
+#include <xrpl/ledger/LedgerDataProvider.h>
 #include <xrpld/rpc/RPCHandler.h>
 #include <xrpld/rpc/detail/Tuning.h>
 
@@ -131,6 +132,7 @@ public:
              app.getOPs(),
              app.getLedgerMaster(),
              static_cast<LedgerDataProvider&>(app.getLedgerMaster()),
+             app.getOPs(),
              c,
              Role::USER,
              {},
@@ -244,6 +246,7 @@ public:
              app.getOPs(),
              app.getLedgerMaster(),
              static_cast<LedgerDataProvider&>(app.getLedgerMaster()),
+             app.getOPs(),
              c,
              Role::USER,
              {},

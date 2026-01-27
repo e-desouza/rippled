@@ -1,5 +1,5 @@
-#ifndef XRPLD_APP_LEDGER_LEDGERDATAPROVIDER_H_INCLUDED
-#define XRPLD_APP_LEDGER_LEDGERDATAPROVIDER_H_INCLUDED
+#ifndef XRPL_LEDGER_LEDGERDATAPROVIDER_H_INCLUDED
+#define XRPL_LEDGER_LEDGERDATAPROVIDER_H_INCLUDED
 
 #include <xrpl/beast/utility/Journal.h>
 #include <xrpl/protocol/LedgerHeader.h>
@@ -81,3 +81,4 @@ public:
 }  // namespace xrpl
 
 #endif
+

@@ -1,7 +1,7 @@
 #ifndef XRPL_RPC_HANDLERS_LEDGER_H_INCLUDED
 #define XRPL_RPC_HANDLERS_LEDGER_H_INCLUDED
 
-#include <xrpld/app/txqueue/TxQ.h>
+#include <xrpl/protocol/TxDetails.h>
 #include <xrpld/rpc/Context.h>
 #include <xrpld/rpc/Role.h>
 #include <xrpld/rpc/Status.h>
@@ -50,7 +50,7 @@ public:
 private:
     JsonContext& context_;
     std::shared_ptr<ReadView const> ledger_;
-    std::vector<TxQ::TxDetails> queueTxs_;
+    std::vector<TxDetails> queueTxs_;
     Json::Value result_;
     int options_ = 0;
 };

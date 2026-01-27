@@ -1,7 +1,8 @@
 #ifndef XRPL_RPC_CONTEXT_H_INCLUDED
 #define XRPL_RPC_CONTEXT_H_INCLUDED
 
-#include <xrpld/app/ledger/LedgerDataProvider.h>
+#include <xrpl/ledger/LedgerDataProvider.h>
+#include <xrpld/core/IBlockedStatus.h>
 #include <xrpld/rpc/Role.h>
 
 #include <xrpl/beast/utility/Journal.h>
@@ -27,6 +28,7 @@ struct Context
     NetworkOPs& netOps;
     LedgerMaster& ledgerMaster;
     LedgerDataProvider& ledgerDataProvider;
+    IBlockedStatus& blockedStatus;
     Resource::Consumer& consumer;
     Role role;
     std::shared_ptr<JobQueue::Coro> coro{};

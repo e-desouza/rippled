@@ -1,7 +1,7 @@
 #ifndef XRPL_RPC_HANDLER_H_INCLUDED
 #define XRPL_RPC_HANDLER_H_INCLUDED
 
-#include <xrpld/app/misc/NetworkOPs.h>
+#include <xrpld/core/IBlockedStatus.h>
 #include <xrpld/rpc/RPCHandler.h>
 #include <xrpld/rpc/Status.h>
 #include <xrpld/rpc/detail/Tuning.h>
@@ -60,23 +60,23 @@ template <class T>
 error_code_i
 conditionMet(Condition condition_required, T& context)
 {
-    if (context.app.getOPs().isAmendmentBlocked() &&
+    if (context.blockedStatus.isAmendmentBlocked() &&
         (condition_required != NO_CONDITION))
     {
         return rpcAMENDMENT_BLOCKED;
     }
 
-    if (context.app.getOPs().isUNLBlocked() &&
+    if (context.blockedStatus.isUNLBlocked() &&
         (condition_required != NO_CONDITION))
     {
         return rpcEXPIRED_VALIDATOR_LIST;
     }
 
     if ((condition_required != NO_CONDITION) &&
-        (context.netOps.getOperatingMode() < OperatingMode::SYNCING))
+        (context.blockedStatus.getOperatingMode() < OperatingMode::SYNCING))
     {
         JLOG(context.j.info()) << "Insufficient network mode for RPC: "
-                               << context.netOps.strOperatingMode();
+                               << context.blockedStatus.strOperatingMode();
 
         if (context.apiVersion == 1)
             return rpcNO_NETWORK;

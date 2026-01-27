@@ -2,7 +2,7 @@
 // The protocol-level insertDeliveredAmount(Json::Value&, ReadView const&, ...)
 // is now implemented in src/libxrpl/protocol/DeliveredAmount.cpp
 
-#include <xrpld/app/ledger/LedgerDataProvider.h>
+#include <xrpl/ledger/LedgerDataProvider.h>
 #include <xrpld/app/misc/Transaction.h>
 #include <xrpld/rpc/Context.h>
 #include <xrpld/rpc/DeliveredAmount.h>

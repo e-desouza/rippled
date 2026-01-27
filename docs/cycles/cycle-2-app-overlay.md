@@ -1,9 +1,9 @@
 # Cycle 2: xrpld.app ↔ xrpld.overlay
 
-## ⚠️ IMPLEMENTATION STATUS: TIER 3 COMPLETE
+## ⚠️ IMPLEMENTATION STATUS: 4 CPP DEPS REMAINING
 
-**Progress:** overlay→app dependencies reduced from 29 to 5 (83% improvement)
-**Cycle 4 (app→rpc):** Reduced from 15 to 2 (87% improvement)
+**Progress:** overlay→app dependencies reduced from 35 to 4 (89% improvement)
+**Cycle Status:** Loop still exists but only due to 4 cpp-file dependencies (no header deps)
 
 ### Implementation Phases Summary
 
@@ -13,7 +13,23 @@
 | Handler extraction | Message handlers moved to app module | 29 → 17 |
 | Tier 1 (COMPLETE) | Interface-based dependency inversion | 17 → 12 |
 | Tier 2 (COMPLETE) | Medium risk interfaces | 12 → 5 |
-| Tier 3 (COMPLETE) | Higher complexity - interface extensions, forward decls | 5 → 5 (transitive deps reduced) |
+| Tier 3 (COMPLETE) | Higher complexity - interface extensions, forward decls | 5 → 4 |
+
+### Current State (2026-01-27)
+
+**Remaining 4 Dependencies (all in .cpp files):**
+
+| File | Include | Usage Count | Notes |
+|------|---------|-------------|-------|
+| `OverlayImpl.cpp` | `Application.h` | 25 usages | config, journals, validators, manifests, cluster |
+| `PeerImp.cpp` | `Application.h` | 30+ usages | config, journals, cluster, jobQueue, timeKeeper |
+| `PeerImp.cpp` | `Ledger.h` | Multiple | txMap/stateMap access for peer sync |
+| `ConnectAttempt.cpp` | `Application.h` | 1 usage | `app_.cluster().member(publicKey)` |
+
+**Key Insight:** All remaining dependencies are in `.cpp` files, not headers. This means:
+- No transitive dependency pollution
+- The cycle exists but is "shallow" - only affects compilation, not interface design
+- Breaking these requires major refactoring or accepting the cpp-level coupling
 
 ### Tier 1 Commits (Interface-Based Dependency Inversion)
 
@@ -35,19 +51,79 @@
 | `3f98db1be8` | IOverlayProvider for lazy overlay access | 8→7 |
 | `d0e93c16a9` | ILedgerDataOps for InboundLedgers/InboundTransactions | 7→5 |
 
-### Remaining 5 Dependencies (After Tier 3)
+### Proposed Solutions for Remaining 4 Dependencies
 
-| File | Include | Usage | Notes |
-|------|---------|-------|-------|
-| OverlayImpl.cpp | Application.h | 25 app_ usages (config, journal, validators, manifests) | ASSESSED: Major refactoring needed |
-| OverlayImpl.cpp | Manifest.h | Manifest types for deserialize/applyManifest | Replaced ValidatorList.h (smaller) |
-| PeerImp.cpp | Application.h | app_ methods (config, journals, etc.) | Moved from header to cpp |
-| PeerImp.cpp | Ledger.h | Ledger type (for txMap/stateMap access) | Fundamental protocol type |
-| ConnectAttempt.cpp | Application.h | app_.cluster() for member check | Added when PeerImp.h forward decl'd |
+#### Option A: Create Comprehensive IApplicationContext Interface (RECOMMENDED)
 
-**Note on PeerImp.h:** Step 2.6.5 removed Application.h from PeerImp.h and added forward declarations for Application and Ledger. This reduces transitive dependencies since PeerImp.h is included by 7+ files. The includes were moved to PeerImp.cpp and ConnectAttempt.cpp.
+Create a single interface that provides all the Application methods needed by overlay:
 
-**Note on ValidatorList.h → Manifest.h:** ValidatorList.h was replaced with smaller Manifest.h which only depends on xrpl/ modules (no xrpld/ dependencies). This reduces transitive dependencies.
+```cpp
+// src/xrpld/overlay/IApplicationContext.h
+class IApplicationContext {
+public:
+    virtual ~IApplicationContext() = default;
+
+    // Configuration
+    virtual Config const& config() const = 0;
+    virtual beast::Journal journal(std::string const& name) = 0;
+    virtual Logs& logs() = 0;
+
+    // Cluster operations
+    virtual bool isClusterMember(PublicKey const& pk) const = 0;
+    virtual void updateClusterNode(PublicKey const& pk, ...) = 0;
+    virtual void forEachClusterNode(std::function<void(ClusterNode const&)>) = 0;
+
+    // Job queue
+    virtual void addJob(JobType, std::string const&, std::function<void()>) = 0;
+    virtual std::unique_ptr<LoadEvent> makeLoadEvent(JobType, std::string const&) = 0;
+
+    // Time
+    virtual NetClock::time_point now() const = 0;
+
+    // Validation key
+    virtual std::optional<PublicKey> getValidationPublicKey() const = 0;
+};
+```
+
+**Pros:**
+- Single interface covers most usages
+- Clean separation of concerns
+- Follows existing pattern (IOverlayOps, IValidatorOps, etc.)
+
+**Cons:**
+- Large interface (may violate Interface Segregation Principle)
+- Requires implementing adapter in app module
+
+#### Option B: Accept CPP-Level Coupling (PRAGMATIC)
+
+Accept that overlay .cpp files depend on Application.h since:
+- No header-level pollution (all deps are in .cpp files)
+- Overlay is inherently tied to Application lifecycle
+- Cost of abstraction may exceed benefit
+
+**Pros:**
+- No code changes needed
+- Simpler architecture
+- Overlay naturally needs Application context
+
+**Cons:**
+- Cycle remains in levelization output
+- Harder to unit test overlay in isolation
+
+#### Option C: Move Overlay to App Module (ARCHITECTURAL)
+
+Merge overlay into app since they're tightly coupled:
+- `xrpld/overlay/` → `xrpld/app/overlay/`
+- Eliminates cycle by definition
+
+**Pros:**
+- Eliminates cycle completely
+- Reflects actual coupling
+
+**Cons:**
+- Major restructuring
+- May create larger app module
+- Breaks existing include paths
 
 ### Tier 2 Cancelled Steps
 

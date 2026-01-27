@@ -11,10 +11,34 @@ This directory contains detailed plans for removing the 7 dependency cycles in t
 | **Cycle 5** | consensus↔overlay | 3 | 0 | ✅ **REMOVED** |
 | **Cycle 3** | app↔peerfinder | 1 | 0 | ✅ **REMOVED** |
 | **Cycle 1** | app↔consensus | 15 | 0 | ✅ **REMOVED** |
-| **Cycle 4** | app↔rpc | 24 | 15 | ⚠️ **PARTIAL** (37.5% reduced) |
-| **Cycle 2** | app↔overlay | 35 | 29 | ⚠️ **PARTIAL** (17% reduced) |
+| **Cycle 4** | app↔rpc | 24→15→3 | 3 headers | ⚠️ **87.5% reduced** |
+| **Cycle 2** | app↔overlay | 35→29→4 | 4 cpp deps | ⚠️ **89% reduced** |
 
-**Last Updated:** 2026-01-26
+**Last Updated:** 2026-01-27
+
+## Current State Summary
+
+After extensive levelization work, only **2 cycles remain** (down from 8 in origin/develop):
+
+```
+Loop: xrpld.app xrpld.overlay
+  xrpld.app > xrpld.overlay
+
+Loop: xrpld.app xrpld.rpc
+  xrpld.rpc > xrpld.app
+```
+
+### Remaining Dependencies
+
+**Cycle 2 (app↔overlay):** 4 cpp-only dependencies
+- `OverlayImpl.cpp` → `Application.h` (25 app_ usages)
+- `PeerImp.cpp` → `Application.h`, `Ledger.h` (30+ app_ usages)
+- `ConnectAttempt.cpp` → `Application.h` (1 usage: cluster check)
+
+**Cycle 4 (app↔rpc):** 3 header dependencies
+- `Context.h` → `LedgerDataProvider.h` (interface reference)
+- `Handler.h` → `NetworkOPs.h` (isAmendmentBlocked/isUNLBlocked methods)
+- `LedgerHandler.h` → `TxQ.h` (TxQ::TxDetails nested type)
 
 ## Recommended Execution Order
 
@@ -41,32 +65,36 @@ Based on risk/effort analysis, here is the recommended order for removing cycles
   - Moved 7 *Impl.cpp files from `consensus/detail/` to `app/consensus/detail/`
 - **Doc:** [cycle-1-app-consensus.md](cycle-1-app-consensus.md)
 
-### Cycle 2: app↔overlay ⚠️ PARTIAL (29 deps remaining)
+### Cycle 2: app↔overlay ⚠️ 4 CPP DEPS REMAINING (89% reduced)
 
-- **Status:** Reduced from 35 to 29 dependencies (17% improvement)
+- **Status:** Reduced from 35 to 4 dependencies (89% improvement)
 - **Changes Made:**
-  - Forward declared Application in `OverlayImpl.h` and `Handshake.h`
-  - Added missing includes for header self-containment
-- **Remaining Work:** 29 deps in .cpp files (PeerImp.cpp, OverlayImpl.cpp) accessing app subsystems. Requires creating overlay dependency interfaces and moving message handlers to app module.
+  - Created 10+ interfaces: `IFeeTrackOps`, `IHandshakeParams`, `IPeerReservationStorage`, `IOverlayOps`, `IHashRouterOps`, `IValidatorOps`, `ILedgerDataOps`, `ILedgerMasterOps`, `ILedgerReplayMsgHandler`, `IOverlayProvider`
+  - Moved message handlers to `app/overlay/handlers/`
+  - Forward declared Application in headers
+  - Replaced ValidatorList.h with smaller Manifest.h
+- **Remaining Work:** 4 cpp-only deps require major refactoring (see [cycle-2-app-overlay.md](cycle-2-app-overlay.md))
 - **Doc:** [cycle-2-app-overlay.md](cycle-2-app-overlay.md)
-  - See the **Refined Implementation Plan** section in that doc for a phased interface-based refactor.
 
 ### Cycle 3: app↔peerfinder ✅ REMOVED
 
 - **Status:** Fully removed (previously completed)
 - **Doc:** [cycle-3-app-peerfinder.md](cycle-3-app-peerfinder.md)
 
-### Cycle 4: app↔rpc ⚠️ PARTIAL (15 deps remaining)
+### Cycle 4: app↔rpc ⚠️ 3 HEADER DEPS REMAINING (87.5% reduced)
 
-- **Status:** Reduced from 24 to 15 dependencies (37.5% improvement)
+- **Status:** Reduced from 24 to 3 header dependencies (87.5% improvement)
 - **Changes Made:**
   - Moved `CTID.h` to `include/xrpl/protocol/CTID.h`
   - Moved `LedgerDataProvider.h` to `app/ledger/`
-  - Moved `InfoSub.h` and `InfoSub.cpp` to `app/misc/`
+  - Moved `InfoSub` to `include/xrpl/subscription/` (xrpl library)
+  - Moved `Manifest` to `include/xrpl/validators/` (xrpl library)
+  - Extracted `FailHard` enum to `core/FailHard.h`
   - Extracted `LedgerShortcut` enum to `core/LedgerShortcut.h`
-- **Remaining Work:** 15 deps are deeply coupled (DeliveredAmount uses RPC::Context, GRPCServer needs 4 RPC headers). Requires major refactoring.
+  - Removed obsolete `GetCounts.h`
+  - Moved `Version.h` constructor to `.cpp`
+- **Remaining Work:** 3 header deps require interface extraction (see [cycle-4-app-rpc.md](cycle-4-app-rpc.md))
 - **Doc:** [cycle-4-app-rpc.md](cycle-4-app-rpc.md)
-  - See the **Refined Implementation Plan** section in that doc for details on JSON helper extraction, `LedgerToJson` decoupling, server wiring, and `Main`/`RPCCall` changes.
 
 ### Cycle 5: consensus↔overlay ✅ REMOVED
 

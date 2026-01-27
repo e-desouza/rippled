@@ -6,6 +6,7 @@
 #include <xrpl/subscription/InfoSub.h>
 #include <xrpld/core/FailHard.h>
 #include <xrpld/core/OperatingMode.h>
+#include <xrpld/core/IBlockedStatus.h>
 
 #include <xrpl/core/JobQueue.h>
 #include <xrpl/ledger/ReadView.h>
@@ -51,7 +52,7 @@ class CanonicalTXSet;
     instances of rippled will need to be hardened to protect against hostile
     or unreliable servers.
 */
-class NetworkOPs : public InfoSub::Source
+class NetworkOPs : public InfoSub::Source, public virtual IBlockedStatus
 {
 public:
     using clock_type = beast::abstract_clock<std::chrono::steady_clock>;
@@ -75,13 +76,13 @@ public:
     // Network information
     //
 
-    virtual OperatingMode
-    getOperatingMode() const = 0;
+    OperatingMode
+    getOperatingMode() const override = 0;
     virtual std::string
     strOperatingMode(OperatingMode const mode, bool const admin = false)
         const = 0;
-    virtual std::string
-    strOperatingMode(bool const admin = false) const = 0;
+    std::string
+    strOperatingMode(bool const admin = false) const override = 0;
 
     //--------------------------------------------------------------------------
     //
@@ -180,8 +181,8 @@ public:
     setMode(OperatingMode om) = 0;
     virtual bool
     isBlocked() = 0;
-    virtual bool
-    isAmendmentBlocked() = 0;
+    bool
+    isAmendmentBlocked() override = 0;
     virtual void
     setAmendmentBlocked() = 0;
     virtual bool
@@ -190,8 +191,8 @@ public:
     setAmendmentWarned() = 0;
     virtual void
     clearAmendmentWarned() = 0;
-    virtual bool
-    isUNLBlocked() = 0;
+    bool
+    isUNLBlocked() override = 0;
     virtual void
     setUNLBlocked() = 0;
     virtual void

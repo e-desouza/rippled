@@ -292,6 +292,7 @@ xrpl.net > xrpl.beast
 xrpl.basics > xrpl.beast
 xrpld.rpc > xrpld.core
 tests.libxrpl > xrpl.basics
+xrpld.perflog > xrpl.nodestore
 test.rpc > test.toplevel
 test.rpc > xrpl.basics
 test.app > xrpl.ledger
