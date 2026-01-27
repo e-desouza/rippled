@@ -1,6 +1,7 @@
 #include <xrpld/app/ledger/OpenLedger.h>
 #include <xrpld/app/main/Application.h>
 #include <xrpld/app/misc/DeliverMax.h>
+#include <xrpld/app/misc/LoadFeeTrack.h>
 #include <xrpld/app/misc/Transaction.h>
 #include <xrpld/app/paths/Pathfinder.h>
 #include <xrpld/app/tx/apply.h>  // Validity::Valid
