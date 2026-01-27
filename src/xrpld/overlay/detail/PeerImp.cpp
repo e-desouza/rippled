@@ -1,4 +1,5 @@
 #include <xrpld/app/ledger/Ledger.h>
+#include <xrpld/app/main/Application.h>
 #include <xrpld/overlay/Cluster.h>
 #include <xrpld/overlay/IFeeTrackOps.h>
 #include <xrpld/overlay/ILedgerDataOps.h>

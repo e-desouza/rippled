@@ -1,7 +1,6 @@
 #ifndef XRPL_OVERLAY_PEERIMP_H_INCLUDED
 #define XRPL_OVERLAY_PEERIMP_H_INCLUDED
 
-#include <xrpld/app/main/Application.h>
 #include <xrpld/overlay/Squelch.h>
 #include <xrpld/overlay/detail/OverlayImpl.h>
 
@@ -35,6 +34,8 @@
 
 namespace xrpl {
 
+class Application;
+class Ledger;
 struct ValidatorBlobInfo;
 class SHAMap;
 class ILedgerReplayMsgHandler;
