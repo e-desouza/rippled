@@ -1,14 +1,14 @@
 #ifndef XRPL_RPC_RPCHELPERS_H_INCLUDED
 #define XRPL_RPC_RPCHELPERS_H_INCLUDED
 
-#include <xrpld/app/misc/NetworkOPs.h>
-#include <xrpld/app/txqueue/TxQ.h>
 #include <xrpld/rpc/Context.h>
 #include <xrpld/rpc/Status.h>
 #include <xrpld/rpc/detail/Tuning.h>
 
 #include <xrpl/proto/org/xrpl/rpc/v1/xrp_ledger.pb.h>
 #include <xrpl/protocol/ApiVersion.h>
+#include <xrpl/protocol/LedgerFormats.h>
+#include <xrpl/protocol/STLedgerEntry.h>
 #include <xrpl/protocol/SecretKey.h>
 
 #include <optional>

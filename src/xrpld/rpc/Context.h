@@ -1,18 +1,20 @@
 #ifndef XRPL_RPC_CONTEXT_H_INCLUDED
 #define XRPL_RPC_CONTEXT_H_INCLUDED
 
-#include <xrpld/app/misc/InfoSub.h>
 #include <xrpld/app/ledger/LedgerDataProvider.h>
 #include <xrpld/rpc/Role.h>
 
 #include <xrpl/beast/utility/Journal.h>
 #include <xrpl/core/JobQueue.h>
 
+#include <memory>
+
 namespace xrpl {
 
 class Application;
-class NetworkOPs;
+class InfoSub;
 class LedgerMaster;
+class NetworkOPs;
 
 namespace RPC {
 
@@ -28,7 +30,7 @@ struct Context
     Resource::Consumer& consumer;
     Role role;
     std::shared_ptr<JobQueue::Coro> coro{};
-    InfoSub::pointer infoSub{};
+    std::shared_ptr<InfoSub> infoSub{};
     unsigned int apiVersion;
 };
 

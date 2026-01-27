@@ -1,3 +1,4 @@
+#include <xrpld/app/ledger/Ledger.h>
 #include <xrpld/rpc/GRPCHandlers.h>
 #include <xrpld/rpc/detail/RPCLedgerHelpers.h>
 

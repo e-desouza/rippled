@@ -1,8 +1,6 @@
 #ifndef XRPL_RPC_SERVERHANDLER_H_INCLUDED
 #define XRPL_RPC_SERVERHANDLER_H_INCLUDED
 
-#include <xrpld/app/main/Application.h>
-#include <xrpld/app/main/CollectorManager.h>
 #include <xrpld/rpc/detail/WSInfoSub.h>
 
 #include <xrpl/core/JobQueue.h>
@@ -21,6 +19,10 @@
 #include <vector>
 
 namespace xrpl {
+
+class Application;
+class CollectorManager;
+class NetworkOPs;
 
 inline bool
 operator<(Port const& lhs, Port const& rhs)

@@ -1,8 +1,6 @@
 #ifndef XRPL_RPC_RPCLEDGERHELPERS_H_INCLUDED
 #define XRPL_RPC_RPCLEDGERHELPERS_H_INCLUDED
 
-#include <xrpld/app/misc/NetworkOPs.h>
-#include <xrpld/app/txqueue/TxQ.h>
 #include <xrpld/core/LedgerShortcut.h>
 #include <xrpld/rpc/Context.h>
 #include <xrpld/rpc/Status.h>
@@ -14,6 +12,7 @@
 
 namespace xrpl {
 
+class Ledger;
 class ReadView;
 class Transaction;
 

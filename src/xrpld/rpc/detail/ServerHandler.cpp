@@ -1,9 +1,10 @@
+#include <xrpld/app/ledger/LedgerDataProvider.h>
 #include <xrpld/app/ledger/LedgerMaster.h>
 #include <xrpld/app/main/Application.h>
+#include <xrpld/app/main/CollectorManager.h>
 #include <xrpld/app/misc/NetworkOPs.h>
 #include <xrpld/core/ConfigSections.h>
 #include <xrpld/overlay/Overlay.h>
-#include <xrpld/app/ledger/LedgerDataProvider.h>
 #include <xrpld/rpc/RPCHandler.h>
 #include <xrpld/rpc/Role.h>
 #include <xrpld/rpc/ServerHandler.h>

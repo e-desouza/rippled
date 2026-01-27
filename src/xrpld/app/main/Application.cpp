@@ -11,6 +11,7 @@
 #include <xrpld/app/ledger/TransactionMaster.h>
 #include <xrpld/app/main/Application.h>
 #include <xrpld/app/main/BasicApp.h>
+#include <xrpld/app/main/CollectorManager.h>
 #include <xrpld/app/main/LoadManager.h>
 #include <xrpld/app/main/NodeFamily.h>
 #include <xrpld/app/main/NodeIdentity.h>

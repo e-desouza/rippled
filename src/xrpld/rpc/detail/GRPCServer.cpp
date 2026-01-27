@@ -1,6 +1,7 @@
 #include <xrpld/app/ledger/LedgerMaster.h>
-#include <xrpld/rpc/GRPCServer.h>
+#include <xrpld/app/main/Application.h>
 #include <xrpld/core/ConfigSections.h>
+#include <xrpld/rpc/GRPCServer.h>
 
 #include <xrpl/beast/core/CurrentThreadName.h>
 #include <xrpl/beast/net/IPAddressConversion.h>
@@ -430,8 +431,8 @@ GRPCServerImpl::handleRpcs()
 
         if (!ok)
         {
-            JLOG(journal_.debug()) << "Request listener cancelled. "
-                                   << "Destroying object";
+            JLOG(journal_.debug())
+                << "Request listener cancelled. " << "Destroying object";
             erase(ptr);
         }
         else

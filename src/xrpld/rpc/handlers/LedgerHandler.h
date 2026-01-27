@@ -1,9 +1,7 @@
 #ifndef XRPL_RPC_HANDLERS_LEDGER_H_INCLUDED
 #define XRPL_RPC_HANDLERS_LEDGER_H_INCLUDED
 
-#include <xrpld/app/ledger/LedgerMaster.h>
-#include <xrpld/app/ledger/LedgerToJson.h>
-#include <xrpld/app/main/Application.h>
+#include <xrpld/app/txqueue/TxQ.h>
 #include <xrpld/rpc/Context.h>
 #include <xrpld/rpc/Role.h>
 #include <xrpld/rpc/Status.h>

@@ -1,3 +1,4 @@
+#include <xrpld/app/ledger/LedgerDataProvider.h>
 #include <xrpld/app/main/Application.h>
 #include <xrpld/app/misc/SHAMapStore.h>
 #include <xrpld/rpc/Context.h>

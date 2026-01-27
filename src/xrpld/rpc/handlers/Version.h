@@ -1,6 +1,9 @@
 #ifndef XRPL_XRPL_RPC_HANDLERS_VERSION_H
 #define XRPL_XRPL_RPC_HANDLERS_VERSION_H
 
+#include <xrpld/app/main/Application.h>
+#include <xrpld/rpc/Context.h>
+
 #include <xrpl/protocol/ApiVersion.h>
 
 namespace xrpl {

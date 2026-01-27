@@ -1,10 +1,8 @@
 #ifndef XRPL_RPC_GRPCSERVER_H_INCLUDED
 #define XRPL_RPC_GRPCSERVER_H_INCLUDED
 
-#include <xrpld/app/main/Application.h>
 #include <xrpld/rpc/Context.h>
 #include <xrpld/rpc/GRPCHandlers.h>
-#include <xrpld/app/misc/InfoSub.h>
 #include <xrpld/rpc/Role.h>
 #include <xrpld/rpc/detail/Handler.h>
 
@@ -15,6 +13,8 @@
 #include <grpcpp/grpcpp.h>
 
 namespace xrpl {
+
+class Application;
 
 // Interface that CallData implements
 class Processor
