@@ -27,6 +27,9 @@
 #include <xrpld/app/paths/PathRequests.h>
 #include <xrpld/app/rdb/RelationalDatabase.h>
 #include <xrpld/app/rdb/Wallet.h>
+#include <xrpld/app/rpc/IServerComponent.h>
+#include <xrpld/app/rpc/make_GRPCServer.h>
+#include <xrpld/app/rpc/make_ServerHandler.h>
 #include <xrpld/app/tx/apply.h>
 #include <xrpld/app/txqueue/HashRouter.h>
 #include <xrpld/app/txqueue/TxQ.h>
@@ -45,8 +48,7 @@
 #include <xrpld/overlay/detail/handlers/OverlayOpsHandler.h>
 #include <xrpld/overlay/detail/handlers/ValidatorOpsHandler.h>
 #include <xrpld/overlay/make_Overlay.h>
-#include <xrpld/rpc/GRPCServer.h>
-#include <xrpld/rpc/ServerHandler.h>
+#include <xrpld/rpc/RPCHandler.h>
 
 #include <xrpl/basics/ByteUtilities.h>
 #include <xrpl/basics/ResolverAsio.h>
@@ -56,6 +58,7 @@
 #include <xrpl/core/PerfLog.h>
 #include <xrpl/crypto/csprng.h>
 #include <xrpl/json/json_reader.h>
+#include <xrpl/json/to_string.h>
 #include <xrpl/nodestore/DummyScheduler.h>
 #include <xrpl/protocol/ApiVersion.h>
 #include <xrpl/protocol/BuildInfo.h>
@@ -63,6 +66,7 @@
 #include <xrpl/protocol/Protocol.h>
 #include <xrpl/protocol/STParsedJSON.h>
 #include <xrpl/resource/Fees.h>
+#include <xrpl/resource/ResourceManager.h>
 
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/asio/steady_timer.hpp>
@@ -198,7 +202,7 @@ public:
     std::unique_ptr<ManifestCache> publisherManifests_;
     std::unique_ptr<ValidatorList> validators_;
     std::unique_ptr<ValidatorSite> validatorSites_;
-    std::unique_ptr<ServerHandler> serverHandler_;
+    std::unique_ptr<IHTTPServer> serverHandler_;
     std::unique_ptr<AmendmentTable> m_amendmentTable;
     std::unique_ptr<LoadFeeTrack> mFeeTrack;
     std::unique_ptr<LoadFeeTrackAdapter> feeTrackAdapter_;
@@ -238,7 +242,7 @@ public:
 
     io_latency_sampler m_io_latency_sampler;
 
-    std::unique_ptr<GRPCServer> grpcServer_;
+    std::unique_ptr<IGRPCServer> grpcServer_;
 
     //--------------------------------------------------------------------------
 
@@ -430,7 +434,7 @@ public:
 
         , validatorSites_(std::make_unique<ValidatorSite>(*this))
 
-        , serverHandler_(make_ServerHandler(
+        , serverHandler_(make_HTTPServer(
               *this,
               get_io_context(),
               *m_jobQueue,
@@ -487,7 +491,7 @@ public:
               logs_->journal("Application"),
               std::chrono::milliseconds(100),
               get_io_context())
-        , grpcServer_(std::make_unique<GRPCServer>(*this))
+        , grpcServer_(make_GRPCServer(*this))
     {
         initAccountIdCache(config_->getValueFor(SizedItem::accountIdCacheSize));
 
@@ -599,7 +603,7 @@ public:
         return *m_networkOPs;
     }
 
-    virtual ServerHandler&
+    virtual IHTTPServer&
     getServerHandler() override
     {
         XRPL_ASSERT(
@@ -612,7 +616,7 @@ public:
     std::vector<Port> const&
     getServerPorts() const override
     {
-        return serverHandler_->setup().ports;
+        return serverHandler_->getPorts();
     }
 
     boost::asio::io_context&
@@ -1374,7 +1378,8 @@ ApplicationImp::setup(boost::program_options::variables_map const& cmdline)
             return false;
         }
 
-        loadManifests(*publisherManifests_, getWalletDB(), "PublisherManifests");
+        loadManifests(
+            *publisherManifests_, getWalletDB(), "PublisherManifests");
 
         // It is possible to have a valid ValidatorKeys object without
         // setting the signingKey or masterKey. This occurs if the
@@ -1455,11 +1460,11 @@ ApplicationImp::setup(boost::program_options::variables_map const& cmdline)
     {
         try
         {
-            auto setup = setup_ServerHandler(
+            auto setup = setup_ServerHandlerConfig(
                 *config_, beast::logstream{m_journal.error()});
             setup.makeContexts();
-            serverHandler_->setup(setup, m_journal);
-            fixConfigPorts(*config_, serverHandler_->endpoints());
+            setupHTTPServer(*serverHandler_, setup, m_journal);
+            fixConfigPorts(*config_, serverHandler_->getEndpoints());
         }
         catch (std::exception const& e)
         {
@@ -1745,7 +1750,7 @@ ApplicationImp::fdRequired() const
 
     // One fd per incoming connection a port can accept, or
     // if no limit is set, assume it'll handle 256 clients.
-    for (auto const& p : serverHandler_->setup().ports)
+    for (auto const& p : serverHandler_->getPorts())
         needed += std::max(256, p.limit);
 
     // The minimum number of file descriptors we need is 1024:

@@ -1,6 +1,7 @@
 #ifndef XRPL_RPC_GRPCSERVER_H_INCLUDED
 #define XRPL_RPC_GRPCSERVER_H_INCLUDED
 
+#include <xrpld/app/rpc/IServerComponent.h>
 #include <xrpld/rpc/Context.h>
 #include <xrpld/rpc/GRPCHandlers.h>
 #include <xrpld/rpc/Role.h>
@@ -277,7 +278,7 @@ private:
 
 };  // GRPCServerImpl
 
-class GRPCServer
+class GRPCServer : public IGRPCServer
 {
 public:
     explicit GRPCServer(Application& app) : impl_(app)
@@ -289,16 +290,18 @@ public:
     GRPCServer&
     operator=(GRPCServer const&) = delete;
 
+    // IGRPCServer interface
     bool
-    start();
+    start() override;
 
+    // IServerComponent interface
     void
-    stop();
+    stop() override;
 
     ~GRPCServer();
 
     boost::asio::ip::tcp::endpoint
-    getEndpoint() const;
+    getEndpoint() const override;
 
 private:
     GRPCServerImpl impl_;

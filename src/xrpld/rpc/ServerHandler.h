@@ -1,6 +1,7 @@
 #ifndef XRPL_RPC_SERVERHANDLER_H_INCLUDED
 #define XRPL_RPC_SERVERHANDLER_H_INCLUDED
 
+#include <xrpld/app/rpc/IServerComponent.h>
 #include <xrpld/rpc/detail/WSInfoSub.h>
 
 #include <xrpl/core/JobQueue.h>
@@ -30,7 +31,7 @@ operator<(Port const& lhs, Port const& rhs)
     return lhs.name < rhs.name;
 }
 
-class ServerHandler
+class ServerHandler : public IHTTPServer
 {
 public:
     struct Setup
@@ -130,8 +131,22 @@ public:
         return endpoints_;
     }
 
+    // IServerComponent interface
     void
-    stop();
+    stop() override;
+
+    // IHTTPServer interface
+    std::vector<Port> const&
+    getPorts() const override
+    {
+        return setup_.ports;
+    }
+
+    Endpoints const&
+    getEndpoints() const override
+    {
+        return endpoints_;
+    }
 
     //
     // Handler

@@ -1,6 +1,7 @@
 #ifndef XRPL_APP_MAIN_APPLICATION_H_INCLUDED
 #define XRPL_APP_MAIN_APPLICATION_H_INCLUDED
 
+#include <xrpld/app/rpc/IServerComponent.h>
 #include <xrpld/core/Config.h>
 #include <xrpld/overlay/IOverlayProvider.h>
 #include <xrpld/overlay/PeerReservationTable.h>
@@ -71,7 +72,6 @@ class Overlay;
 class PathRequests;
 class PendingSaves;
 class PublicKey;
-class ServerHandler;
 class SecretKey;
 class STLedgerEntry;
 class TimeKeeper;
@@ -207,7 +207,7 @@ public:
     getOPs() = 0;
     virtual OrderBookDB&
     getOrderBookDB() = 0;
-    virtual ServerHandler&
+    virtual IHTTPServer&
     getServerHandler() = 0;
     virtual std::vector<Port> const&
     getServerPorts() const = 0;
